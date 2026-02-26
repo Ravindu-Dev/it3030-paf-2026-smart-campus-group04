@@ -82,13 +82,17 @@ public class AuthService {
         // 3. Find existing user or create a new one
         User user = userRepository.findByProviderId(googleId)
                 .orElseGet(() -> {
-                    // First-time login — create a new user with default role
-                    logger.info("Creating new user account for: {}", email);
+                    // First-time login — create a new user
+                    // If this is the very first user in the system, make them ADMIN
+                    boolean isFirstUser = userRepository.count() == 0;
+                    Role assignedRole = isFirstUser ? Role.ADMIN : Role.USER;
+
+                    logger.info("Creating new user account for: {} (role: {})", email, assignedRole);
                     User newUser = new User();
                     newUser.setEmail(email);
                     newUser.setName(name);
                     newUser.setProfilePicture(pictureUrl);
-                    newUser.setRole(Role.USER); // Default role
+                    newUser.setRole(assignedRole);
                     newUser.setProvider("google");
                     newUser.setProviderId(googleId);
                     return userRepository.save(newUser);
