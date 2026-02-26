@@ -3,6 +3,8 @@ package com.smartcampus.exception;
 import com.smartcampus.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,7 +15,8 @@ import java.util.Map;
 
 /**
  * Global exception handler that ensures all API errors return a consistent
- * {@link ApiResponse} JSON structure.
+ * {@link ApiResponse} JSON structure, including authentication/authorization
+ * errors.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -48,6 +51,32 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * Handle authentication failures (invalid/missing JWT).
+     * Returns 401 Unauthorized.
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(
+            AuthenticationException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("Authentication required. Please log in."));
+    }
+
+    /**
+     * Handle authorization failures (insufficient permissions/role).
+     * Returns 403 Forbidden.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(
+            AccessDeniedException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error("Access denied. You don't have permission to perform this action."));
     }
 
     /**

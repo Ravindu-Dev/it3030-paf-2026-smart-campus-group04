@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8082
   servlet:
     context-path: /api
 
@@ -16,6 +16,14 @@ spring:
     user:
       name: admin
       password: admin
+
+# ─── Application-specific configuration ───────
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
 
 logging:
   level:

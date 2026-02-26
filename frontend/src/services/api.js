@@ -5,7 +5,7 @@ import axios from 'axios';
  *
  * Base URL points to the Spring Boot backend.
  * In development, Vite's proxy (see vite.config.js) forwards /api requests
- * to http://localhost:8080, so relative URLs work seamlessly.
+ * to http://localhost:8082, so relative URLs work seamlessly.
  *
  * Usage:
  *   import api from '../services/api';
