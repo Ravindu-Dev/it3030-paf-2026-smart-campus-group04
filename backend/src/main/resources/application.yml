@@ -9,7 +9,7 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://localhost:27017/smart_campus_db
+      uri: ${MONGODB_URI}
 
   # Disable Spring Security auto-config login page for REST API development
   security:
