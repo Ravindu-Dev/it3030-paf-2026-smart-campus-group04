@@ -103,7 +103,7 @@ cd backend
 mvn spring-boot:run
 ```
 
-The API will be available at: **http://localhost:8080/api**
+The API will be available at: **http://localhost:8082/api**
 
 ### 4. Run the Frontend
 

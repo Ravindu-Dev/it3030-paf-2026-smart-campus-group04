@@ -1,7 +1,17 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 
-// ─── Placeholder Page Components ─────────────────────────────────────
-// Replace these with actual page components as modules are developed.
+// ─── Layout Components ───────────────────────────────────────────────
+import Navbar from './components/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// ─── Pages ───────────────────────────────────────────────────────────
+import Login from './pages/Login';
+import Profile from './pages/Profile';
+import AdminUsers from './pages/AdminUsers';
+import Forbidden from './pages/Forbidden';
+
+// ─── Placeholder Pages (to be replaced by team members) ─────────────
 
 function Home() {
   return (
@@ -23,7 +33,7 @@ function Home() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function Dashboard() {
@@ -42,41 +52,7 @@ function Dashboard() {
         </div>
       </div>
     </div>
-  )
-}
-
-function Login() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-2xl">
-        <h2 className="text-2xl font-bold text-white text-center mb-6">Sign In</h2>
-        <form className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-            <input
-              type="email"
-              placeholder="you@university.edu"
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors cursor-pointer"
-          >
-            Sign In
-          </button>
-        </form>
-      </div>
-    </div>
-  )
+  );
 }
 
 function NotFound() {
@@ -90,20 +66,68 @@ function NotFound() {
         </a>
       </div>
     </div>
-  )
+  );
 }
 
 // ─── App Router ──────────────────────────────────────────────────────
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  )
+    <>
+      {/* Toast notifications */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#1e293b',
+            color: '#f1f5f9',
+            border: '1px solid #334155',
+          },
+          success: {
+            iconTheme: { primary: '#3b82f6', secondary: '#1e293b' },
+          },
+          error: {
+            iconTheme: { primary: '#ef4444', secondary: '#1e293b' },
+          },
+        }}
+      />
+
+      {/* Global Navbar */}
+      <Navbar />
+
+      {/* Routes */}
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forbidden" element={<Forbidden />} />
+
+        {/* Protected routes — requires authentication */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
+
+        {/* Admin-only routes */}
+        <Route path="/admin/users" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <AdminUsers />
+          </ProtectedRoute>
+        } />
+
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
 }
 
-export default App
+export default App;
