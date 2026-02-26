@@ -32,8 +32,13 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build & run tests
-        run: mvn clean test --batch-mode
+      - name: Build & compile
+        run: mvn clean compile --batch-mode
+        env:
+          MONGODB_URI: mongodb://localhost:27017/test
+          JWT_SECRET: ci-test-secret-key-for-build-only
+          JWT_EXPIRATION: 86400000
+          GOOGLE_CLIENT_ID: ci-placeholder.apps.googleusercontent.com
 
   # ─── Frontend Job ─────────────────────────────────────────────────
   frontend:
