@@ -1,0 +1,23 @@
+# === Build output ===
+target/
+
+# === IDE files ===
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+
+# === OS files ===
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+*.log
+
+# === Maven wrapper ===
+!.mvn/wrapper/maven-wrapper.jar

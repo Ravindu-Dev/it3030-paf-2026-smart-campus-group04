@@ -1,0 +1,23 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: smart-campus-backend
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/smart_campus_db
+
+  # Disable Spring Security auto-config login page for REST API development
+  security:
+    user:
+      name: admin
+      password: admin
+
+logging:
+  level:
+    root: INFO
+    com.smartcampus: DEBUG
