@@ -12,6 +12,9 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import AdminUsers from './pages/AdminUsers';
 import Forbidden from './pages/Forbidden';
+import Facilities from './pages/Facilities';
+import FacilityDetail from './pages/FacilityDetail';
+import ManageFacilities from './pages/ManageFacilities';
 
 // ─── Landing Page ────────────────────────────────────────────────────
 
@@ -152,7 +155,24 @@ function App() {
           </ProtectedRoute>
         } />
 
+        {/* Facilities routes */}
+        <Route path="/facilities" element={
+          <ProtectedRoute>
+            <Facilities />
+          </ProtectedRoute>
+        } />
+        <Route path="/facilities/:id" element={
+          <ProtectedRoute>
+            <FacilityDetail />
+          </ProtectedRoute>
+        } />
+
         {/* Admin-only routes */}
+        <Route path="/admin/facilities" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <ManageFacilities />
+          </ProtectedRoute>
+        } />
         <Route path="/admin/users" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <AdminUsers />
