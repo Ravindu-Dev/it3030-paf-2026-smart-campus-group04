@@ -35,94 +35,94 @@ import java.util.List;
 @RequestMapping("/facilities")
 public class FacilityController {
 
-    private final FacilityService facilityService;
+        private final FacilityService facilityService;
 
-    public FacilityController(FacilityService facilityService) {
-        this.facilityService = facilityService;
-    }
+        public FacilityController(FacilityService facilityService) {
+                this.facilityService = facilityService;
+        }
 
-    /**
-     * GET /api/facilities — List all facilities with optional filters.
-     *
-     * Query parameters (all optional):
-     * ?type=LAB
-     * ?status=ACTIVE
-     * ?location=Building A
-     * ?minCapacity=50
-     * ?search=Room
-     */
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<FacilityDto>>> getAllFacilities(
-            @RequestParam(required = false) FacilityType type,
-            @RequestParam(required = false) FacilityStatus status,
-            @RequestParam(required = false) String location,
-            @RequestParam(required = false) Integer minCapacity,
-            @RequestParam(required = false) String search) {
+        /**
+         * GET /api/facilities — List all facilities with optional filters.
+         *
+         * Query parameters (all optional):
+         * ?type=LAB
+         * ?status=ACTIVE
+         * ?location=Building A
+         * ?minCapacity=50
+         * ?search=Room
+         */
+        @GetMapping
+        public ResponseEntity<ApiResponse<List<FacilityDto>>> getAllFacilities(
+                        @RequestParam(name = "type", required = false) FacilityType type,
+                        @RequestParam(name = "status", required = false) FacilityStatus status,
+                        @RequestParam(name = "location", required = false) String location,
+                        @RequestParam(name = "minCapacity", required = false) Integer minCapacity,
+                        @RequestParam(name = "search", required = false) String search) {
 
-        List<FacilityDto> facilities = facilityService.getAllFacilities(
-                type, status, location, minCapacity, search);
+                List<FacilityDto> facilities = facilityService.getAllFacilities(
+                                type, status, location, minCapacity, search);
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Facilities retrieved successfully", facilities));
-    }
+                return ResponseEntity.ok(
+                                ApiResponse.success("Facilities retrieved successfully", facilities));
+        }
 
-    /**
-     * GET /api/facilities/{id} — Get a single facility by ID.
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<FacilityDto>> getFacilityById(@PathVariable String id) {
+        /**
+         * GET /api/facilities/{id} — Get a single facility by ID.
+         */
+        @GetMapping("/{id}")
+        public ResponseEntity<ApiResponse<FacilityDto>> getFacilityById(@PathVariable(name = "id") String id) {
 
-        FacilityDto facility = facilityService.getFacilityById(id);
+                FacilityDto facility = facilityService.getFacilityById(id);
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Facility retrieved successfully", facility));
-    }
+                return ResponseEntity.ok(
+                                ApiResponse.success("Facility retrieved successfully", facility));
+        }
 
-    /**
-     * POST /api/facilities — Create a new facility.
-     * Restricted to ADMIN role.
-     */
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<FacilityDto>> createFacility(
-            @Valid @RequestBody CreateFacilityRequest request,
-            Authentication authentication) {
+        /**
+         * POST /api/facilities — Create a new facility.
+         * Restricted to ADMIN role.
+         */
+        @PostMapping
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<ApiResponse<FacilityDto>> createFacility(
+                        @Valid @RequestBody CreateFacilityRequest request,
+                        Authentication authentication) {
 
-        String userId = authentication.getName();
-        FacilityDto created = facilityService.createFacility(request, userId);
+                String userId = authentication.getName();
+                FacilityDto created = facilityService.createFacility(request, userId);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Facility created successfully", created));
-    }
+                return ResponseEntity
+                                .status(HttpStatus.CREATED)
+                                .body(ApiResponse.success("Facility created successfully", created));
+        }
 
-    /**
-     * PUT /api/facilities/{id} — Update an existing facility.
-     * Restricted to ADMIN role.
-     */
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<FacilityDto>> updateFacility(
-            @PathVariable String id,
-            @Valid @RequestBody UpdateFacilityRequest request) {
+        /**
+         * PUT /api/facilities/{id} — Update an existing facility.
+         * Restricted to ADMIN role.
+         */
+        @PutMapping("/{id}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<ApiResponse<FacilityDto>> updateFacility(
+                        @PathVariable(name = "id") String id,
+                        @Valid @RequestBody UpdateFacilityRequest request) {
 
-        FacilityDto updated = facilityService.updateFacility(id, request);
+                FacilityDto updated = facilityService.updateFacility(id, request);
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Facility updated successfully", updated));
-    }
+                return ResponseEntity.ok(
+                                ApiResponse.success("Facility updated successfully", updated));
+        }
 
-    /**
-     * DELETE /api/facilities/{id} — Delete a facility.
-     * Restricted to ADMIN role.
-     */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteFacility(@PathVariable String id) {
+        /**
+         * DELETE /api/facilities/{id} — Delete a facility.
+         * Restricted to ADMIN role.
+         */
+        @DeleteMapping("/{id}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<ApiResponse<Void>> deleteFacility(@PathVariable(name = "id") String id) {
 
-        facilityService.deleteFacility(id);
+                facilityService.deleteFacility(id);
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Facility deleted successfully"));
-    }
+                return ResponseEntity.ok(
+                                ApiResponse.success("Facility deleted successfully"));
+        }
 }
