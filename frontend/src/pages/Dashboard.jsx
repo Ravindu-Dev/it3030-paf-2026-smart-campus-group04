@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import Facilities from './Facilities';
+import ManageFacilities from './ManageFacilities';
+import ManageBookings from './ManageBookings';
+import AdminUsers from './AdminUsers';
 
 /**
  * Dashboard — The main hub for the Smart Campus Operations Hub.
@@ -13,6 +17,7 @@ export default function Dashboard() {
     const { user } = useAuth();
     const [stats, setStats] = useState({ totalUsers: 0, admins: 0, managers: 0, technicians: 0 });
     const [isLoading, setIsLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('overview'); // overview, facilities, manage-facilities, manage-bookings, users
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -134,145 +139,135 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                {/* ── Quick Actions ─────────────────────────────────── */}
-                <div className="mb-8">
-                    <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
-                    <div className="flex flex-wrap gap-3">
-                        <Link
-                            to="/profile"
-                            className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-xl text-slate-300 hover:text-white text-sm font-medium transition-all"
-                        >
-                            <span>👤</span> My Profile
-                        </Link>
-                        {user?.role === 'ADMIN' && (
-                            <Link
-                                to="/admin/users"
-                                className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-xl text-slate-300 hover:text-white text-sm font-medium transition-all"
+                {/* ── Admin Tab Navigation ─────────────────────────── */}
+                {user?.role === 'ADMIN' && (
+                    <div className="flex gap-1 bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-xl p-1.5 mb-8 overflow-x-auto">
+                        {[
+                            { id: 'overview', label: 'Overview', icon: '📊' },
+                            { id: 'facilities', label: 'Facilities', icon: '🏫' },
+                            { id: 'manage-facilities', label: 'Manage Facilities', icon: '🏗️' },
+                            { id: 'manage-bookings', label: 'Manage Bookings', icon: '📅' },
+                            { id: 'users', label: 'Users', icon: '👥' },
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${
+                                    activeTab === tab.id
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                        : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                                }`}
                             >
-                                <span>⚙️</span> Manage Users
-                            </Link>
-                        )}
-                        <button
-                            className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-xl text-slate-300 hover:text-white text-sm font-medium transition-all cursor-pointer"
-                        >
-                            <span>📊</span> View Reports
-                        </button>
-                        <button
-                            className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-xl text-slate-300 hover:text-white text-sm font-medium transition-all cursor-pointer"
-                        >
-                            <span>📝</span> Submit Request
-                        </button>
+                                <span>{tab.icon}</span> {tab.label}
+                            </button>
+                        ))}
                     </div>
-                </div>
+                )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                    {/* ── Campus Modules (Main Content) ─────────────── */}
-                    <div className="lg:col-span-2">
-                        <h2 className="text-lg font-semibold text-white mb-4">Campus Operations Modules</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {modules.map((mod) => (
-                                <div
-                                    key={mod.name}
-                                    className={`group relative bg-slate-800/60 backdrop-blur-sm border ${mod.borderColor} rounded-2xl p-6 hover:scale-[1.02] transition-all duration-300 overflow-hidden cursor-pointer`}
-                                >
-                                    {/* Gradient top accent bar */}
-                                    <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${mod.color}`}></div>
-
-                                    <div className="flex items-start justify-between mb-3">
-                                        <span className="text-3xl">{mod.icon}</span>
-                                        <span className="px-2 py-0.5 bg-slate-700/80 text-slate-400 text-xs rounded-full">
-                                            {mod.status}
-                                        </span>
-                                    </div>
-                                    <h3 className="text-white font-semibold mb-1 group-hover:text-blue-400 transition-colors">
-                                        {mod.name}
-                                    </h3>
-                                    <p className="text-slate-400 text-sm leading-relaxed">
-                                        {mod.description}
-                                    </p>
+                {/* ── Tab Content ──────────────────────────────────── */}
+                <div className="min-h-[400px]">
+                    {activeTab === 'overview' ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* ── Campus Modules (Main Content) ─────────────── */}
+                            <div className="lg:col-span-2">
+                                <h2 className="text-lg font-semibold text-white mb-4">Campus Operations Modules</h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {modules.map((mod) => (
+                                        <Link
+                                            key={mod.name}
+                                            to={mod.name === 'Resource Booking' ? '/facilities' : '#'}
+                                            className={`group relative bg-slate-800/60 backdrop-blur-sm border ${mod.borderColor} rounded-2xl p-6 hover:scale-[1.02] transition-all duration-300 overflow-hidden cursor-pointer block`}
+                                        >
+                                            <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${mod.color}`}></div>
+                                            <div className="flex items-start justify-between mb-3">
+                                                <span className="text-3xl">{mod.icon}</span>
+                                                <span className="px-2 py-0.5 bg-slate-700/80 text-slate-400 text-xs rounded-full">
+                                                    {mod.status}
+                                                </span>
+                                            </div>
+                                            <h3 className="text-white font-semibold mb-1 group-hover:text-blue-400 transition-colors">
+                                                {mod.name}
+                                            </h3>
+                                            <p className="text-slate-400 text-sm leading-relaxed">
+                                                {mod.description}
+                                            </p>
+                                        </Link>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                            </div>
 
-                    {/* ── Sidebar ───────────────────────────────────── */}
-                    <div className="space-y-6">
+                            {/* ── Sidebar ───────────────────────────────────── */}
+                            <div className="space-y-6">
+                                {/* System Status */}
+                                <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
+                                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                                        <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                                        System Status
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {systemStatus.map((item) => (
+                                            <div key={item.name} className="flex items-center justify-between">
+                                                <span className="text-slate-400 text-sm">{item.name}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`w-1.5 h-1.5 ${item.color} rounded-full`}></span>
+                                                    <span className="text-emerald-400 text-xs font-medium">{item.status}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
 
-                        {/* System Status */}
-                        <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
-                            <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                                System Status
-                            </h3>
-                            <div className="space-y-3">
-                                {systemStatus.map((item) => (
-                                    <div key={item.name} className="flex items-center justify-between">
-                                        <span className="text-slate-400 text-sm">{item.name}</span>
-                                        <div className="flex items-center gap-2">
-                                            <span className={`w-1.5 h-1.5 ${item.color} rounded-full`}></span>
-                                            <span className="text-emerald-400 text-xs font-medium">{item.status}</span>
+                                {/* User Info Card */}
+                                <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
+                                    <h3 className="text-white font-semibold mb-4">Your Profile</h3>
+                                    <div className="flex items-center gap-4 mb-4">
+                                        {user?.profilePicture ? (
+                                            <img
+                                                src={user.profilePicture}
+                                                alt={user.name}
+                                                className="w-14 h-14 rounded-full border-2 border-blue-500/30"
+                                                referrerPolicy="no-referrer"
+                                            />
+                                        ) : (
+                                            <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold">
+                                                {user?.name?.charAt(0)?.toUpperCase() || '?'}
+                                            </div>
+                                        )}
+                                        <div>
+                                            <p className="text-white font-medium">{user?.name}</p>
+                                            <p className="text-slate-400 text-sm">{user?.email}</p>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* User Info Card */}
-                        <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
-                            <h3 className="text-white font-semibold mb-4">Your Profile</h3>
-                            <div className="flex items-center gap-4 mb-4">
-                                {user?.profilePicture ? (
-                                    <img
-                                        src={user.profilePicture}
-                                        alt={user.name}
-                                        className="w-14 h-14 rounded-full border-2 border-blue-500/30"
-                                        referrerPolicy="no-referrer"
-                                    />
-                                ) : (
-                                    <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold">
-                                        {user?.name?.charAt(0)?.toUpperCase() || '?'}
+                                    <div className="flex items-center justify-between py-2 border-t border-slate-700">
+                                        <span className="text-slate-400 text-sm">Role</span>
+                                        <span className="px-3 py-1 bg-blue-600/20 text-blue-400 text-xs font-medium rounded-full border border-blue-500/30">
+                                            {user?.role}
+                                        </span>
                                     </div>
-                                )}
-                                <div>
-                                    <p className="text-white font-medium">{user?.name}</p>
-                                    <p className="text-slate-400 text-sm">{user?.email}</p>
+                                    <div className="flex items-center justify-between py-2 border-t border-slate-700">
+                                        <span className="text-slate-400 text-sm">Provider</span>
+                                        <span className="text-slate-300 text-sm capitalize">{user?.provider}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between py-2 border-t border-slate-700">
-                                <span className="text-slate-400 text-sm">Role</span>
-                                <span className="px-3 py-1 bg-blue-600/20 text-blue-400 text-xs font-medium rounded-full border border-blue-500/30">
-                                    {user?.role}
-                                </span>
-                            </div>
-                            <div className="flex items-center justify-between py-2 border-t border-slate-700">
-                                <span className="text-slate-400 text-sm">Provider</span>
-                                <span className="text-slate-300 text-sm capitalize">{user?.provider}</span>
-                            </div>
                         </div>
-
-                        {/* Recent Activity */}
-                        <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
-                            <h3 className="text-white font-semibold mb-4">Recent Activity</h3>
-                            <div className="space-y-4">
-                                <ActivityItem
-                                    icon="🔑"
-                                    text="Logged in via Google"
-                                    time="Just now"
-                                />
-                                <ActivityItem
-                                    icon="✅"
-                                    text="Account created"
-                                    time="Today"
-                                />
-                                <ActivityItem
-                                    icon="📧"
-                                    text="Email verified"
-                                    time="Today"
-                                />
-                            </div>
+                    ) : activeTab === 'facilities' ? (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <Facilities standalone={true} />
                         </div>
-                    </div>
+                    ) : activeTab === 'manage-facilities' ? (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <ManageFacilities standalone={true} />
+                        </div>
+                    ) : activeTab === 'manage-bookings' ? (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <ManageBookings standalone={true} />
+                        </div>
+                    ) : activeTab === 'users' ? (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <AdminUsers standalone={true} />
+                        </div>
+                    ) : null}
                 </div>
             </div>
         </div>
