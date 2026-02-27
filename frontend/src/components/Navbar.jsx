@@ -43,10 +43,14 @@ export default function Navbar() {
                                 {/* Nav Links */}
                                 <NavLink to="/dashboard" label="Dashboard" active={isActive('/dashboard')} />
                                 <NavLink to="/facilities" label="Facilities" active={isActive('/facilities')} />
+                                {user?.role !== 'ADMIN' && (
+                                    <NavLink to="/bookings" label="My Bookings" active={isActive('/bookings')} />
+                                )}
 
                                 {user?.role === 'ADMIN' && (
                                     <>
                                         <NavLink to="/admin/facilities" label="Manage Facilities" active={isActive('/admin/facilities')} />
+                                        <NavLink to="/admin/bookings" label="Manage Bookings" active={isActive('/admin/bookings')} />
                                         <NavLink to="/admin/users" label="Users" active={isActive('/admin/users')} />
                                     </>
                                 )}
