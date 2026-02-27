@@ -42,9 +42,11 @@ export default function Navbar() {
                             <>
                                 {/* Nav Links */}
                                 <NavLink to="/dashboard" label="Dashboard" active={isActive('/dashboard')} />
+                                <NavLink to="/facilities" label="Facilities" active={isActive('/facilities')} />
 
                                 {user?.role === 'ADMIN' && (
                                     <>
+                                        <NavLink to="/admin/facilities" label="Manage Facilities" active={isActive('/admin/facilities')} />
                                         <NavLink to="/admin/users" label="Users" active={isActive('/admin/users')} />
                                     </>
                                 )}
@@ -56,8 +58,8 @@ export default function Navbar() {
                                 <Link
                                     to="/profile"
                                     className={`flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all ${isActive('/profile')
-                                            ? 'bg-slate-700/80'
-                                            : 'hover:bg-slate-700/40'
+                                        ? 'bg-slate-700/80'
+                                        : 'hover:bg-slate-700/40'
                                         }`}
                                 >
                                     {user?.profilePicture ? (
@@ -115,8 +117,8 @@ function NavLink({ to, label, active }) {
         <Link
             to={to}
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${active
-                    ? 'bg-slate-700/80 text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/40'
+                ? 'bg-slate-700/80 text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-700/40'
                 }`}
         >
             {label}
