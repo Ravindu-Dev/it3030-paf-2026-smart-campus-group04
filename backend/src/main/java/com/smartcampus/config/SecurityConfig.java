@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 
 import java.util.List;
 
@@ -60,6 +61,7 @@ public class SecurityConfig {
                         // Public endpoints — no JWT required
                         // Note: context-path is /api, so Spring Security paths are relative to it
                         .requestMatchers("/auth/google").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/facilities", "/facilities/**").permitAll()
 
                         // Everything else requires authentication
                         .anyRequest().authenticated())
