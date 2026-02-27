@@ -41,10 +41,6 @@ export default function Navbar() {
                         {isAuthenticated ? (
                             <>
                                 {/* Nav Links */}
-                                <NavLink to="/dashboard" label="Dashboard" active={isActive('/dashboard')} />
-                                {user?.role !== 'ADMIN' && (
-                                    <NavLink to="/bookings" label="My Bookings" active={isActive('/bookings')} />
-                                )}
 
                                 {/* Divider */}
                                 <div className="w-px h-6 bg-slate-700 mx-2 hidden sm:block"></div>
