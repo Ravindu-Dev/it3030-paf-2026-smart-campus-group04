@@ -191,6 +191,24 @@ export default function FacilityDetail() {
                             </div>
                         )}
 
+                        {/* User booking action */}
+                        {user?.role !== 'ADMIN' && isActive && (
+                            <div className="pt-2">
+                                <Link
+                                    to={`/bookings/new?facilityId=${facility.id}`}
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    Book This Resource
+                                </Link>
+                            </div>
+                        )}
+
                         {/* Admin actions */}
                         {user?.role === 'ADMIN' && (
                             <div className="pt-2">
