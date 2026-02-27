@@ -19,6 +19,12 @@ import MyBookings from './pages/MyBookings';
 import BookingForm from './pages/BookingForm';
 import BookingDetail from './pages/BookingDetail';
 import ManageBookings from './pages/ManageBookings';
+import MyTickets from './pages/MyTickets';
+import CreateTicket from './pages/CreateTicket';
+import TicketDetail from './pages/TicketDetail';
+import ManageTickets from './pages/ManageTickets';
+import TechnicianDashboard from './pages/TechnicianDashboard';
+import ManagerDashboard from './pages/ManagerDashboard';
 
 // ─── Landing Page ────────────────────────────────────────────────────
 
@@ -202,6 +208,44 @@ function App() {
         <Route path="/admin/users" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <AdminUsers />
+          </ProtectedRoute>
+        } />
+
+        {/* Ticket routes */}
+        <Route path="/tickets" element={
+          <ProtectedRoute>
+            <MyTickets />
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets/new" element={
+          <ProtectedRoute>
+            <CreateTicket />
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets/:id" element={
+          <ProtectedRoute>
+            <TicketDetail />
+          </ProtectedRoute>
+        } />
+
+        {/* Admin ticket management */}
+        <Route path="/admin/tickets" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <ManageTickets />
+          </ProtectedRoute>
+        } />
+
+        {/* Manager dashboard */}
+        <Route path="/manager/tickets" element={
+          <ProtectedRoute allowedRoles={['MANAGER']}>
+            <ManagerDashboard />
+          </ProtectedRoute>
+        } />
+
+        {/* Technician dashboard */}
+        <Route path="/technician/dashboard" element={
+          <ProtectedRoute allowedRoles={['TECHNICIAN']}>
+            <TechnicianDashboard />
           </ProtectedRoute>
         } />
 

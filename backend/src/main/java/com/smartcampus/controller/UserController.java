@@ -58,6 +58,21 @@ public class UserController {
     }
 
     /**
+     * GET /api/users/technicians — Get all users with TECHNICIAN role.
+     *
+     * Used for technician assignment in maintenance tickets.
+     * Accessible by ADMIN and MANAGER roles.
+     */
+    @GetMapping("/technicians")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<ApiResponse<List<UserDto>>> getTechnicians() {
+        List<UserDto> technicians = userService.getAllUsers(Role.TECHNICIAN);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Technicians retrieved successfully", technicians));
+    }
+
+    /**
      * PUT /api/users/{id}/role — Update a user's role.
      *
      * Restricted to ADMIN role.
