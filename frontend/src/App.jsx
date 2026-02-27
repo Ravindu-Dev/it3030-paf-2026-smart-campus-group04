@@ -15,6 +15,10 @@ import Forbidden from './pages/Forbidden';
 import Facilities from './pages/Facilities';
 import FacilityDetail from './pages/FacilityDetail';
 import ManageFacilities from './pages/ManageFacilities';
+import MyBookings from './pages/MyBookings';
+import BookingForm from './pages/BookingForm';
+import BookingDetail from './pages/BookingDetail';
+import ManageBookings from './pages/ManageBookings';
 
 // ─── Landing Page ────────────────────────────────────────────────────
 
@@ -167,10 +171,32 @@ function App() {
           </ProtectedRoute>
         } />
 
+        {/* Booking routes */}
+        <Route path="/bookings" element={
+          <ProtectedRoute>
+            <MyBookings />
+          </ProtectedRoute>
+        } />
+        <Route path="/bookings/new" element={
+          <ProtectedRoute>
+            <BookingForm />
+          </ProtectedRoute>
+        } />
+        <Route path="/bookings/:id" element={
+          <ProtectedRoute>
+            <BookingDetail />
+          </ProtectedRoute>
+        } />
+
         {/* Admin-only routes */}
         <Route path="/admin/facilities" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <ManageFacilities />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/bookings" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <ManageBookings />
           </ProtectedRoute>
         } />
         <Route path="/admin/users" element={
