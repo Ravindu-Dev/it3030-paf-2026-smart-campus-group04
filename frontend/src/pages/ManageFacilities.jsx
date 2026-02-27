@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllFacilities, createFacility, updateFacility, deleteFacility } from '../services/facilityService';
+import { uploadImage } from '../services/imageService';
 import toast from 'react-hot-toast';
 
 const TYPE_OPTIONS = [
@@ -41,6 +42,9 @@ export default function ManageFacilities() {
     const [form, setForm] = useState({ ...emptyForm });
     const [submitting, setSubmitting] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [imagePreview, setImagePreview] = useState('');
+    const fileInputRef = useRef(null);
 
     const fetchFacilities = async () => {
         try {
@@ -63,6 +67,7 @@ export default function ManageFacilities() {
     const openCreateModal = () => {
         setEditing(null);
         setForm({ ...emptyForm });
+        setImagePreview('');
         setShowModal(true);
     };
 
@@ -77,6 +82,7 @@ export default function ManageFacilities() {
             imageUrl: facility.imageUrl || '',
             availabilityWindows: facility.availabilityWindows || [],
         });
+        setImagePreview(facility.imageUrl || '');
         setShowModal(true);
     };
 
@@ -84,6 +90,51 @@ export default function ManageFacilities() {
         setShowModal(false);
         setEditing(null);
         setForm({ ...emptyForm });
+        setImagePreview('');
+    };
+
+    // ─── Image upload ────────────────────────────────────────────────
+
+    const handleImageUpload = async (file) => {
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please select an image file');
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('Image must be less than 10MB');
+            return;
+        }
+
+        try {
+            setUploading(true);
+            const url = await uploadImage(file);
+            setForm(prev => ({ ...prev, imageUrl: url }));
+            setImagePreview(url);
+            toast.success('Image uploaded!');
+        } catch (err) {
+            console.error('Upload failed:', err);
+            toast.error('Failed to upload image');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleFileDrop = (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        handleImageUpload(file);
+    };
+
+    const handleFileSelect = (e) => {
+        const file = e.target.files[0];
+        handleImageUpload(file);
+    };
+
+    const removeImage = () => {
+        setForm(prev => ({ ...prev, imageUrl: '' }));
+        setImagePreview('');
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     // ─── Form handlers ──────────────────────────────────────────────
@@ -249,8 +300,8 @@ export default function ManageFacilities() {
                                                 <button
                                                     onClick={() => toggleStatus(f)}
                                                     className={`px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all ${f.status === 'ACTIVE'
-                                                            ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
-                                                            : 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
+                                                        ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
+                                                        : 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
                                                         }`}
                                                 >
                                                     {f.status === 'ACTIVE' ? 'Active' : 'Out of Service'}
@@ -391,15 +442,61 @@ export default function ManageFacilities() {
                                     </div>
                                 </div>
 
-                                {/* Image URL */}
+                                {/* Image Upload */}
                                 <div>
-                                    <label className="block text-slate-400 text-sm font-medium mb-1.5">Image URL</label>
+                                    <label className="block text-slate-400 text-sm font-medium mb-1.5">Facility Image</label>
+                                    {imagePreview ? (
+                                        <div className="relative group">
+                                            <img
+                                                src={imagePreview}
+                                                alt="Preview"
+                                                className="w-full h-40 object-cover rounded-xl border border-slate-600/50"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={removeImage}
+                                                className="absolute top-2 right-2 p-1.5 bg-red-600/90 hover:bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M18 6 6 18" />
+                                                    <path d="m6 6 12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            onDrop={handleFileDrop}
+                                            onDragOver={(e) => e.preventDefault()}
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className={`w-full h-36 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${uploading
+                                                    ? 'border-blue-500/50 bg-blue-500/5'
+                                                    : 'border-slate-600/50 hover:border-blue-500/40 hover:bg-slate-700/30'
+                                                }`}
+                                        >
+                                            {uploading ? (
+                                                <>
+                                                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                                    <span className="text-blue-400 text-xs font-medium">Uploading...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg className="text-slate-500" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                        <polyline points="17 8 12 3 7 8" />
+                                                        <line x1="12" x2="12" y1="3" y2="15" />
+                                                    </svg>
+                                                    <span className="text-slate-500 text-xs">Drag & drop or click to upload</span>
+                                                    <span className="text-slate-600 text-[10px]">PNG, JPG up to 10MB</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
                                     <input
-                                        name="imageUrl"
-                                        value={form.imageUrl}
-                                        onChange={handleChange}
-                                        placeholder="https://..."
-                                        className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFileSelect}
+                                        className="hidden"
                                     />
                                 </div>
 
