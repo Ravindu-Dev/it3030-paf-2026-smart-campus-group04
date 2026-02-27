@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
  * - Searchable, filterable user table
  * - Inline role editing with visual feedback
  */
-export default function AdminUsers() {
+export default function AdminUsers({ standalone = false }) {
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [roleFilter, setRoleFilter] = useState('');
@@ -82,18 +82,20 @@ export default function AdminUsers() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-900">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className={standalone ? "" : "min-h-screen bg-slate-900"}>
+            <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${standalone ? "py-0" : "py-8"}`}>
 
                 {/* ── Header ───────────────────────────────────────── */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-white">
-                        User Management <span className="text-blue-400">Panel</span>
-                    </h1>
-                    <p className="text-slate-400 mt-1">
-                        Manage user accounts, roles, and permissions across the campus.
-                    </p>
-                </div>
+                {!standalone && (
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold text-white">
+                            User Management <span className="text-blue-400">Panel</span>
+                        </h1>
+                        <p className="text-slate-400 mt-1">
+                            Manage user accounts, roles, and permissions across the campus.
+                        </p>
+                    </div>
+                )}
 
                 {/* ── Role Distribution Cards ──────────────────────── */}
                 {!isLoading && (

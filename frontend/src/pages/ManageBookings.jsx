@@ -23,7 +23,7 @@ const STATUS_STYLES = {
 
 // ─── Main Page ───────────────────────────────────────────────────────
 
-export default function ManageBookings() {
+export default function ManageBookings({ standalone = false }) {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('');
@@ -132,19 +132,23 @@ export default function ManageBookings() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className={standalone ? "" : "min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"}>
             {/* Background decoration */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl"></div>
-                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl"></div>
-            </div>
-
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-white">Manage Bookings</h1>
-                    <p className="text-slate-400 mt-1">Review and manage all booking requests</p>
+            {!standalone && (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl"></div>
+                    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl"></div>
                 </div>
+            )}
+
+            <div className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${standalone ? "py-0" : "py-8"}`}>
+                {/* Header */}
+                {!standalone && (
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold text-white">Manage Bookings</h1>
+                        <p className="text-slate-400 mt-1">Review and manage all booking requests</p>
+                    </div>
+                )}
 
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-6">

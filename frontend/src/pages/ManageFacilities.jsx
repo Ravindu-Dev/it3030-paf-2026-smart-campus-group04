@@ -34,7 +34,7 @@ const emptyForm = {
     availabilityWindows: [],
 };
 
-export default function ManageFacilities() {
+export default function ManageFacilities({ standalone = false }) {
     const [facilities, setFacilities] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -224,10 +224,11 @@ export default function ManageFacilities() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className={standalone ? "" : "min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"}>
+            <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${standalone ? "py-0" : "py-8"}`}>
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                {!standalone && (
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                     <div>
                         <div className="flex items-center gap-3 mb-1">
                             <Link to="/facilities" className="text-slate-400 hover:text-white transition-colors">
@@ -250,7 +251,8 @@ export default function ManageFacilities() {
                         </svg>
                         Add Facility
                     </button>
-                </div>
+                    </div>
+                )}
 
                 {/* Table */}
                 {loading ? (
