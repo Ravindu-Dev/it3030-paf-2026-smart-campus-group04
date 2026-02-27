@@ -52,7 +52,15 @@ export default function Dashboard() {
             description: 'Book classrooms, labs, and meeting rooms across campus.',
             color: 'from-blue-600 to-blue-800',
             borderColor: 'border-blue-500/30',
-            status: 'Coming Soon',
+            status: 'Available',
+        },
+        {
+            icon: '📅',
+            name: 'My Bookings',
+            description: 'View and manage your personal resource booking requests.',
+            color: 'from-indigo-600 to-indigo-800',
+            borderColor: 'border-indigo-500/30',
+            status: 'Active',
         },
         {
             icon: '🔧',
@@ -175,7 +183,7 @@ export default function Dashboard() {
                                     {modules.map((mod) => (
                                         <Link
                                             key={mod.name}
-                                            to={mod.name === 'Resource Booking' ? '/facilities' : '#'}
+                                            to={mod.name === 'Resource Booking' ? '/facilities' : mod.name === 'My Bookings' ? '/bookings' : '#'}
                                             className={`group relative bg-slate-800/60 backdrop-blur-sm border ${mod.borderColor} rounded-2xl p-6 hover:scale-[1.02] transition-all duration-300 overflow-hidden cursor-pointer block`}
                                         >
                                             <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${mod.color}`}></div>
