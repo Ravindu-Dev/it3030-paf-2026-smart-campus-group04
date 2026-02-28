@@ -74,7 +74,7 @@ public class AuthController {
             @AuthenticationPrincipal User user,
             @Valid @RequestBody UpdateProfileRequest request) {
 
-        UserDto updatedUser = authService.updateProfile(user, request.getName());
+        UserDto updatedUser = authService.updateProfile(user, request.getName(), request.getPhoneNumber());
 
         return ResponseEntity.ok(
                 ApiResponse.success("Profile updated successfully", updatedUser));

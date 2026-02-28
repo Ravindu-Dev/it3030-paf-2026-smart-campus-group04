@@ -10,17 +10,20 @@ export default function Login() {
     const { login, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
-    // If already logged in, redirect to dashboard
+    // If already logged in, redirect to home
     if (isAuthenticated) {
-        navigate('/dashboard', { replace: true });
+        navigate('/', { replace: true });
         return null;
     }
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
-            await login(credentialResponse.credential);
+            const { user } = await login(credentialResponse.credential);
             toast.success('Welcome to Smart Campus!');
-            navigate('/dashboard', { replace: true });
+
+            // Redirect based on role
+            const isPrivileged = ['ADMIN', 'MANAGER', 'TECHNICIAN'].includes(user?.role);
+            navigate(isPrivileged ? '/dashboard' : '/', { replace: true });
         } catch (error) {
             console.error('Login failed:', error);
             const message = error.response?.data?.message || 'Login failed. Please try again.';

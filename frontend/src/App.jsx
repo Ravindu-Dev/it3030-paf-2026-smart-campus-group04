@@ -94,13 +94,13 @@ function App() {
 
           {/* Protected routes — requires authentication */}
           <Route path="/dashboard" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'TECHNICIAN']}>
               <Dashboard />
             </ProtectedRoute>
           } />
 
           <Route path="/profile" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['USER']}>
               <Profile />
             </ProtectedRoute>
           } />

@@ -19,6 +19,7 @@ public class UserDto {
     private String name;
     private String profilePicture;
     private Role role;
+    private String phoneNumber;
     private String provider;
     private String createdAt;
 }
