@@ -37,10 +37,10 @@ export default function Home() {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         {isAuthenticated ? (
                             <Link
-                                to="/dashboard"
+                                to="/profile"
                                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl text-lg font-medium transition-all shadow-xl shadow-blue-600/20 hover:shadow-blue-500/40 hover:-translate-y-1"
                             >
-                                Enter Dashboard
+                                My Account
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                             </Link>
                         ) : (
