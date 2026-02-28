@@ -6,6 +6,9 @@ import Facilities from './Facilities';
 import ManageFacilities from './ManageFacilities';
 import ManageBookings from './ManageBookings';
 import AdminUsers from './AdminUsers';
+import ManageTickets from './ManageTickets';
+import TechnicianDashboard from './TechnicianDashboard';
+import ManagerDashboard from './ManagerDashboard';
 
 /**
  * Dashboard — The main hub for the Smart Campus Operations Hub.
@@ -68,7 +71,7 @@ export default function Dashboard() {
             description: 'Submit and track facility maintenance and repair requests.',
             color: 'from-amber-600 to-amber-800',
             borderColor: 'border-amber-500/30',
-            status: 'Coming Soon',
+            status: 'Active',
         },
         {
             icon: '📅',
@@ -148,23 +151,25 @@ export default function Dashboard() {
                 )}
 
                 {/* ── Admin Tab Navigation ─────────────────────────── */}
-                {user?.role === 'ADMIN' && (
+                {(user?.role === 'ADMIN' || user?.role === 'MANAGER' || user?.role === 'TECHNICIAN') && (
                     <div className="flex gap-1 bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-xl p-1.5 mb-8 overflow-x-auto">
                         {[
-                            { id: 'overview', label: 'Overview', icon: '📊' },
-                            { id: 'facilities', label: 'Facilities', icon: '🏫' },
-                            { id: 'manage-facilities', label: 'Manage Facilities', icon: '🏗️' },
-                            { id: 'manage-bookings', label: 'Manage Bookings', icon: '📅' },
-                            { id: 'users', label: 'Users', icon: '👥' },
-                        ].map((tab) => (
+                            { id: 'overview', label: 'Overview', icon: '📊', roles: ['ADMIN', 'MANAGER', 'TECHNICIAN'] },
+                            { id: 'facilities', label: 'Facilities', icon: '🏫', roles: ['ADMIN'] },
+                            { id: 'manage-facilities', label: 'Manage Facilities', icon: '🏗️', roles: ['ADMIN'] },
+                            { id: 'manage-bookings', label: 'Manage Bookings', icon: '📅', roles: ['ADMIN'] },
+                            { id: 'manage-tickets', label: 'Manage Tickets', icon: '🎫', roles: ['ADMIN'] },
+                            { id: 'manager-tickets', label: 'Manage Tickets', icon: '🎫', roles: ['MANAGER'] },
+                            { id: 'technician-tickets', label: 'My Assigned Tickets', icon: '🔧', roles: ['TECHNICIAN'] },
+                            { id: 'users', label: 'Users', icon: '👥', roles: ['ADMIN'] },
+                        ].filter(tab => tab.roles.includes(user?.role)).map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${
-                                    activeTab === tab.id
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${activeTab === tab.id
                                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                                         : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                                }`}
+                                    }`}
                             >
                                 <span>{tab.icon}</span> {tab.label}
                             </button>
@@ -183,7 +188,7 @@ export default function Dashboard() {
                                     {modules.map((mod) => (
                                         <Link
                                             key={mod.name}
-                                            to={mod.name === 'Resource Booking' ? '/facilities' : mod.name === 'My Bookings' ? '/bookings' : '#'}
+                                            to={mod.name === 'Resource Booking' ? '/facilities' : mod.name === 'My Bookings' ? '/bookings' : mod.name === 'Maintenance Requests' ? '/tickets' : '#'}
                                             className={`group relative bg-slate-800/60 backdrop-blur-sm border ${mod.borderColor} rounded-2xl p-6 hover:scale-[1.02] transition-all duration-300 overflow-hidden cursor-pointer block`}
                                         >
                                             <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${mod.color}`}></div>
@@ -270,6 +275,18 @@ export default function Dashboard() {
                     ) : activeTab === 'manage-bookings' ? (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <ManageBookings standalone={true} />
+                        </div>
+                    ) : activeTab === 'manage-tickets' ? (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <ManageTickets standalone={true} />
+                        </div>
+                    ) : activeTab === 'manager-tickets' ? (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <ManagerDashboard standalone={true} />
+                        </div>
+                    ) : activeTab === 'technician-tickets' ? (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <TechnicianDashboard standalone={true} />
                         </div>
                     ) : activeTab === 'users' ? (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
