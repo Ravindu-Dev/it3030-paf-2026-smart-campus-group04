@@ -165,11 +165,11 @@ export default function Profile() {
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
                 {/* ── Page Header ─────────────────────────────────────── */}
-                <div className="mb-8 text-center pt-4">
-                    <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-2 leading-normal">
-                        My <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 pb-2">Account</span>
+                <div className="mb-10 pt-16">
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-4 leading-normal drop-shadow-lg">
+                        My <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 pb-2">Account</span>
                     </h1>
-                    <p className="text-slate-400 mt-2">Manage your profile and campus activity</p>
+                    <p className="text-lg text-slate-300 mt-2 max-w-2xl drop-shadow-md">Manage your personal profile and campus activity</p>
                 </div>
 
                 {/* ── Main Layout: Sidebar + Content ──────────────────── */}
@@ -234,32 +234,32 @@ export default function Profile() {
                         </div>
 
                         {/* Quick Stats card */}
-                        <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6">
-                            <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-                                <span>📊</span> Quick Stats
+                        <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-6 shadow-2xl">
+                            <h3 className="text-white font-bold mb-5 flex items-center gap-2 text-lg">
+                                <span className="text-blue-400 text-xl">📊</span> Quick Stats
                             </h3>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-4">
                                 <StatTile
                                     value={bookings.length}
                                     label="Bookings"
-                                    color="text-blue-400"
+                                    color="from-blue-400 to-blue-600"
                                     onClick={() => setActiveTab('bookings')}
                                 />
                                 <StatTile
                                     value={tickets.length}
                                     label="Tickets"
-                                    color="text-purple-400"
+                                    color="from-purple-400 to-purple-600"
                                     onClick={() => setActiveTab('tickets')}
                                 />
                                 <StatTile
                                     value={bookings.filter(b => b.status === 'APPROVED').length}
                                     label="Approved"
-                                    color="text-emerald-400"
+                                    color="from-emerald-400 to-emerald-600"
                                 />
                                 <StatTile
                                     value={tickets.filter(t => t.status === 'OPEN').length}
                                     label="Open Tickets"
-                                    color="text-amber-400"
+                                    color="from-amber-400 to-amber-600"
                                 />
                             </div>
                         </div>
@@ -582,10 +582,11 @@ function StatTile({ value, label, color, onClick }) {
     return (
         <button
             onClick={onClick}
-            className={`bg-slate-900/50 border border-slate-700/50 rounded-xl p-3 text-center transition-all ${onClick ? 'hover:border-blue-500/30 cursor-pointer hover:bg-slate-900/80' : 'cursor-default'}`}
+            className={`bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 text-center transition-all duration-300 relative overflow-hidden group ${onClick ? 'hover:border-blue-500/40 hover:bg-slate-900/80 cursor-pointer hover:shadow-[0_10px_20px_-10px_rgba(59,130,246,0.3)] hover:-translate-y-1' : 'cursor-default'}`}
         >
-            <p className={`text-2xl font-extrabold ${color}`}>{value}</p>
-            <p className="text-slate-500 text-xs mt-0.5">{label}</p>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <p className={`text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br ${color} mb-1 drop-shadow-md`}>{value}</p>
+            <p className="text-slate-400 text-xs font-medium tracking-wide uppercase">{label}</p>
         </button>
     );
 }

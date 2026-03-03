@@ -27,41 +27,48 @@ const faqs = [
 
 export default function FAQ() {
     return (
-        <div className="min-h-screen bg-slate-900 pb-24">
-            {/* Header */}
-            <div className="pt-24 pb-16 text-center px-4 sm:px-6 lg:px-8">
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
-                    Frequently Asked <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">Questions</span>
+        <div className="min-h-screen bg-slate-900 pb-32 relative overflow-hidden">
+            {/* Background mesh */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+                <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[100px]" />
+            </div>
+
+            {/* Header / Hero */}
+            <div className="pt-32 pb-20 text-center px-4 sm:px-6 lg:px-8 relative z-10 border-b border-slate-800/50 mb-12">
+                <h1 className="text-5xl sm:text-6xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg">
+                    Frequently Asked <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Questions</span>
                 </h1>
-                <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+                <p className="text-xl text-slate-300 max-w-2xl mx-auto drop-shadow-md">
                     Find quick answers to common questions about using the Smart Campus Operations platform.
                 </p>
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="space-y-4">
                     {faqs.map((faq, index) => (
                         <details
                             key={index}
-                            className="group bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden [&_summary::-webkit-details-marker]:hidden"
+                            className="group bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden [&_summary::-webkit-details-marker]:hidden transition-all duration-300 hover:border-blue-500/30 hover:shadow-[0_10px_30px_-15px_rgba(59,130,246,0.2)]"
                         >
-                            <summary className="flex items-center justify-between p-6 cursor-pointer font-medium text-white hover:bg-slate-800/60 transition-colors">
+                            <summary className="flex items-center justify-between p-6 cursor-pointer font-medium text-white hover:bg-slate-800/80 transition-colors">
                                 <span className="text-lg">{faq.question}</span>
-                                <span className="transition duration-300 group-open:-rotate-180">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><path d="m6 9 6 6 6-6" /></svg>
+                                <span className="transition duration-300 group-open:-rotate-180 bg-slate-700/50 p-2 rounded-full group-hover:bg-blue-500/20 group-hover:text-blue-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
                                 </span>
                             </summary>
-                            <div className="p-6 pt-0 text-slate-400 leading-relaxed border-t border-slate-700/50 mt-1 pb-6">
+                            <div className="p-6 pt-0 text-slate-300 leading-relaxed border-t border-slate-700/50 mt-1 pb-6 bg-slate-800/20">
                                 <span className="block pt-5">{faq.answer}</span>
                             </div>
                         </details>
                     ))}
                 </div>
 
-                <div className="mt-16 text-center p-8 bg-blue-900/10 border border-blue-500/20 rounded-3xl">
-                    <h3 className="text-xl font-semibold text-white mb-2">Still have questions?</h3>
-                    <p className="text-slate-400 mb-6">If you cannot find answer to your question in our FAQ, you can always contact us.</p>
-                    <a href="/contact" className="inline-flex px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-colors shadow-lg shadow-blue-500/20">
+                {/* Bottom CTA Card */}
+                <div className="mt-16 text-center p-12 bg-gradient-to-br from-blue-900/30 to-slate-900 border border-blue-500/30 rounded-3xl backdrop-blur-xl shadow-2xl">
+                    <h3 className="text-3xl font-bold text-white mb-4">Still have questions?</h3>
+                    <p className="text-slate-300 mb-8 text-lg max-w-xl mx-auto">If you cannot find the answer to your question in our FAQ, you can always contact our support team directly.</p>
+                    <a href="/contact" className="inline-flex px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 border border-blue-500/50 text-white rounded-xl font-bold transition-all duration-300 shadow-xl shadow-blue-600/20 hover:shadow-blue-500/40 hover:-translate-y-1">
                         Contact Support
                     </a>
                 </div>
