@@ -387,27 +387,6 @@ export default function Dashboard() {
                                         ))}
                                     </div>
                                 </div>
-
-                                {/* Quick link to full profile */}
-                                <Link
-                                    to="/profile"
-                                    className="flex items-center gap-3 bg-gradient-to-br from-blue-600/15 to-purple-600/10 border border-blue-500/20 rounded-2xl p-5 hover:border-blue-500/40 transition-all group"
-                                >
-                                    {user?.profilePicture ? (
-                                        <img src={user.profilePicture} alt={user.name}
-                                            className="w-12 h-12 rounded-full border-2 border-blue-500/40"
-                                            referrerPolicy="no-referrer" />
-                                    ) : (
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold">
-                                            {user?.name?.charAt(0)?.toUpperCase() || '?'}
-                                        </div>
-                                    )}
-                                    <div className="min-w-0">
-                                        <p className="text-white font-semibold text-sm truncate group-hover:text-blue-400 transition-colors">{user?.name}</p>
-                                        <p className="text-slate-400 text-xs truncate">{user?.email}</p>
-                                        <p className="text-blue-400 text-xs font-medium mt-0.5">View Profile →</p>
-                                    </div>
-                                </Link>
                             </div>
                         </div>
                         </>
