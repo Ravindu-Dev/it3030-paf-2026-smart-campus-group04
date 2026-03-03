@@ -135,7 +135,7 @@ export default function BookingDetail() {
                 <div className="text-center">
                     <div className="text-5xl mb-4">📋</div>
                     <h3 className="text-xl font-semibold text-white mb-2">Booking not found</h3>
-                    <Link to="/bookings" className="text-blue-400 hover:text-blue-300 text-sm">← Back to My Bookings</Link>
+                    <Link to="/profile" state={{ tab: 'bookings' }} className="text-blue-400 hover:text-blue-300 text-sm">← Back to My Bookings</Link>
                 </div>
             </div>
         );
@@ -161,39 +161,40 @@ export default function BookingDetail() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="min-h-screen bg-slate-900 relative overflow-hidden pt-28 pb-10">
             {/* Background decoration */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl"></div>
-                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl"></div>
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] animate-pulse"></div>
+                <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
             </div>
 
-            <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 z-10">
                 {/* Back navigation */}
-                <button
-                    onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors mb-6 cursor-pointer"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="m12 19-7-7 7-7" />
-                        <path d="M19 12H5" />
-                    </svg>
-                    Back
-                </button>
+                <div className="mb-6 flex">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors mb-2 bg-slate-800/50 px-4 py-2 rounded-xl backdrop-blur-sm border border-slate-700/50 hover:border-blue-500/50 cursor-pointer"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><polyline points="12 19 5 12 12 5" /></svg>
+                        Back
+                    </button>
+                </div>
 
                 {/* Header Card */}
-                <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 mb-6">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8 mb-8 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-colors pointer-events-none"></div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 relative z-10">
                         <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <h1 className="text-2xl font-bold text-white">{booking.facilityName}</h1>
-                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${statusStyle.bg} ${statusStyle.text} border ${statusStyle.border}`}>
-                                    <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`}></span>
+                            <div className="flex items-center gap-4 mb-3">
+                                <h1 className="text-3xl font-extrabold text-white tracking-tight">{booking.facilityName}</h1>
+                                <span className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${statusStyle.bg} ${statusStyle.text} border ${statusStyle.border} shadow-sm`}>
+                                    <span className={`w-2 h-2 rounded-full ${statusStyle.dot} animate-pulse`}></span>
                                     {statusStyle.label}
                                 </span>
                             </div>
                             <p className="text-slate-400 text-sm">
-                                Booking ID: <span className="text-slate-300 font-mono">{booking.id}</span>
+                                Booking ID: <span className="text-slate-300 font-mono tracking-wider bg-slate-800/50 px-2 py-1 rounded inline-block shadow-inner">{booking.id}</span>
                             </p>
                         </div>
 
@@ -230,31 +231,30 @@ export default function BookingDetail() {
                     </div>
 
                     {/* Workflow Timeline */}
-                    <div className="flex items-center gap-0 mt-6 px-4">
+                    <div className="flex items-center gap-0 mt-8 pt-6 border-t border-slate-700/50 relative z-10 px-2 sm:px-6">
                         {WORKFLOW_STEPS.map((step, index) => {
                             const status = getStepStatus(step.key);
                             return (
-                                <div key={step.key} className="flex items-center flex-1">
-                                    <div className="flex flex-col items-center">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
-                                            status === 'complete' ? 'bg-blue-500/20 border-2 border-blue-500' :
-                                            status === 'current' ? 'bg-amber-500/20 border-2 border-amber-500 animate-pulse' :
-                                            'bg-slate-700/50 border-2 border-slate-600'
-                                        }`}>
+                                <div key={step.key} className="flex items-center flex-1 last:flex-none">
+                                    <div className="flex flex-col items-center relative z-10">
+                                        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-xl sm:text-2xl transition-all duration-300 ${status === 'complete' ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-blue-400/50 scale-110' :
+                                            status === 'current' ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)] animate-pulse' :
+                                                'bg-slate-800/50 border border-slate-700 text-slate-500'
+                                            }`}>
                                             {step.icon}
                                         </div>
-                                        <span className={`text-xs mt-2 font-medium ${
-                                            status === 'complete' ? 'text-blue-400' :
-                                            status === 'current' ? 'text-amber-400' :
-                                            'text-slate-500'
-                                        }`}>
+                                        <span className={`text-[10px] sm:text-xs mt-3 font-bold uppercase tracking-wider ${status === 'complete' ? 'text-blue-400' :
+                                            status === 'current' ? 'text-emerald-400' :
+                                                'text-slate-500'
+                                            }`}>
                                             {step.label}
                                         </span>
                                     </div>
                                     {index < WORKFLOW_STEPS.length - 1 && (
-                                        <div className={`flex-1 h-0.5 mx-3 rounded ${
-                                            status === 'complete' ? 'bg-blue-500/50' : 'bg-slate-700'
-                                        }`}></div>
+                                        <div className="flex-1 px-2 sm:px-4">
+                                            <div className={`h-1 w-full rounded-full transition-colors duration-500 ${status === 'complete' ? 'bg-gradient-to-r from-blue-500 to-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'bg-slate-700'
+                                                }`}></div>
+                                        </div>
                                     )}
                                 </div>
                             );
@@ -262,9 +262,9 @@ export default function BookingDetail() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Booking Details */}
-                    <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+                    <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8 hover:shadow-[0_0_25px_-5px_rgba(0,0,0,0.3)] hover:border-slate-600/50 transition-all">
                         <h2 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400">
                                 <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
@@ -286,8 +286,8 @@ export default function BookingDetail() {
                     </div>
 
                     {/* Requester Info */}
-                    <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
-                        <h2 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                    <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8 hover:shadow-[0_0_25px_-5px_rgba(0,0,0,0.3)] hover:border-slate-600/50 transition-all">
+                        <h2 className="text-white font-semibold text-lg mb-6 flex items-center gap-3">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                                 <circle cx="12" cy="7" r="4" />
@@ -315,8 +315,8 @@ export default function BookingDetail() {
 
                     {/* Review Info (if reviewed) */}
                     {(booking.reviewedBy || booking.adminRemarks) && (
-                        <div className="md:col-span-2 bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
-                            <h2 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                        <div className="lg:col-span-2 bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8 hover:shadow-[0_0_25px_-5px_rgba(0,0,0,0.3)] hover:border-slate-600/50 transition-all">
+                            <h2 className="text-white font-semibold text-lg mb-6 flex items-center gap-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400">
                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                                 </svg>
@@ -329,11 +329,10 @@ export default function BookingDetail() {
                                 {booking.adminRemarks && (
                                     <div>
                                         <p className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-1">Remarks</p>
-                                        <div className={`p-3 rounded-xl text-sm ${
-                                            booking.status === 'REJECTED'
-                                                ? 'bg-red-500/10 border border-red-500/20 text-red-300'
-                                                : 'bg-slate-700/30 border border-slate-600/30 text-slate-300'
-                                        }`}>
+                                        <div className={`p-3 rounded-xl text-sm ${booking.status === 'REJECTED'
+                                            ? 'bg-red-500/10 border border-red-500/20 text-red-300'
+                                            : 'bg-slate-700/30 border border-slate-600/30 text-slate-300'
+                                            }`}>
                                             {booking.adminRemarks}
                                         </div>
                                     </div>

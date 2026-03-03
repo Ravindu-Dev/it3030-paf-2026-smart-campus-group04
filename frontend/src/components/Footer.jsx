@@ -56,8 +56,8 @@ export default function Footer() {
                         <h4 className="text-white font-semibold mb-6">Systems</h4>
                         <ul className="space-y-3">
                             <FooterLink to="/dashboard">Operations Hub</FooterLink>
-                            <FooterLink to="/bookings">My Bookings</FooterLink>
-                            <FooterLink to="/tickets">Maintenance Portal</FooterLink>
+                            <FooterLink to="/profile" state={{ tab: 'bookings' }}>My Bookings</FooterLink>
+                            <FooterLink to="/profile" state={{ tab: 'tickets' }}>Maintenance Portal</FooterLink>
                             <FooterLink to="/login">Partner Sign In</FooterLink>
                         </ul>
                     </div>
@@ -98,10 +98,10 @@ export default function Footer() {
     );
 }
 
-function FooterLink({ to, children }) {
+function FooterLink({ to, state, children }) {
     return (
         <li>
-            <Link to={to} className="text-slate-400 hover:text-blue-400 text-sm transition-colors inline-block hover:-translate-y-px">
+            <Link to={to} state={state} className="text-slate-400 hover:text-blue-400 text-sm transition-colors inline-block hover:-translate-y-px">
                 {children}
             </Link>
         </li>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -44,6 +44,7 @@ function statusBadge(status) {
 export default function Profile() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     /* ── Form state ─────────────────── */
     const [name, setName] = useState(user?.name || '');
@@ -51,7 +52,15 @@ export default function Profile() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [activeTab, setActiveTab] = useState('profile');
+    const [activeTab, setActiveTab] = useState(location.state?.tab || 'profile');
+
+    useEffect(() => {
+        if (location.state?.tab) {
+            setActiveTab(location.state.tab);
+            // Optional: clear state so refresh doesn't force the tab if the user navigated away
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state?.tab]);
 
     /* ── Bookings / Tickets data ────── */
     const [bookings, setBookings] = useState([]);
