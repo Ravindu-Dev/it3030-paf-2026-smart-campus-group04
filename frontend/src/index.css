@@ -33,3 +33,27 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
 }
+
+/* Custom scrollbar for horizontal table scroll */
+.table-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 3px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
+}
+
+/* Firefox scrollbar */
+.table-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}

@@ -170,7 +170,7 @@ export default function AdminUsers({ standalone = false }) {
                             <p className="text-slate-400">{searchQuery ? 'No users match your search.' : 'No users found.'}</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto table-scroll">
                             <table className="w-full table-auto">
                                 <thead>
                                     <tr className="bg-slate-800/80">

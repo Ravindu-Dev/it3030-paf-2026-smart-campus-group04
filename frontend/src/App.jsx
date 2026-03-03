@@ -55,8 +55,15 @@ function NotFound() {
 
 function App() {
   const location = useLocation();
-  const hideFooter = location.pathname === '/dashboard';
-  const hideNavbar = location.pathname === '/dashboard';
+  const { user } = useAuth();
+  
+  const isPrivilegedUser = ['ADMIN', 'MANAGER', 'TECHNICIAN'].includes(user?.role);
+  const isFacilityRoute = location.pathname.startsWith('/facilities');
+  const isBookingRoute = location.pathname.startsWith('/bookings');
+  const isTicketRoute = location.pathname.startsWith('/tickets');
+  
+  const hideFooter = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute));
+  const hideNavbar = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute));
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-900 selection:bg-blue-500/30">
