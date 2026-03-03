@@ -167,8 +167,8 @@ export default function Dashboard() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${activeTab === tab.id
-                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                                        : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
                                     }`}
                             >
                                 <span>{tab.icon}</span> {tab.label}
@@ -230,38 +230,26 @@ export default function Dashboard() {
                                     </div>
                                 </div>
 
-                                {/* User Info Card */}
-                                <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
-                                    <h3 className="text-white font-semibold mb-4">Your Profile</h3>
-                                    <div className="flex items-center gap-4 mb-4">
-                                        {user?.profilePicture ? (
-                                            <img
-                                                src={user.profilePicture}
-                                                alt={user.name}
-                                                className="w-14 h-14 rounded-full border-2 border-blue-500/30"
-                                                referrerPolicy="no-referrer"
-                                            />
-                                        ) : (
-                                            <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold">
-                                                {user?.name?.charAt(0)?.toUpperCase() || '?'}
-                                            </div>
-                                        )}
-                                        <div>
-                                            <p className="text-white font-medium">{user?.name}</p>
-                                            <p className="text-slate-400 text-sm">{user?.email}</p>
+                                {/* Quick link to full profile */}
+                                <Link
+                                    to="/profile"
+                                    className="flex items-center gap-3 bg-gradient-to-br from-blue-600/15 to-purple-600/10 border border-blue-500/20 rounded-2xl p-5 hover:border-blue-500/40 transition-all group"
+                                >
+                                    {user?.profilePicture ? (
+                                        <img src={user.profilePicture} alt={user.name}
+                                            className="w-12 h-12 rounded-full border-2 border-blue-500/40"
+                                            referrerPolicy="no-referrer" />
+                                    ) : (
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold">
+                                            {user?.name?.charAt(0)?.toUpperCase() || '?'}
                                         </div>
+                                    )}
+                                    <div className="min-w-0">
+                                        <p className="text-white font-semibold text-sm truncate group-hover:text-blue-400 transition-colors">{user?.name}</p>
+                                        <p className="text-slate-400 text-xs truncate">{user?.email}</p>
+                                        <p className="text-blue-400 text-xs font-medium mt-0.5">View Profile →</p>
                                     </div>
-                                    <div className="flex items-center justify-between py-2 border-t border-slate-700">
-                                        <span className="text-slate-400 text-sm">Role</span>
-                                        <span className="px-3 py-1 bg-blue-600/20 text-blue-400 text-xs font-medium rounded-full border border-blue-500/30">
-                                            {user?.role}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between py-2 border-t border-slate-700">
-                                        <span className="text-slate-400 text-sm">Provider</span>
-                                        <span className="text-slate-300 text-sm capitalize">{user?.provider}</span>
-                                    </div>
-                                </div>
+                                </Link>
                             </div>
                         </div>
                     ) : activeTab === 'facilities' ? (

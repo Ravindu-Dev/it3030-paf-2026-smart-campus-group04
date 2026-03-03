@@ -98,9 +98,9 @@ public class AuthService {
                     return userRepository.save(newUser);
                 });
 
-        // Update profile picture and name in case they changed on Google's side
+        // Update profile picture in case it changed on Google's side.
+        // Do NOT overwrite name — the user may have customised it via the profile page.
         user.setProfilePicture(pictureUrl);
-        user.setName(name);
         user = userRepository.save(user);
 
         // 4. Generate our own JWT
@@ -118,10 +118,13 @@ public class AuthService {
     }
 
     /**
-     * Update the authenticated user's name.
+     * Update the authenticated user's profile (name, phone number).
      */
-    public UserDto updateProfile(User user, String newName) {
+    public UserDto updateProfile(User user, String newName, String phoneNumber) {
         user.setName(newName);
+        if (phoneNumber != null) {
+            user.setPhoneNumber(phoneNumber);
+        }
         User updatedUser = userRepository.save(user);
         return mapToDto(updatedUser);
     }
@@ -144,6 +147,7 @@ public class AuthService {
         dto.setName(user.getName());
         dto.setProfilePicture(user.getProfilePicture());
         dto.setRole(user.getRole());
+        dto.setPhoneNumber(user.getPhoneNumber());
         dto.setProvider(user.getProvider());
         dto.setCreatedAt(user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
         return dto;

@@ -41,6 +41,9 @@ public class User {
     /** User's role — defaults to USER on first login */
     private Role role = Role.USER;
 
+    /** User's phone number (optional, set by user) */
+    private String phoneNumber;
+
     /** OAuth provider name (e.g., "google") */
     private String provider;
 
