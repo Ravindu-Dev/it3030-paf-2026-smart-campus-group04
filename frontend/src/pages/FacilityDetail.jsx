@@ -62,19 +62,21 @@ export default function FacilityDetail() {
     );
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Back link */}
-                <Link
-                    to="/facilities"
-                    className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-6 transition-colors"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="m12 19-7-7 7-7" />
-                        <path d="M19 12H5" />
-                    </svg>
-                    Back to Facilities
-                </Link>
+        <div className="min-h-screen bg-slate-900 relative overflow-hidden pt-28 pb-10">
+            {/* Background decoration */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-0 -left-1/4 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] animate-pulse"></div>
+                <div className="absolute bottom-0 -right-1/4 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+            </div>
+
+            <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+                {/* Back Button */}
+                <div className="mb-6 flex">
+                    <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors bg-slate-800/50 px-4 py-2 rounded-xl backdrop-blur-sm border border-slate-700/50 hover:border-blue-500/50 cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><polyline points="12 19 5 12 12 5" /></svg>
+                        Back
+                    </button>
+                </div>
 
                 {/* Hero section */}
                 <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden">
@@ -93,11 +95,12 @@ export default function FacilityDetail() {
                         )}
 
                         {/* Status badge */}
-                        <span className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-sm font-semibold ${isActive
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        <span className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-2 backdrop-blur-md shadow-lg ${isActive
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
                             }`}>
-                            {isActive ? '● Active' : '● Out of Service'}
+                            <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`}></span>
+                            {isActive ? 'Active' : 'Out of Service'}
                         </span>
                     </div>
 
@@ -193,12 +196,12 @@ export default function FacilityDetail() {
 
                         {/* User booking action */}
                         {user?.role !== 'ADMIN' && isActive && (
-                            <div className="pt-2">
+                            <div className="pt-6 border-t border-slate-700/50 mt-8 relative z-10 flex justify-end">
                                 <Link
                                     to={`/bookings/new?facilityId=${facility.id}`}
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40"
+                                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold tracking-wide shadow-lg shadow-blue-500/25 border border-blue-400/50 hover:scale-[1.02] transition-all flex items-center gap-2"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
                                         <line x1="16" y1="2" x2="16" y2="6" />
                                         <line x1="8" y1="2" x2="8" y2="6" />
@@ -211,12 +214,12 @@ export default function FacilityDetail() {
 
                         {/* Admin actions */}
                         {user?.role === 'ADMIN' && (
-                            <div className="pt-2">
+                            <div className="pt-6 border-t border-slate-700/50 mt-8 relative z-10 flex justify-end">
                                 <Link
                                     to="/admin/facilities"
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-sm font-medium transition-colors"
+                                    className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl font-bold tracking-wide border border-slate-600 hover:border-slate-500 transition-all flex items-center gap-2 shadow-sm"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
                                         <path d="m15 5 4 4" />
                                     </svg>
