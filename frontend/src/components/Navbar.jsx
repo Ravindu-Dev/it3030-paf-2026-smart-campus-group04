@@ -33,9 +33,33 @@ export default function Navbar() {
     }, []);
 
     const isPrivilegedUser = ['ADMIN', 'MANAGER', 'TECHNICIAN'].includes(user?.role);
+    const isHomePage = location.pathname === '/';
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const offset = window.scrollY;
+            if (offset > 50) {
+                setScrolled(true);
+            } else {
+                setScrolled(false);
+            }
+        };
+
+        if (isHomePage) {
+            window.addEventListener('scroll', handleScroll);
+        } else {
+            setScrolled(true); // Always styled like scrolled down on other pages
+        }
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [isHomePage]);
 
     return (
-        <nav className="bg-slate-900/80 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-50 transition-all">
+        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isHomePage && !scrolled
+            ? 'bg-transparent border-transparent py-2'
+            : 'bg-slate-900/80 backdrop-blur-xl border-b border-slate-800 py-0'
+            }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
 

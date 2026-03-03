@@ -36,11 +36,11 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-[85vh] flex items-center justify-center bg-slate-900 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-slate-900 relative overflow-hidden py-12">
             {/* Animated Background Mesh */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] -translate-y-1/2 animate-pulse"></div>
-                <div className="absolute top-1/2 right-1/4 w-[30rem] h-[30rem] bg-purple-600/20 rounded-full blur-[120px] -translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] -translate-y-1/2 animate-pulse"></div>
+                <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-emerald-600/10 rounded-full blur-[100px] translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
             </div>
 
             <div className="w-full max-w-lg px-4 relative z-10">
@@ -48,17 +48,17 @@ export default function Login() {
                 <div className="bg-slate-800/40 backdrop-blur-2xl border border-slate-700/50 rounded-3xl p-10 sm:p-12 shadow-2xl relative overflow-hidden group">
 
                     {/* Inner Accent Line */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 opacity-70"></div>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-emerald-400 to-blue-500 opacity-70"></div>
 
                     {/* Header */}
                     <div className="text-center mb-10">
-                        <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30 mb-6 group-hover:scale-110 transition-transform duration-500">
-                            <span className="text-white text-4xl font-bold">S</span>
+                        <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.5)] mb-8 group-hover:scale-110 transition-transform duration-500 border border-blue-400/30">
+                            <span className="text-white text-4xl font-black">S</span>
                         </div>
-                        <h1 className="text-3xl font-extrabold text-white tracking-tight mb-3">
-                            Welcome Back
+                        <h1 className="text-4xl font-extrabold tracking-tight mb-4 drop-shadow-lg text-white">
+                            Welcome <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Back</span>
                         </h1>
-                        <p className="text-slate-400 text-base leading-relaxed">
+                        <p className="text-slate-300 text-base leading-relaxed max-w-sm mx-auto">
                             Sign in with your university Google account to access your personalized campus dashboard.
                         </p>
                     </div>
