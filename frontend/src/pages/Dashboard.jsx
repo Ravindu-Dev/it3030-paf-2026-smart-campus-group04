@@ -188,7 +188,8 @@ export default function Dashboard() {
                                     {modules.map((mod) => (
                                         <Link
                                             key={mod.name}
-                                            to={mod.name === 'Resource Booking' ? '/facilities' : mod.name === 'My Bookings' ? '/bookings' : mod.name === 'Maintenance Requests' ? '/tickets' : '#'}
+                                            to={mod.name === 'Resource Booking' ? '/facilities' : (mod.name === 'My Bookings' || mod.name === 'Maintenance Requests') ? '/profile' : '#'}
+                                            state={mod.name === 'My Bookings' ? { tab: 'bookings' } : mod.name === 'Maintenance Requests' ? { tab: 'tickets' } : undefined}
                                             className={`group relative bg-slate-800/60 backdrop-blur-sm border ${mod.borderColor} rounded-2xl p-6 hover:scale-[1.02] transition-all duration-300 overflow-hidden cursor-pointer block`}
                                         >
                                             <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${mod.color}`}></div>

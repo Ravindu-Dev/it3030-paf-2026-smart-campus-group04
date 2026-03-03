@@ -118,11 +118,6 @@ function App() {
           } />
 
           {/* Booking routes */}
-          <Route path="/bookings" element={
-            <ProtectedRoute>
-              <MyBookings />
-            </ProtectedRoute>
-          } />
           <Route path="/bookings/new" element={
             <ProtectedRoute>
               <BookingForm />
@@ -152,11 +147,6 @@ function App() {
           } />
 
           {/* Ticket routes */}
-          <Route path="/tickets" element={
-            <ProtectedRoute>
-              <MyTickets />
-            </ProtectedRoute>
-          } />
           <Route path="/tickets/new" element={
             <ProtectedRoute>
               <CreateTicket />
