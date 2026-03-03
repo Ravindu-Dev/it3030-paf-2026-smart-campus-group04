@@ -76,13 +76,15 @@ export default function Navbar() {
                     </Link>
 
                     {/* Main Nav Links (Center) */}
-                    <div className="hidden md:flex items-center gap-1 xl:gap-2">
-                        <NavLink to="/" label="Home" active={isActive('/')} />
-                        <NavLink to="/facilities-assets" label="Facilities" active={isActive('/facilities-assets')} />
-                        <NavLink to="/about" label="About Us" active={isActive('/about')} />
-                        <NavLink to="/contact" label="Contact" active={isActive('/contact')} />
-                        <NavLink to="/faq" label="FAQ" active={isActive('/faq')} />
-                    </div>
+                    {!isPrivilegedUser && (
+                        <div className="hidden md:flex items-center gap-1 xl:gap-2">
+                            <NavLink to="/" label="Home" active={isActive('/')} />
+                            <NavLink to="/facilities-assets" label="Facilities" active={isActive('/facilities-assets')} />
+                            <NavLink to="/about" label="About Us" active={isActive('/about')} />
+                            <NavLink to="/contact" label="Contact" active={isActive('/contact')} />
+                            <NavLink to="/faq" label="FAQ" active={isActive('/faq')} />
+                        </div>
+                    )}
 
                     {/* Authentication / Profile Area */}
                     <div className="flex items-center gap-2 sm:gap-4 shrink-0">
@@ -219,11 +221,15 @@ export default function Navbar() {
 
                 {/* Mobile Navigation (Scrollable) */}
                 <div className="md:hidden overflow-x-auto pb-3 pt-1 hide-scrollbar -mx-4 px-4 border-t border-slate-800 flex gap-2">
-                    <MobileNavLink to="/" label="Home" active={isActive('/')} />
-                    <MobileNavLink to="/facilities-assets" label="Facilities" active={isActive('/facilities-assets')} />
-                    <MobileNavLink to="/about" label="About Us" active={isActive('/about')} />
-                    <MobileNavLink to="/contact" label="Contact" active={isActive('/contact')} />
-                    <MobileNavLink to="/faq" label="FAQ" active={isActive('/faq')} />
+                    {!isPrivilegedUser && (
+                        <>
+                            <MobileNavLink to="/" label="Home" active={isActive('/')} />
+                            <MobileNavLink to="/facilities-assets" label="Facilities" active={isActive('/facilities-assets')} />
+                            <MobileNavLink to="/about" label="About Us" active={isActive('/about')} />
+                            <MobileNavLink to="/contact" label="Contact" active={isActive('/contact')} />
+                            <MobileNavLink to="/faq" label="FAQ" active={isActive('/faq')} />
+                        </>
+                    )}
                     {isAuthenticated && (
                         <>
                             {!isPrivilegedUser && <MobileNavLink to="/profile" label="Profile" active={isActive('/profile')} />}

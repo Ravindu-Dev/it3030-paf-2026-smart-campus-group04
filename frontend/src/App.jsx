@@ -1,4 +1,4 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from './context/AuthContext';
 
@@ -54,6 +54,10 @@ function NotFound() {
 // ─── App Router ──────────────────────────────────────────────────────
 
 function App() {
+  const location = useLocation();
+  const hideFooter = location.pathname === '/dashboard';
+  const hideNavbar = location.pathname === '/dashboard';
+
   return (
     <div className="flex flex-col min-h-screen bg-slate-900 selection:bg-blue-500/30">
       {/* Toast notifications */}
@@ -78,7 +82,7 @@ function App() {
       />
 
       {/* Global Navbar */}
-      <Navbar />
+      {!hideNavbar && <Navbar />}
 
       <main className="flex-grow">
         <Routes>
@@ -185,7 +189,7 @@ function App() {
       </main>
 
       {/* Global Footer */}
-      <Footer />
+      {!hideFooter && <Footer />}
     </div>
   );
 }

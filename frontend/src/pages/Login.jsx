@@ -7,12 +7,13 @@ import toast from 'react-hot-toast';
  * Premium Login page with Google OAuth Sign-In.
  */
 export default function Login() {
-    const { login, isAuthenticated } = useAuth();
+    const { login, isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
 
-    // If already logged in, redirect to home
+    // If already logged in, redirect based on role
     if (isAuthenticated) {
-        navigate('/', { replace: true });
+        const isPrivileged = ['ADMIN', 'MANAGER', 'TECHNICIAN'].includes(user?.role);
+        navigate(isPrivileged ? '/dashboard' : '/', { replace: true });
         return null;
     }
 
