@@ -110,29 +110,29 @@ export default function MyBookings() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="min-h-screen bg-slate-900 relative overflow-hidden pt-28 pb-10">
             {/* Background decoration */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl"></div>
-                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl"></div>
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-1/4 -right-1/4 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] -translate-y-1/2 animate-pulse"></div>
+                <div className="absolute bottom-1/4 -left-1/4 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[100px] translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
             </div>
 
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 z-10">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 pb-6 border-b border-slate-700/50">
                     <div>
                         <div className="flex items-center gap-3">
-                            <Link to="/dashboard" className="text-slate-400 hover:text-white transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <Link to="/dashboard" className="text-slate-400 hover:text-white transition-colors bg-slate-800/50 p-2 rounded-xl backdrop-blur-sm border border-slate-700/50 hover:border-blue-500/50">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="m12 19-7-7 7-7" />
                                     <path d="M19 12H5" />
                                 </svg>
                             </Link>
-                            <h1 className="text-3xl font-bold text-white">
-                                My Bookings
+                            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight drop-shadow-lg">
+                                My <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Bookings</span>
                             </h1>
                         </div>
-                        <p className="text-slate-400 mt-1">
+                        <p className="text-slate-300 mt-2 text-lg">
                             Track and manage your resource booking requests
                         </p>
                     </div>
@@ -154,11 +154,10 @@ export default function MyBookings() {
                         <button
                             key={tab.value}
                             onClick={() => setActiveTab(tab.value)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${
-                                activeTab === tab.value
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                            }`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${activeTab === tab.value
+                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                                }`}
                         >
                             {tab.label}
                         </button>
@@ -217,13 +216,13 @@ function BookingCard({ booking, onCancel, cancellingId, formatDate, formatTime }
     const canCancel = booking.status === 'APPROVED' || booking.status === 'PENDING';
 
     return (
-        <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-5 hover:border-slate-600/50 transition-all">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 hover:shadow-[0_10px_30px_-15px_rgba(59,130,246,0.3)] hover:-translate-y-1 hover:border-blue-500/30 transition-all duration-300 group">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
                 {/* Left: Main Info */}
-                <div className="flex-1 space-y-3">
-                    <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-blue-500/15 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400">
+                <div className="flex-1 space-y-4">
+                    <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/20 rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5 shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400 group-hover:scale-110 transition-transform">
                                 <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
                                 <line x1="16" y1="2" x2="16" y2="6" />
                                 <line x1="8" y1="2" x2="8" y2="6" />
@@ -233,18 +232,18 @@ function BookingCard({ booking, onCancel, cancellingId, formatDate, formatTime }
                         <div>
                             <Link
                                 to={`/bookings/${booking.id}`}
-                                className="text-white font-semibold text-lg hover:text-blue-400 transition-colors"
+                                className="text-white font-bold text-xl hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-400 hover:to-emerald-400 transition-all drop-shadow-sm"
                             >
                                 {booking.facilityName}
                             </Link>
-                            <p className="text-slate-400 text-sm mt-0.5">{booking.purpose}</p>
+                            <p className="text-slate-300 text-sm mt-1">{booking.purpose}</p>
                         </div>
                     </div>
 
                     {/* Details Row */}
-                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pl-13">
-                        <div className="flex items-center gap-1.5 text-slate-400 text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pl-16">
+                        <div className="flex items-center gap-2 text-slate-400 text-sm font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400">
                                 <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
                                 <line x1="16" y1="2" x2="16" y2="6" />
                                 <line x1="8" y1="2" x2="8" y2="6" />
@@ -252,16 +251,16 @@ function BookingCard({ booking, onCancel, cancellingId, formatDate, formatTime }
                             </svg>
                             {formatDate(booking.bookingDate)}
                         </div>
-                        <div className="flex items-center gap-1.5 text-slate-400 text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <div className="flex items-center gap-2 text-slate-400 text-sm font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
                                 <circle cx="12" cy="12" r="10" />
                                 <polyline points="12 6 12 12 16 14" />
                             </svg>
                             {formatTime(booking.startTime)} – {formatTime(booking.endTime)}
                         </div>
                         {booking.expectedAttendees && (
-                            <div className="flex items-center gap-1.5 text-slate-400 text-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <div className="flex items-center gap-2 text-slate-400 text-sm font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400">
                                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                                     <circle cx="9" cy="7" r="4" />
                                     <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
@@ -275,9 +274,8 @@ function BookingCard({ booking, onCancel, cancellingId, formatDate, formatTime }
                     {/* Admin Remarks */}
                     {booking.adminRemarks && (
                         <div className="pl-13 mt-2">
-                            <div className={`inline-flex items-start gap-2 px-3 py-2 rounded-lg ${
-                                booking.status === 'REJECTED' ? 'bg-red-500/10 border border-red-500/20' : 'bg-slate-700/30 border border-slate-600/30'
-                            }`}>
+                            <div className={`inline-flex items-start gap-2 px-3 py-2 rounded-lg ${booking.status === 'REJECTED' ? 'bg-red-500/10 border border-red-500/20' : 'bg-slate-700/30 border border-slate-600/30'
+                                }`}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`mt-0.5 flex-shrink-0 ${booking.status === 'REJECTED' ? 'text-red-400' : 'text-slate-400'}`}>
                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                                 </svg>
@@ -290,24 +288,24 @@ function BookingCard({ booking, onCancel, cancellingId, formatDate, formatTime }
                 </div>
 
                 {/* Right: Status + Actions */}
-                <div className="flex sm:flex-col items-center sm:items-end gap-3">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${statusStyle.bg} ${statusStyle.text} border ${statusStyle.border}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`}></span>
+                <div className="flex sm:flex-col items-center sm:items-end gap-4">
+                    <span className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${statusStyle.bg} ${statusStyle.text} border ${statusStyle.border} shadow-sm`}>
+                        <span className={`w-2 h-2 rounded-full ${statusStyle.dot} animate-pulse`}></span>
                         {statusStyle.label}
                     </span>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2.5">
                         <Link
                             to={`/bookings/${booking.id}`}
-                            className="px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 rounded-lg transition-colors"
+                            className="px-4 py-2 text-sm font-semibold text-white bg-slate-700/50 hover:bg-blue-600 border border-slate-600/50 hover:border-blue-500 rounded-xl transition-all shadow-sm hover:shadow-[0_0_15px_rgba(59,130,246,0.5)]"
                         >
-                            View
+                            View Details
                         </Link>
                         {canCancel && (
                             <button
                                 onClick={() => onCancel(booking.id)}
                                 disabled={cancellingId === booking.id}
-                                className="px-3 py-1.5 text-xs font-medium text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 text-sm font-semibold text-red-200 bg-red-500/10 hover:bg-red-500 hover:text-white border border-red-500/20 hover:border-red-500 rounded-xl transition-all shadow-sm hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {cancellingId === booking.id ? 'Cancelling...' : 'Cancel'}
                             </button>
