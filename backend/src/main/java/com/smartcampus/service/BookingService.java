@@ -35,13 +35,16 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final FacilityRepository facilityRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public BookingService(BookingRepository bookingRepository,
             FacilityRepository facilityRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            NotificationService notificationService) {
         this.bookingRepository = bookingRepository;
         this.facilityRepository = facilityRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     // ─── CREATE ──────────────────────────────────────────────────────────
@@ -182,6 +185,13 @@ public class BookingService {
         Booking updated = bookingRepository.save(booking);
         logger.info("Booking approved: {} by admin {}", bookingId, adminId);
 
+        // Trigger notification for the user
+        notificationService.createNotification(
+                booking.getUserId(),
+                "Your booking for " + booking.getFacilityName() + " has been APPROVED.",
+                NotificationType.BOOKING_APPROVED
+        );
+
         return mapToDto(updated);
     }
 
@@ -209,6 +219,13 @@ public class BookingService {
 
         Booking updated = bookingRepository.save(booking);
         logger.info("Booking rejected: {} by admin {} — reason: {}", bookingId, adminId, request.getRemarks());
+
+        // Trigger notification for the user
+        notificationService.createNotification(
+                booking.getUserId(),
+                "Your booking for " + booking.getFacilityName() + " has been REJECTED. Reason: " + request.getRemarks(),
+                NotificationType.BOOKING_REJECTED
+        );
 
         return mapToDto(updated);
     }
