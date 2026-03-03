@@ -218,7 +218,7 @@ export default function ManageBookings({ standalone = false }) {
                     </div>
                 ) : (
                     <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl overflow-hidden shadow-2xl">
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto table-scroll">
                             <table className="w-full table-auto">
                                 <thead>
                                     <tr className="border-b border-slate-700/50 bg-slate-800/50">

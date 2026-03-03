@@ -273,7 +273,7 @@ export default function ManageFacilities({ standalone = false }) {
                     </div>
                 ) : (
                     <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden">
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto table-scroll">
                             <table className="w-full table-auto text-sm">
                                 <thead>
                                     <tr className="border-b border-slate-700/50">
