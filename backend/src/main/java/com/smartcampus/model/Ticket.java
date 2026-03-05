@@ -86,6 +86,15 @@ public class Ticket {
     /** Resolution notes added by the technician */
     private String resolutionNotes;
 
+    /** Timestamp when the first response occurred (technician assigned) */
+    private LocalDateTime firstResponseAt;
+
+    /** Timestamp when the ticket was resolved */
+    private LocalDateTime resolvedAt;
+
+    /** Timestamp when the ticket was closed */
+    private LocalDateTime closedAt;
+
     @CreatedDate
     private LocalDateTime createdAt;
 

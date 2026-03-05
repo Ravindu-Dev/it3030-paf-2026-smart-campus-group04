@@ -40,4 +40,11 @@ public class TicketDto {
     private int commentCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime firstResponseAt;
+    private LocalDateTime resolvedAt;
+    private LocalDateTime closedAt;
+    /** Time-to-first-response in milliseconds (null if not yet responded) */
+    private Long slaFirstResponseMs;
+    /** Time-to-resolution in milliseconds (null if not yet resolved) */
+    private Long slaResolutionMs;
 }

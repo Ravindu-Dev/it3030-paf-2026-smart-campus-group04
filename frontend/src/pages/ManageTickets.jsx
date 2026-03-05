@@ -19,6 +19,25 @@ const PRIORITY_CONFIG = {
     CRITICAL: { color: 'text-red-400', bg: 'bg-red-500/20' },
 };
 
+function formatSlaDuration(ms) {
+    if (ms == null || ms < 0) return null;
+    const totalSeconds = Math.floor(ms / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+}
+
+function getSlaColorClass(ms) {
+    if (ms == null) return 'text-slate-500';
+    const hours = ms / 3600000;
+    if (hours < 1) return 'text-emerald-400';
+    if (hours < 4) return 'text-amber-400';
+    return 'text-red-400';
+}
+
 export default function ManageTickets({ standalone = false }) {
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -277,6 +296,24 @@ export default function ManageTickets({ standalone = false }) {
                                                     </span>
                                                 </>
                                             )}
+                                            <span className="text-slate-600">|</span>
+                                            <span className="flex items-center gap-1.5" title="Time to first response">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                                <span className="text-slate-500 text-[11px]">1st:</span>
+                                                {ticket.slaFirstResponseMs != null ? (
+                                                    <span className={`font-bold ${getSlaColorClass(ticket.slaFirstResponseMs)}`}>{formatSlaDuration(ticket.slaFirstResponseMs)}</span>
+                                                ) : (
+                                                    <span className="text-slate-500 italic">Awaiting</span>
+                                                )}
+                                            </span>
+                                            <span className="flex items-center gap-1.5" title="Time to resolution">
+                                                <span className="text-slate-500 text-[11px]">Res:</span>
+                                                {ticket.slaResolutionMs != null ? (
+                                                    <span className={`font-bold ${getSlaColorClass(ticket.slaResolutionMs)}`}>{formatSlaDuration(ticket.slaResolutionMs)}</span>
+                                                ) : (
+                                                    <span className="text-slate-500 italic">Awaiting</span>
+                                                )}
+                                            </span>
                                         </div>
                                     </div>
 
