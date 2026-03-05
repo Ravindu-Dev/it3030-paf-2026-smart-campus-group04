@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -160,15 +162,20 @@ public class TicketService {
         ticket.setAssignedBy(assignerId);
         ticket.setStatus(TicketStatus.IN_PROGRESS);
 
+        // Record first response timestamp (only on the very first assignment)
+        if (ticket.getFirstResponseAt() == null) {
+            ticket.setFirstResponseAt(LocalDateTime.now());
+        }
+
         Ticket saved = ticketRepository.save(ticket);
         logger.info("Ticket {} assigned to technician {} by {}", ticketId, technician.getName(), assignerId);
 
         // Notify user that their ticket is now in progress
         notificationService.createNotification(
                 ticket.getUserId(),
-                "Your ticket for " + ticket.getFacilityName() + " has been assigned to " + technician.getName() + " and is now IN PROGRESS.",
-                NotificationType.TICKET_STATUS_UPDATED
-        );
+                "Your ticket for " + ticket.getFacilityName() + " has been assigned to " + technician.getName()
+                        + " and is now IN PROGRESS.",
+                NotificationType.TICKET_STATUS_UPDATED);
 
         return mapToDto(saved);
     }
@@ -187,6 +194,14 @@ public class TicketService {
 
         ticket.setStatus(newStatus);
 
+        // Record SLA timestamps on milestone transitions
+        if (newStatus == TicketStatus.RESOLVED && ticket.getResolvedAt() == null) {
+            ticket.setResolvedAt(LocalDateTime.now());
+        }
+        if (newStatus == TicketStatus.CLOSED && ticket.getClosedAt() == null) {
+            ticket.setClosedAt(LocalDateTime.now());
+        }
+
         if (newStatus == TicketStatus.RESOLVED && request != null && request.getRemarks() != null) {
             ticket.setResolutionNotes(request.getRemarks());
         }
@@ -198,8 +213,7 @@ public class TicketService {
         notificationService.createNotification(
                 ticket.getUserId(),
                 "The status of your ticket for " + ticket.getFacilityName() + " has been updated to " + newStatus + ".",
-                NotificationType.TICKET_STATUS_UPDATED
-        );
+                NotificationType.TICKET_STATUS_UPDATED);
 
         return mapToDto(saved);
     }
@@ -229,8 +243,7 @@ public class TicketService {
         notificationService.createNotification(
                 ticket.getUserId(),
                 "Your ticket for " + ticket.getFacilityName() + " has been REJECTED. Reason: " + request.getRemarks(),
-                NotificationType.TICKET_STATUS_UPDATED
-        );
+                NotificationType.TICKET_STATUS_UPDATED);
 
         return mapToDto(saved);
     }
@@ -280,17 +293,15 @@ public class TicketService {
                 notificationService.createNotification(
                         ticket.getUserId(),
                         "New comment on your ticket for " + ticket.getFacilityName() + " by " + user.getName() + ".",
-                        NotificationType.NEW_COMMENT
-                );
+                        NotificationType.NEW_COMMENT);
             }
-            
+
             // Optionally notify assigned technician if the commenter is not the technician
             if (ticket.getAssignedTechnicianId() != null && !ticket.getAssignedTechnicianId().equals(userId)) {
                 notificationService.createNotification(
                         ticket.getAssignedTechnicianId(),
                         "New comment on ticket " + ticketId + " assigned to you.",
-                        NotificationType.NEW_COMMENT
-                );
+                        NotificationType.NEW_COMMENT);
             }
         }
 
@@ -390,6 +401,19 @@ public class TicketService {
         dto.setCommentCount((int) commentRepository.countByTicketId(ticket.getId()));
         dto.setCreatedAt(ticket.getCreatedAt());
         dto.setUpdatedAt(ticket.getUpdatedAt());
+        dto.setFirstResponseAt(ticket.getFirstResponseAt());
+        dto.setResolvedAt(ticket.getResolvedAt());
+        dto.setClosedAt(ticket.getClosedAt());
+
+        // Compute SLA durations
+        if (ticket.getCreatedAt() != null && ticket.getFirstResponseAt() != null) {
+            dto.setSlaFirstResponseMs(
+                    Duration.between(ticket.getCreatedAt(), ticket.getFirstResponseAt()).toMillis());
+        }
+        if (ticket.getCreatedAt() != null && ticket.getResolvedAt() != null) {
+            dto.setSlaResolutionMs(
+                    Duration.between(ticket.getCreatedAt(), ticket.getResolvedAt()).toMillis());
+        }
         return dto;
     }
 
