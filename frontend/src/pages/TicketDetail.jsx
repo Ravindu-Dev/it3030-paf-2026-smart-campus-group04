@@ -229,7 +229,7 @@ export default function TicketDetail() {
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2 flex-shrink-0">
-                            {canAssign && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && (
+                            {canAssign && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && !ticket.assignedTechnicianId && (
                                 <button onClick={openAssignModal} className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-xl text-sm font-medium hover:bg-blue-500/30 transition-all cursor-pointer">
                                     🔧 Assign
                                 </button>
@@ -246,7 +246,7 @@ export default function TicketDetail() {
                                     Close
                                 </button>
                             )}
-                            {canReject && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && (
+                            {canReject && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && !ticket.assignedTechnicianId && (
                                 <button onClick={() => setShowRejectModal(true)} className="px-5 py-2.5 bg-red-500/10 text-red-500 rounded-xl text-sm font-bold hover:bg-red-500/20 transition-all cursor-pointer border border-red-500/20 hover:border-red-500/40 flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                                     Reject
