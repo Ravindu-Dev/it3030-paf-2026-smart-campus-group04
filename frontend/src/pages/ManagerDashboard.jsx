@@ -269,12 +269,12 @@ export default function ManagerDashboard({ standalone = false }) {
                                     </div>
 
                                     <div className="flex sm:flex-col items-center sm:items-end gap-3 flex-shrink-0 pt-2 sm:pt-0">
-                                        {ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && (
+                                        {ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && ticket.status !== 'RESOLVED' && (
                                             <button
                                                 onClick={() => openAssign(ticket.id)}
-                                                className={`w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex justify-center items-center gap-2 shadow-sm ${!ticket.assignedTechnicianId
+                                                className={`w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex justify-center items-center gap-2 shadow-sm cursor-pointer ${!ticket.assignedTechnicianId
                                                     ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-400 hover:to-indigo-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-blue-400/30'
-                                                    : 'bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30'
+                                                    : 'bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25'
                                                     }`}
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>

@@ -19,6 +19,25 @@ const PRIORITY_CONFIG = {
     CRITICAL: { color: 'text-red-400', bg: 'bg-red-500/20' },
 };
 
+function formatSlaDuration(ms) {
+    if (ms == null || ms < 0) return null;
+    const totalSeconds = Math.floor(ms / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+}
+
+function getSlaColorClass(ms) {
+    if (ms == null) return 'text-slate-500';
+    const hours = ms / 3600000;
+    if (hours < 1) return 'text-emerald-400';
+    if (hours < 4) return 'text-amber-400';
+    return 'text-red-400';
+}
+
 export default function ManageTickets({ standalone = false }) {
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -277,21 +296,42 @@ export default function ManageTickets({ standalone = false }) {
                                                     </span>
                                                 </>
                                             )}
+                                            <span className="text-slate-600">|</span>
+                                            <span className="flex items-center gap-1.5" title="Time to first response">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                                <span className="text-slate-500 text-[11px]">1st:</span>
+                                                {ticket.slaFirstResponseMs != null ? (
+                                                    <span className={`font-bold ${getSlaColorClass(ticket.slaFirstResponseMs)}`}>{formatSlaDuration(ticket.slaFirstResponseMs)}</span>
+                                                ) : (
+                                                    <span className="text-slate-500 italic">Awaiting</span>
+                                                )}
+                                            </span>
+                                            <span className="flex items-center gap-1.5" title="Time to resolution">
+                                                <span className="text-slate-500 text-[11px]">Res:</span>
+                                                {ticket.slaResolutionMs != null ? (
+                                                    <span className={`font-bold ${getSlaColorClass(ticket.slaResolutionMs)}`}>{formatSlaDuration(ticket.slaResolutionMs)}</span>
+                                                ) : (
+                                                    <span className="text-slate-500 italic">Awaiting</span>
+                                                )}
+                                            </span>
                                         </div>
                                     </div>
 
                                     <div className="flex md:flex-col lg:flex-row flex-wrap items-center gap-2 flex-shrink-0">
-                                        {ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && (
-                                            <>
-                                                <button onClick={() => openAssign(ticket.id)} className="flex items-center gap-2 px-4 py-2.5 bg-blue-500/15 text-blue-400 font-bold rounded-xl text-xs hover:bg-blue-500/25 border border-blue-500/20 hover:border-blue-400/40 cursor-pointer transition-all" title="Assign Technician">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>
-                                                    <span className="hidden sm:inline">Assign</span>
-                                                </button>
-                                                <button onClick={() => { setRejectTicketId(ticket.id); setShowRejectModal(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 text-red-500 font-bold rounded-xl text-xs hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 cursor-pointer transition-all" title="Reject Ticket">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                                                    <span className="hidden sm:inline">Reject</span>
-                                                </button>
-                                            </>
+                                        {ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && ticket.status !== 'RESOLVED' && (
+                                            <button onClick={() => openAssign(ticket.id)} className={`flex items-center gap-2 px-4 py-2.5 font-bold rounded-xl text-xs cursor-pointer transition-all ${!ticket.assignedTechnicianId
+                                                ? 'bg-blue-500/15 text-blue-400 border border-blue-500/20 hover:bg-blue-500/25 hover:border-blue-400/40'
+                                                : 'bg-amber-500/15 text-amber-400 border border-amber-500/20 hover:bg-amber-500/25 hover:border-amber-400/40'
+                                                }`} title={ticket.assignedTechnicianId ? 'Reassign Technician' : 'Assign Technician'}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>
+                                                <span className="hidden sm:inline">{ticket.assignedTechnicianId ? 'Reassign' : 'Assign'}</span>
+                                            </button>
+                                        )}
+                                        {ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && !ticket.assignedTechnicianId && (
+                                            <button onClick={() => { setRejectTicketId(ticket.id); setShowRejectModal(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 text-red-500 font-bold rounded-xl text-xs hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 cursor-pointer transition-all" title="Reject Ticket">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                                <span className="hidden sm:inline">Reject</span>
+                                            </button>
                                         )}
                                         <button onClick={() => handleDelete(ticket.id)} className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 text-red-400/60 font-bold rounded-xl text-xs hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 border border-slate-700 cursor-pointer transition-all" title="Delete Ticket">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>

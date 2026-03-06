@@ -6,6 +6,7 @@ import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import ChatBot from './components/ChatBot';
 
 // ─── Pages ───────────────────────────────────────────────────────────
 import Login from './pages/Login';
@@ -56,12 +57,12 @@ function NotFound() {
 function App() {
   const location = useLocation();
   const { user } = useAuth();
-  
+
   const isPrivilegedUser = ['ADMIN', 'MANAGER', 'TECHNICIAN'].includes(user?.role);
   const isFacilityRoute = location.pathname.startsWith('/facilities');
   const isBookingRoute = location.pathname.startsWith('/bookings');
   const isTicketRoute = location.pathname.startsWith('/tickets');
-  
+
   const hideFooter = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute));
   const hideNavbar = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute));
 
@@ -197,6 +198,9 @@ function App() {
 
       {/* Global Footer */}
       {!hideFooter && <Footer />}
+
+      {/* AI Chatbot Widget */}
+      <ChatBot />
     </div>
   );
 }

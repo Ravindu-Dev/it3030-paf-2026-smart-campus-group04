@@ -1,9 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getTicketById, addComment, getComments, updateComment, deleteComment, updateTicketStatus, rejectTicket, assignTechnician, deleteTicket } from '../services/ticketService';
 import { getTechnicians } from '../services/ticketService';
 import toast from 'react-hot-toast';
+
+/** Format milliseconds into a human-readable duration string */
+function formatDuration(ms) {
+    if (ms == null || ms < 0) return '—';
+    const totalSeconds = Math.floor(ms / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+    return `${minutes}m ${seconds}s`;
+}
+
+/** Custom hook: returns live elapsed ms from a start ISO string, re-renders every second while active */
+function useLiveElapsed(startIso, active) {
+    const [elapsed, setElapsed] = useState(null);
+    const intervalRef = useRef(null);
+    useEffect(() => {
+        if (!active || !startIso) { setElapsed(null); return; }
+        const start = new Date(startIso).getTime();
+        const tick = () => setElapsed(Date.now() - start);
+        tick();
+        intervalRef.current = setInterval(tick, 1000);
+        return () => clearInterval(intervalRef.current);
+    }, [startIso, active]);
+    return elapsed;
+}
 
 const STATUS_CONFIG = {
     OPEN: { color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', dot: 'bg-blue-400', icon: '📬' },
@@ -229,9 +257,12 @@ export default function TicketDetail() {
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2 flex-shrink-0">
-                            {canAssign && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && (
-                                <button onClick={openAssignModal} className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-xl text-sm font-medium hover:bg-blue-500/30 transition-all cursor-pointer">
-                                    🔧 Assign
+                            {canAssign && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && ticket.status !== 'RESOLVED' && (
+                                <button onClick={openAssignModal} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer ${!ticket.assignedTechnicianId
+                                    ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
+                                    : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
+                                    }`}>
+                                    {ticket.assignedTechnicianId ? '🔄 Reassign' : '🔧 Assign'}
                                 </button>
                             )}
                             {canUpdateStatus && ticket.status === 'IN_PROGRESS' && (
@@ -246,7 +277,7 @@ export default function TicketDetail() {
                                     Close
                                 </button>
                             )}
-                            {canReject && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && (
+                            {canReject && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && !ticket.assignedTechnicianId && (
                                 <button onClick={() => setShowRejectModal(true)} className="px-5 py-2.5 bg-red-500/10 text-red-500 rounded-xl text-sm font-bold hover:bg-red-500/20 transition-all cursor-pointer border border-red-500/20 hover:border-red-500/40 flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                                     Reject
@@ -503,6 +534,9 @@ export default function TicketDetail() {
                                 )}
                             </div>
                         </div>
+
+                        {/* SLA Timer Card */}
+                        <SlaTimerCard ticket={ticket} />
                     </div>
                 </div>
             </div>
@@ -593,6 +627,103 @@ function InfoRow({ label, value }) {
         <div className="flex items-center justify-between py-1.5 border-b border-slate-700/30 last:border-0">
             <span className="text-slate-400 text-sm">{label}</span>
             <span className="text-white text-sm font-medium">{value || '—'}</span>
+        </div>
+    );
+}
+
+function getSlaColor(ms) {
+    if (ms == null) return 'text-slate-400';
+    const hours = ms / 3600000;
+    if (hours < 1) return 'text-emerald-400';
+    if (hours < 4) return 'text-amber-400';
+    return 'text-red-400';
+}
+
+function getSlaGlow(ms) {
+    if (ms == null) return '';
+    const hours = ms / 3600000;
+    if (hours < 1) return 'shadow-[0_0_15px_rgba(16,185,129,0.15)]';
+    if (hours < 4) return 'shadow-[0_0_15px_rgba(245,158,11,0.15)]';
+    return 'shadow-[0_0_15px_rgba(239,68,68,0.15)]';
+}
+
+function getSlaIconBg(ms) {
+    if (ms == null) return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
+    const hours = ms / 3600000;
+    if (hours < 1) return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+    if (hours < 4) return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+    return 'bg-red-500/20 text-red-400 border-red-500/30';
+}
+
+function SlaTimerCard({ ticket }) {
+    const liveFirstResponse = useLiveElapsed(ticket.createdAt, ticket.status === 'OPEN');
+    const liveResolution = useLiveElapsed(ticket.createdAt, ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS');
+
+    const firstResponseMs = ticket.slaFirstResponseMs ?? liveFirstResponse;
+    const resolutionMs = ticket.slaResolutionMs ?? liveResolution;
+    const firstResponseDone = ticket.slaFirstResponseMs != null;
+    const resolutionDone = ticket.slaResolutionMs != null;
+
+    return (
+        <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl group-hover:bg-cyan-500/10 transition-colors pointer-events-none"></div>
+            <h3 className="text-white font-bold text-lg mb-5 flex items-center gap-3 relative z-10">
+                <span className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 border border-cyan-500/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                </span>
+                SLA Timers
+            </h3>
+            <div className="space-y-4 relative z-10">
+                <div className={`bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 ${getSlaGlow(firstResponseMs)}`}>
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                            <span className={`w-5 h-5 rounded flex items-center justify-center text-[10px] border ${getSlaIconBg(firstResponseMs)}`}>⚡</span>
+                            First Response
+                        </span>
+                        {!firstResponseDone && ticket.status === 'OPEN' && (
+                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400/80 uppercase tracking-widest">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                Live
+                            </span>
+                        )}
+                        {firstResponseDone && <span className="text-[10px] font-bold text-emerald-400/80 uppercase tracking-widest">✓ Done</span>}
+                    </div>
+                    <p className={`text-xl font-black font-mono tracking-tight ${getSlaColor(firstResponseMs)}`}>
+                        {firstResponseMs != null ? formatDuration(firstResponseMs) : '—'}
+                    </p>
+                    {firstResponseDone && ticket.firstResponseAt && (
+                        <p className="text-slate-500 text-[11px] mt-1">at {new Date(ticket.firstResponseAt).toLocaleString()}</p>
+                    )}
+                </div>
+                <div className={`bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 ${getSlaGlow(resolutionMs)}`}>
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                            <span className={`w-5 h-5 rounded flex items-center justify-center text-[10px] border ${getSlaIconBg(resolutionMs)}`}>🔧</span>
+                            Resolution
+                        </span>
+                        {!resolutionDone && (ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS') && (
+                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400/80 uppercase tracking-widest">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                Live
+                            </span>
+                        )}
+                        {resolutionDone && <span className="text-[10px] font-bold text-emerald-400/80 uppercase tracking-widest">✓ Done</span>}
+                    </div>
+                    <p className={`text-xl font-black font-mono tracking-tight ${getSlaColor(resolutionMs)}`}>
+                        {resolutionMs != null ? formatDuration(resolutionMs) : '—'}
+                    </p>
+                    {resolutionDone && ticket.resolvedAt && (
+                        <p className="text-slate-500 text-[11px] mt-1">at {new Date(ticket.resolvedAt).toLocaleString()}</p>
+                    )}
+                </div>
+            </div>
+            <div className="mt-4 pt-3 border-t border-slate-700/30 relative z-10">
+                <div className="flex items-center gap-4 text-[10px] font-medium text-slate-500">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400"></span> &lt;1h</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400"></span> 1-4h</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400"></span> &gt;4h</span>
+                </div>
+            </div>
         </div>
     );
 }
