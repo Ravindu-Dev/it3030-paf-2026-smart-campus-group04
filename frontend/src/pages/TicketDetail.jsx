@@ -257,9 +257,12 @@ export default function TicketDetail() {
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2 flex-shrink-0">
-                            {canAssign && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && !ticket.assignedTechnicianId && (
-                                <button onClick={openAssignModal} className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-xl text-sm font-medium hover:bg-blue-500/30 transition-all cursor-pointer">
-                                    🔧 Assign
+                            {canAssign && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && ticket.status !== 'RESOLVED' && (
+                                <button onClick={openAssignModal} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer ${!ticket.assignedTechnicianId
+                                    ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
+                                    : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
+                                    }`}>
+                                    {ticket.assignedTechnicianId ? '🔄 Reassign' : '🔧 Assign'}
                                 </button>
                             )}
                             {canUpdateStatus && ticket.status === 'IN_PROGRESS' && (
