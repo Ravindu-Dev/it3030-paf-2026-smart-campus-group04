@@ -2,9 +2,11 @@ package com.smartcampus.controller;
 
 import com.smartcampus.dto.ApiResponse;
 import com.smartcampus.dto.NotificationDto;
+import com.smartcampus.model.User;
 import com.smartcampus.service.NotificationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,6 +39,23 @@ public class NotificationController {
                 ApiResponse.success("Unread count retrieved successfully", count));
     }
 
+    @PatchMapping("/settings/{enabled}")
+    public ResponseEntity<ApiResponse<Void>> toggleNotifications(
+            @AuthenticationPrincipal User user,
+            @PathVariable(name = "enabled") boolean enabled) {
+        notificationService.toggleNotifications(user, enabled);
+        return ResponseEntity.ok(
+                ApiResponse.success("Notification settings updated"));
+    }
+
+    @GetMapping("/settings")
+    public ResponseEntity<ApiResponse<Boolean>> getNotificationSettings(
+            @AuthenticationPrincipal User user) {
+        boolean enabled = notificationService.isNotificationsEnabled(user);
+        return ResponseEntity.ok(
+                ApiResponse.success("Notification settings retrieved", enabled));
+    }
+
     @PatchMapping("/{id}/read")
     public ResponseEntity<ApiResponse<NotificationDto>> markAsRead(
             @PathVariable(name = "id") String id) {
@@ -59,7 +78,6 @@ public class NotificationController {
         return ResponseEntity.ok(
                 ApiResponse.success("Notification deleted successfully"));
     }
-
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<NotificationDto>>> getAllNotificationsAdmin() {
@@ -67,4 +85,5 @@ public class NotificationController {
         return ResponseEntity.ok(
                 ApiResponse.success("All notifications retrieved successfully (Admin)", notifications));
     }
+
 }
