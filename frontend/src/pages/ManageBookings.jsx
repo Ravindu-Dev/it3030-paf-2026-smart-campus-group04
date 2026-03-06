@@ -218,16 +218,16 @@ export default function ManageBookings({ standalone = false }) {
                     </div>
                 ) : (
                     <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl overflow-hidden shadow-2xl">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
+                        <div className="overflow-x-auto table-scroll">
+                            <table className="w-full table-auto">
                                 <thead>
                                     <tr className="border-b border-slate-700/50 bg-slate-800/50">
-                                        <th className="text-left px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest">Resource</th>
-                                        <th className="text-left px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest">Booked By</th>
-                                        <th className="text-left px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest">Date & Time</th>
-                                        <th className="text-left px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest">Purpose</th>
-                                        <th className="text-left px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest">Status</th>
-                                        <th className="text-right px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest">Actions</th>
+                                        <th className="text-left px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest w-auto whitespace-nowrap">Resource</th>
+                                        <th className="text-left px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest w-auto">Booked By</th>
+                                        <th className="text-left px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest w-44 whitespace-nowrap">Date & Time</th>
+                                        <th className="text-left px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest w-auto">Purpose</th>
+                                        <th className="text-left px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest w-32 whitespace-nowrap">Status</th>
+                                        <th className="text-right px-6 py-5 text-slate-400 text-xs font-bold uppercase tracking-widest w-40 whitespace-nowrap">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-700/30">
@@ -244,7 +244,7 @@ export default function ManageBookings({ standalone = false }) {
                                                     <div className="text-white text-sm font-medium">{booking.userName}</div>
                                                     <div className="text-slate-400 text-xs mt-0.5">{booking.userEmail}</div>
                                                 </td>
-                                                <td className="px-6 py-5">
+                                                <td className="px-6 py-5 whitespace-nowrap">
                                                     <div className="text-white text-sm">{formatDate(booking.bookingDate)}</div>
                                                     <div className="text-emerald-400 text-xs mt-0.5 font-medium">{formatTime(booking.startTime)} – {formatTime(booking.endTime)}</div>
                                                 </td>

@@ -28,15 +28,18 @@ public class TicketService {
     private final TicketCommentRepository commentRepository;
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public TicketService(TicketRepository ticketRepository,
             TicketCommentRepository commentRepository,
             BookingRepository bookingRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            NotificationService notificationService) {
         this.ticketRepository = ticketRepository;
         this.commentRepository = commentRepository;
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     // ─── Ticket CRUD ──────────────────────────────────────────────────
@@ -160,6 +163,13 @@ public class TicketService {
         Ticket saved = ticketRepository.save(ticket);
         logger.info("Ticket {} assigned to technician {} by {}", ticketId, technician.getName(), assignerId);
 
+        // Notify user that their ticket is now in progress
+        notificationService.createNotification(
+                ticket.getUserId(),
+                "Your ticket for " + ticket.getFacilityName() + " has been assigned to " + technician.getName() + " and is now IN PROGRESS.",
+                NotificationType.TICKET_STATUS_UPDATED
+        );
+
         return mapToDto(saved);
     }
 
@@ -184,6 +194,13 @@ public class TicketService {
         Ticket saved = ticketRepository.save(ticket);
         logger.info("Ticket {} status updated to {} by user {}", ticketId, newStatus, userId);
 
+        // Notify ticket owner
+        notificationService.createNotification(
+                ticket.getUserId(),
+                "The status of your ticket for " + ticket.getFacilityName() + " has been updated to " + newStatus + ".",
+                NotificationType.TICKET_STATUS_UPDATED
+        );
+
         return mapToDto(saved);
     }
 
@@ -207,6 +224,13 @@ public class TicketService {
 
         Ticket saved = ticketRepository.save(ticket);
         logger.info("Ticket {} rejected by admin {} — reason: {}", ticketId, adminId, request.getRemarks());
+
+        // Notify ticket owner
+        notificationService.createNotification(
+                ticket.getUserId(),
+                "Your ticket for " + ticket.getFacilityName() + " has been REJECTED. Reason: " + request.getRemarks(),
+                NotificationType.TICKET_STATUS_UPDATED
+        );
 
         return mapToDto(saved);
     }
@@ -247,6 +271,28 @@ public class TicketService {
 
         TicketComment saved = commentRepository.save(comment);
         logger.info("Comment added to ticket {} by user {}", ticketId, userId);
+
+        // Notify relevant parties
+        Ticket ticket = ticketRepository.findById(ticketId).orElse(null);
+        if (ticket != null) {
+            // Notify ticket owner if the commenter is not the owner
+            if (!ticket.getUserId().equals(userId)) {
+                notificationService.createNotification(
+                        ticket.getUserId(),
+                        "New comment on your ticket for " + ticket.getFacilityName() + " by " + user.getName() + ".",
+                        NotificationType.NEW_COMMENT
+                );
+            }
+            
+            // Optionally notify assigned technician if the commenter is not the technician
+            if (ticket.getAssignedTechnicianId() != null && !ticket.getAssignedTechnicianId().equals(userId)) {
+                notificationService.createNotification(
+                        ticket.getAssignedTechnicianId(),
+                        "New comment on ticket " + ticketId + " assigned to you.",
+                        NotificationType.NEW_COMMENT
+                );
+            }
+        }
 
         return mapCommentToDto(saved);
     }

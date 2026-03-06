@@ -273,16 +273,16 @@ export default function ManageFacilities({ standalone = false }) {
                     </div>
                 ) : (
                     <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
+                        <div className="overflow-x-auto table-scroll">
+                            <table className="w-full table-auto text-sm">
                                 <thead>
                                     <tr className="border-b border-slate-700/50">
-                                        <th className="px-5 py-4 text-left font-medium text-slate-400">Name</th>
-                                        <th className="px-5 py-4 text-left font-medium text-slate-400">Type</th>
-                                        <th className="px-5 py-4 text-left font-medium text-slate-400">Location</th>
-                                        <th className="px-5 py-4 text-left font-medium text-slate-400">Capacity</th>
-                                        <th className="px-5 py-4 text-left font-medium text-slate-400">Status</th>
-                                        <th className="px-5 py-4 text-right font-medium text-slate-400">Actions</th>
+                                        <th className="px-5 py-4 text-left font-medium text-slate-400 w-auto">Name</th>
+                                        <th className="px-5 py-4 text-left font-medium text-slate-400 w-40 whitespace-nowrap">Type</th>
+                                        <th className="px-5 py-4 text-left font-medium text-slate-400 w-auto">Location</th>
+                                        <th className="px-5 py-4 text-left font-medium text-slate-400 w-24 whitespace-nowrap">Capacity</th>
+                                        <th className="px-5 py-4 text-left font-medium text-slate-400 w-36 whitespace-nowrap">Status</th>
+                                        <th className="px-5 py-4 text-right font-medium text-slate-400 w-32 whitespace-nowrap">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -297,7 +297,7 @@ export default function ManageFacilities({ standalone = false }) {
                                                 {TYPE_LABELS[f.type] || f.type}
                                             </td>
                                             <td className="px-5 py-3.5 text-slate-400">{f.location}</td>
-                                            <td className="px-5 py-3.5 text-slate-400">{f.capacity || '—'}</td>
+                                            <td className="px-5 py-3.5 text-slate-400 whitespace-nowrap">{f.capacity || '—'}</td>
                                             <td className="px-5 py-3.5">
                                                 <button
                                                     onClick={() => toggleStatus(f)}

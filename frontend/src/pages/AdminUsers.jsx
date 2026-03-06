@@ -170,15 +170,15 @@ export default function AdminUsers({ standalone = false }) {
                             <p className="text-slate-400">{searchQuery ? 'No users match your search.' : 'No users found.'}</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
+                        <div className="overflow-x-auto table-scroll">
+                            <table className="w-full table-auto">
                                 <thead>
                                     <tr className="bg-slate-800/80">
-                                        <th className="text-left px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">User</th>
-                                        <th className="text-left px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Email</th>
-                                        <th className="text-left px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Provider</th>
-                                        <th className="text-left px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Role</th>
-                                        <th className="text-left px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Joined</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-auto">User</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-auto">Email</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-32 whitespace-nowrap">Provider</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-40 whitespace-nowrap">Role</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-32 whitespace-nowrap">Joined</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-700/30">
@@ -208,7 +208,7 @@ export default function AdminUsers({ standalone = false }) {
                                             </td>
 
                                             {/* Email */}
-                                            <td className="px-6 py-4 text-slate-400 text-sm">{user.email}</td>
+                                            <td className="px-6 py-4 text-slate-400 text-sm max-w-xs truncate" title={user.email}>{user.email}</td>
 
                                             {/* Provider */}
                                             <td className="px-6 py-4">
@@ -241,7 +241,7 @@ export default function AdminUsers({ standalone = false }) {
                                             </td>
 
                                             {/* Joined Date */}
-                                            <td className="px-6 py-4 text-slate-400 text-sm">
+                                            <td className="px-6 py-4 text-slate-400 text-sm whitespace-nowrap">
                                                 {user.createdAt
                                                     ? new Date(user.createdAt).toLocaleDateString('en-US', {
                                                         month: 'short',
