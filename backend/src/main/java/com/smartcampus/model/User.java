@@ -51,6 +51,9 @@ public class User {
     @Indexed(unique = true)
     private String providerId;
 
+    /** Whether notifications are enabled for this user */
+    private boolean notificationsEnabled = true;
+
     @CreatedDate
     private LocalDateTime createdAt;
 

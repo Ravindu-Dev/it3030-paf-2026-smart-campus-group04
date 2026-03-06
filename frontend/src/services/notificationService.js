@@ -42,6 +42,22 @@ const notificationService = {
     deleteNotification: async (id) => {
         const response = await api.delete(`/notifications/${id}`);
         return response.data;
+    },
+
+    /**
+     * Get notification settings for the current user.
+     */
+    getNotificationSettings: async () => {
+        const response = await api.get('/notifications/settings');
+        return response.data.data;
+    },
+
+    /**
+     * Update notification settings.
+     */
+    updateNotificationSettings: async (enabled) => {
+        const response = await api.patch(`/notifications/settings/${enabled}`);
+        return response.data;
     }
 };
 

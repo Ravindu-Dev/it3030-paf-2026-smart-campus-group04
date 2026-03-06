@@ -149,6 +149,7 @@ public class AuthService {
         dto.setRole(user.getRole());
         dto.setPhoneNumber(user.getPhoneNumber());
         dto.setProvider(user.getProvider());
+        dto.setNotificationsEnabled(user.isNotificationsEnabled());
         dto.setCreatedAt(user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
         return dto;
     }

@@ -16,20 +16,40 @@ const formatTimeAgo = (dateString) => {
 
     return date.toLocaleDateString();
 };
-
 export default function NotificationDropdown({
     notifications,
     onMarkAsRead,
     onMarkAllAsRead,
     onDelete,
-    loading
+    loading,
+    notificationsEnabled,
+    onToggleNotifications
 }) {
     return (
         <div className="absolute right-0 top-full mt-3 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
             {/* Header */}
             <div className="px-4 py-3 bg-slate-800/50 border-b border-slate-700/50 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Notifications</h3>
-                {notifications.some(n => !n.read) && (
+                <div className="flex items-center gap-3">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Notifications</h3>
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleNotifications();
+                        }}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${notificationsEnabled ? 'bg-amber-500' : 'bg-slate-700'
+                            }`}
+                        role="switch"
+                        aria-checked={notificationsEnabled}
+                        title={notificationsEnabled ? 'Disable Notifications' : 'Enable Notifications'}
+                    >
+                        <span
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${notificationsEnabled ? 'translate-x-4' : 'translate-x-0'
+                                }`}
+                        />
+                    </button>
+                </div>
+                {notificationsEnabled && notifications.some(n => !n.read) && (
                     <button
                         onClick={onMarkAllAsRead}
                         className="text-[11px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-tight cursor-pointer"
