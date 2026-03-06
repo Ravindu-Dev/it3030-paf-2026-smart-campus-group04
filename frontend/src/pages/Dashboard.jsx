@@ -7,6 +7,7 @@ import ManageFacilities from './ManageFacilities';
 import ManageBookings from './ManageBookings';
 import AdminUsers from './AdminUsers';
 import ManageTickets from './ManageTickets';
+import ManageEvents from './ManageEvents';
 import TechnicianDashboard from './TechnicianDashboard';
 import ManagerDashboard from './ManagerDashboard';
 
@@ -306,146 +307,141 @@ export default function Dashboard() {
 
                             {/* ── Tab Content ──────────────────────────────────── */}
                             <div className="min-h-[400px]">
-                    {activeTab === 'overview' ? (
-                        <>
-                            {/* ── Welcome Header ────────────────────────────────── */}
-                            <div className="mb-8">
-                                <h1 className="text-3xl font-bold text-white">
-                                    {greeting}, <span className="text-blue-400">{user?.name?.split(' ')[0]}</span> 👋
-                                </h1>
-                                <p className="text-slate-400 mt-1">
-                                    Here's what's happening on your campus today.
-                                </p>
-                            </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            {/* ── Welcome Message (Main Content) ─────────────── */}
-                            <div className="lg:col-span-2">
-                                <div className="bg-gradient-to-br from-blue-600/10 to-purple-600/5 border border-blue-500/20 rounded-2xl p-8">
-                                    <h2 className="text-2xl font-bold text-white mb-3">Welcome to Your Dashboard</h2>
-                                    <p className="text-slate-300 text-base leading-relaxed mb-4">
-                                        Use the sidebar navigation to access different sections of the Smart Campus Hub. 
-                                        Manage facilities, bookings, tickets, and more from this central control panel.
-                                    </p>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
-                                        <div className="flex items-center gap-3 text-slate-300">
-                                            <div className="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center">
-                                                <span className="text-xl">🏫</span>
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-sm">Manage Facilities</p>
-                                                <p className="text-xs text-slate-400">Control campus resources</p>
-                                            </div>
+                                {activeTab === 'overview' ? (
+                                    <>
+                                        {/* ── Welcome Header ────────────────────────────────── */}
+                                        <div className="mb-8">
+                                            <h1 className="text-3xl font-bold text-white">
+                                                {greeting}, <span className="text-blue-400">{user?.name?.split(' ')[0]}</span> 👋
+                                            </h1>
+                                            <p className="text-slate-400 mt-1">
+                                                Here's what's happening on your campus today.
+                                            </p>
                                         </div>
-                                        <div className="flex items-center gap-3 text-slate-300">
-                                            <div className="w-10 h-10 rounded-lg bg-purple-600/20 flex items-center justify-center">
-                                                <span className="text-xl">📅</span>
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-sm">Handle Bookings</p>
-                                                <p className="text-xs text-slate-400">Process reservations</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-slate-300">
-                                            <div className="w-10 h-10 rounded-lg bg-amber-600/20 flex items-center justify-center">
-                                                <span className="text-xl">🎫</span>
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-sm">Manage Tickets</p>
-                                                <p className="text-xs text-slate-400">Track support requests</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-slate-300">
-                                            <div className="w-10 h-10 rounded-lg bg-emerald-600/20 flex items-center justify-center">
-                                                <span className="text-xl">👥</span>
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-sm">User Administration</p>
-                                                <p className="text-xs text-slate-400">Manage accounts & roles</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* ── Sidebar ───────────────────────────────────── */}
-                            <div className="space-y-6">
-                                {/* System Status */}
-                                <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
-                                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-                                        <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                                        System Status
-                                    </h3>
-                                    <div className="space-y-3">
-                                        {systemStatus.map((item) => (
-                                            <div key={item.name} className="flex items-center justify-between">
-                                                <span className="text-slate-400 text-sm">{item.name}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`w-1.5 h-1.5 ${item.color} rounded-full`}></span>
-                                                    <span className="text-emerald-400 text-xs font-medium">{item.status}</span>
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            {/* ── Welcome Message (Main Content) ─────────────── */}
+                                            <div className="lg:col-span-2">
+                                                <div className="bg-gradient-to-br from-blue-600/10 to-purple-600/5 border border-blue-500/20 rounded-2xl p-8">
+                                                    <h2 className="text-2xl font-bold text-white mb-3">Welcome to Your Dashboard</h2>
+                                                    <p className="text-slate-300 text-base leading-relaxed mb-4">
+                                                        Use the sidebar navigation to access different sections of the Smart Campus Hub.
+                                                        Manage facilities, bookings, tickets, and more from this central control panel.
+                                                    </p>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+                                                        <div className="flex items-center gap-3 text-slate-300">
+                                                            <div className="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center">
+                                                                <span className="text-xl">🏫</span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-sm">Manage Facilities</p>
+                                                                <p className="text-xs text-slate-400">Control campus resources</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 text-slate-300">
+                                                            <div className="w-10 h-10 rounded-lg bg-purple-600/20 flex items-center justify-center">
+                                                                <span className="text-xl">📅</span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-sm">Handle Bookings</p>
+                                                                <p className="text-xs text-slate-400">Process reservations</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 text-slate-300">
+                                                            <div className="w-10 h-10 rounded-lg bg-amber-600/20 flex items-center justify-center">
+                                                                <span className="text-xl">🎫</span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-sm">Manage Tickets</p>
+                                                                <p className="text-xs text-slate-400">Track support requests</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 text-slate-300">
+                                                            <div className="w-10 h-10 rounded-lg bg-emerald-600/20 flex items-center justify-center">
+                                                                <span className="text-xl">👥</span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-sm">User Administration</p>
+                                                                <p className="text-xs text-slate-400">Manage accounts & roles</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        ))}
+
+                                            {/* ── Sidebar ───────────────────────────────────── */}
+                                            <div className="space-y-6">
+                                                {/* System Status */}
+                                                <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
+                                                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                                                        <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                                                        System Status
+                                                    </h3>
+                                                    <div className="space-y-3">
+                                                        {systemStatus.map((item) => (
+                                                            <div key={item.name} className="flex items-center justify-between">
+                                                                <span className="text-slate-400 text-sm">{item.name}</span>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className={`w-1.5 h-1.5 ${item.color} rounded-full`}></span>
+                                                                    <span className="text-emerald-400 text-xs font-medium">{item.status}</span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : activeTab === 'facilities' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <Facilities standalone={true} />
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        </>
-                    ) : activeTab === 'facilities' ? (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <Facilities standalone={true} />
-                        </div>
-                    ) : activeTab === 'manage-facilities' ? (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <ManageFacilities standalone={true} />
-                        </div>
-                    ) : activeTab === 'manage-bookings' ? (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <ManageBookings standalone={true} />
-                        </div>
-                    ) : activeTab === 'maintenance-requests' ? (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
-                                <div className="text-6xl mb-4">🔧</div>
-                                <h2 className="text-2xl font-bold text-white mb-2">Maintenance Requests</h2>
-                                <p className="text-slate-400 max-w-md mx-auto">Submit and track facility maintenance and repair requests.</p>
-                                <p className="text-slate-500 text-sm mt-4">Coming Soon</p>
-                            </div>
-                        </div>
-                    ) : activeTab === 'event-management' ? (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
-                                <div className="text-6xl mb-4">📅</div>
-                                <h2 className="text-2xl font-bold text-white mb-2">Event Management</h2>
-                                <p className="text-slate-400 max-w-md mx-auto">Organize and manage campus events, workshops, and seminars.</p>
-                                <p className="text-slate-500 text-sm mt-4">Coming Soon</p>
-                            </div>
-                        </div>
-                    ) : activeTab === 'notifications' ? (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
-                                <div className="text-6xl mb-4">🔔</div>
-                                <h2 className="text-2xl font-bold text-white mb-2">Notifications</h2>
-                                <p className="text-slate-400 max-w-md mx-auto">Real-time alerts for campus announcements and updates.</p>
-                                <p className="text-slate-500 text-sm mt-4">Coming Soon</p>
-                            </div>
-                        </div>
-                    ) : activeTab === 'manage-tickets' ? (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <ManageTickets standalone={true} />
-                        </div>
-                    ) : activeTab === 'manager-tickets' ? (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <ManagerDashboard standalone={true} />
-                        </div>
-                    ) : activeTab === 'technician-tickets' ? (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <TechnicianDashboard standalone={true} />
-                        </div>
-                    ) : activeTab === 'users' ? (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <AdminUsers standalone={true} />
-                        </div>
-                    ) : null}
+                                ) : activeTab === 'manage-facilities' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <ManageFacilities standalone={true} />
+                                    </div>
+                                ) : activeTab === 'manage-bookings' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <ManageBookings standalone={true} />
+                                    </div>
+                                ) : activeTab === 'maintenance-requests' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
+                                            <div className="text-6xl mb-4">🔧</div>
+                                            <h2 className="text-2xl font-bold text-white mb-2">Maintenance Requests</h2>
+                                            <p className="text-slate-400 max-w-md mx-auto">Submit and track facility maintenance and repair requests.</p>
+                                            <p className="text-slate-500 text-sm mt-4">Coming Soon</p>
+                                        </div>
+                                    </div>
+                                ) : activeTab === 'event-management' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <ManageEvents standalone={true} />
+                                    </div>
+                                ) : activeTab === 'notifications' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
+                                            <div className="text-6xl mb-4">🔔</div>
+                                            <h2 className="text-2xl font-bold text-white mb-2">Notifications</h2>
+                                            <p className="text-slate-400 max-w-md mx-auto">Real-time alerts for campus announcements and updates.</p>
+                                            <p className="text-slate-500 text-sm mt-4">Coming Soon</p>
+                                        </div>
+                                    </div>
+                                ) : activeTab === 'manage-tickets' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <ManageTickets standalone={true} />
+                                    </div>
+                                ) : activeTab === 'manager-tickets' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <ManagerDashboard standalone={true} />
+                                    </div>
+                                ) : activeTab === 'technician-tickets' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <TechnicianDashboard standalone={true} />
+                                    </div>
+                                ) : activeTab === 'users' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <AdminUsers standalone={true} />
+                                    </div>
+                                ) : null}
                             </div>
                         </div>
                     </div>

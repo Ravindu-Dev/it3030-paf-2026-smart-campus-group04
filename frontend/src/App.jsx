@@ -25,6 +25,10 @@ import MyTickets from './pages/MyTickets';
 import CreateTicket from './pages/CreateTicket';
 import TicketDetail from './pages/TicketDetail';
 import ManageTickets from './pages/ManageTickets';
+import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
+import ManageEvents from './pages/ManageEvents';
+import EventCalendarPage from './pages/EventCalendarPage';
 import TechnicianDashboard from './pages/TechnicianDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 
@@ -129,6 +133,23 @@ function App() {
             </ProtectedRoute>
           } />
 
+          {/* Events routes */}
+          <Route path="/events" element={
+            <ProtectedRoute>
+              <Events />
+            </ProtectedRoute>
+          } />
+          <Route path="/events/calendar" element={
+            <ProtectedRoute>
+              <EventCalendarPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/events/:id" element={
+            <ProtectedRoute>
+              <EventDetail />
+            </ProtectedRoute>
+          } />
+
           {/* Booking routes */}
           <Route path="/bookings/new" element={
             <ProtectedRoute>
@@ -145,6 +166,11 @@ function App() {
           <Route path="/admin/facilities" element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
               <ManageFacilities />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/events" element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ManageEvents />
             </ProtectedRoute>
           } />
           <Route path="/admin/bookings" element={

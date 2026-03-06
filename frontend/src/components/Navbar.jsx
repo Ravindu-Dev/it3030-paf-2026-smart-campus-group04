@@ -81,6 +81,7 @@ export default function Navbar() {
                         <div className="hidden md:flex items-center gap-1 xl:gap-2">
                             <NavLink to="/" label="Home" active={isActive('/')} />
                             <NavLink to="/facilities-assets" label="Facilities" active={isActive('/facilities-assets')} />
+                            <NavLink to="/events" label="Events" active={isActive('/events')} />
                             <NavLink to="/about" label="About Us" active={isActive('/about')} />
                             <NavLink to="/contact" label="Contact" active={isActive('/contact')} />
                             <NavLink to="/faq" label="FAQ" active={isActive('/faq')} />
