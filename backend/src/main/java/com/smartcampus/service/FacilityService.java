@@ -129,6 +129,8 @@ public class FacilityService {
         facility.setLocation(request.getLocation());
         facility.setStatus(FacilityStatus.ACTIVE);
         facility.setImageUrl(request.getImageUrl());
+        facility.setMapX(request.getMapX());
+        facility.setMapY(request.getMapY());
         facility.setCreatedBy(userId);
 
         if (request.getAvailabilityWindows() != null) {
@@ -181,6 +183,12 @@ public class FacilityService {
         if (request.getImageUrl() != null) {
             facility.setImageUrl(request.getImageUrl());
         }
+        if (request.getMapX() != null) {
+            facility.setMapX(request.getMapX());
+        }
+        if (request.getMapY() != null) {
+            facility.setMapY(request.getMapY());
+        }
 
         Facility updated = facilityRepository.save(facility);
         logger.info("Facility updated: {} (id={})", updated.getName(), updated.getId());
@@ -220,6 +228,8 @@ public class FacilityService {
         dto.setStatus(facility.getStatus());
         dto.setAvailabilityWindows(facility.getAvailabilityWindows());
         dto.setImageUrl(facility.getImageUrl());
+        dto.setMapX(facility.getMapX());
+        dto.setMapY(facility.getMapY());
         dto.setCreatedBy(facility.getCreatedBy());
         dto.setCreatedAt(facility.getCreatedAt());
         dto.setUpdatedAt(facility.getUpdatedAt());
