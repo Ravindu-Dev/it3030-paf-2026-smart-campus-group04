@@ -53,6 +53,12 @@ public class Facility {
     /** Optional image URL */
     private String imageUrl;
 
+    /** X coordinate on the campus map (0–100 percentage) */
+    private Double mapX;
+
+    /** Y coordinate on the campus map (0–100 percentage) */
+    private Double mapY;
+
     /** ID of the admin who created this facility */
     private String createdBy;
 

@@ -81,6 +81,7 @@ export default function Navbar() {
                         <div className="hidden md:flex items-center gap-1 xl:gap-2">
                             <NavLink to="/" label="Home" active={isActive('/')} />
                             <NavLink to="/facilities-assets" label="Facilities" active={isActive('/facilities-assets')} />
+                            <NavLink to="/campus-map" label="Campus Map" active={isActive('/campus-map')} />
                             <NavLink to="/events" label="Events" active={isActive('/events')} />
                             <NavLink to="/about" label="About Us" active={isActive('/about')} />
                             <NavLink to="/contact" label="Contact" active={isActive('/contact')} />
@@ -232,6 +233,7 @@ export default function Navbar() {
                         <>
                             <MobileNavLink to="/" label="Home" active={isActive('/')} />
                             <MobileNavLink to="/facilities-assets" label="Facilities" active={isActive('/facilities-assets')} />
+                            <MobileNavLink to="/campus-map" label="Campus Map" active={isActive('/campus-map')} />
                             <MobileNavLink to="/about" label="About Us" active={isActive('/about')} />
                             <MobileNavLink to="/contact" label="Contact" active={isActive('/contact')} />
                             <MobileNavLink to="/faq" label="FAQ" active={isActive('/faq')} />

@@ -39,6 +39,7 @@ import PublicFacilities from './pages/PublicFacilities';
 import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
+import CampusMap from './pages/CampusMap';
 
 function NotFound() {
   return (
@@ -105,6 +106,7 @@ function App() {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/campus-map" element={<CampusMap />} />
 
           <Route path="/login" element={<Login />} />
           <Route path="/forbidden" element={<Forbidden />} />

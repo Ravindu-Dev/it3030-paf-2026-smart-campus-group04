@@ -35,4 +35,8 @@ public class CreateFacilityRequest {
     private List<AvailabilityWindow> availabilityWindows;
 
     private String imageUrl;
+
+    private Double mapX;
+
+    private Double mapY;
 }
