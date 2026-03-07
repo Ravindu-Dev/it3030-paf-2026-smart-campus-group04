@@ -10,6 +10,7 @@ import ManageTickets from './ManageTickets';
 import ManageEvents from './ManageEvents';
 import TechnicianDashboard from './TechnicianDashboard';
 import ManagerDashboard from './ManagerDashboard';
+import ManageAttendance from './ManageAttendance';
 
 /**
  * Dashboard — The main hub for the Smart Campus Operations Hub.
@@ -87,7 +88,7 @@ export default function Dashboard() {
                         {/* Brand/Logo */}
                         <div className="p-6 border-b border-slate-700/50">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
                                     <span className="text-white text-xl font-bold">S</span>
                                 </div>
                                 <div>
@@ -121,7 +122,8 @@ export default function Dashboard() {
                                         { id: 'manage-tickets', label: 'Manage Tickets', icon: '🎫', roles: ['ADMIN'] },
                                         { id: 'manager-tickets', label: 'Manage Tickets', icon: '🎫', roles: ['MANAGER'] },
                                         { id: 'technician-tickets', label: 'My Assigned Tickets', icon: '🔧', roles: ['TECHNICIAN'] },
-                                        { id: 'users', label: 'Users', icon: '👥', roles: ['ADMIN'] },
+                                        { id: 'attendance', label: 'Attendance', icon: '📋', roles: ['ADMIN', 'MANAGER'] },
+                                         { id: 'users', label: 'Users', icon: '👥', roles: ['ADMIN'] },
                                     ].filter(tab => tab.roles.includes(user?.role)).map((tab) => (
                                         <button
                                             key={tab.id}
@@ -159,7 +161,7 @@ export default function Dashboard() {
                                             referrerPolicy="no-referrer"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold relative">
+                                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold relative">
                                             {user?.name?.charAt(0)?.toUpperCase() || '?'}
                                             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-slate-800"></span>
                                         </div>
@@ -203,7 +205,7 @@ export default function Dashboard() {
                             <div className="lg:hidden mb-6 bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                        <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
                                             <span className="text-white text-xl font-bold">S</span>
                                         </div>
                                         <div>
@@ -222,7 +224,7 @@ export default function Dashboard() {
                                                 referrerPolicy="no-referrer"
                                             />
                                         ) : (
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
                                                 {user?.name?.charAt(0)?.toUpperCase() || '?'}
                                             </div>
                                         )}
@@ -288,7 +290,8 @@ export default function Dashboard() {
                                         { id: 'manage-tickets', label: 'Manage Tickets', icon: '🎫', roles: ['ADMIN'] },
                                         { id: 'manager-tickets', label: 'Manage Tickets', icon: '🎫', roles: ['MANAGER'] },
                                         { id: 'technician-tickets', label: 'My Assigned Tickets', icon: '🔧', roles: ['TECHNICIAN'] },
-                                        { id: 'users', label: 'Users', icon: '👥', roles: ['ADMIN'] },
+                                        { id: 'attendance', label: 'Attendance', icon: '📋', roles: ['ADMIN', 'MANAGER'] },
+                                         { id: 'users', label: 'Users', icon: '👥', roles: ['ADMIN'] },
                                     ].filter(tab => tab.roles.includes(user?.role)).map((tab) => (
                                         <button
                                             key={tab.id}
@@ -321,7 +324,7 @@ export default function Dashboard() {
                                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                             {/* ── Welcome Message (Main Content) ─────────────── */}
                                             <div className="lg:col-span-2">
-                                                <div className="bg-gradient-to-br from-blue-600/10 to-purple-600/5 border border-blue-500/20 rounded-2xl p-8">
+                                                <div className="bg-linear-to-br from-blue-600/10 to-purple-600/5 border border-blue-500/20 rounded-2xl p-8">
                                                     <h2 className="text-2xl font-bold text-white mb-3">Welcome to Your Dashboard</h2>
                                                     <p className="text-slate-300 text-base leading-relaxed mb-4">
                                                         Use the sidebar navigation to access different sections of the Smart Campus Hub.
@@ -437,6 +440,10 @@ export default function Dashboard() {
                                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <TechnicianDashboard standalone={true} />
                                     </div>
+                                 ) : activeTab === 'attendance' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <ManageAttendance standalone={true} />
+                                    </div>
                                 ) : activeTab === 'users' ? (
                                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <AdminUsers standalone={true} />
@@ -469,7 +476,7 @@ function StatCard({ icon, label, value, change, color, isLoading }) {
     };
 
     return (
-        <div className={`bg-gradient-to-br ${colorMap[color]} border rounded-2xl p-5`}>
+        <div className={`bg-linear-to-br ${colorMap[color]} border rounded-2xl p-5`}>
             <div className="flex items-center justify-between mb-3">
                 <span className="text-2xl">{icon}</span>
             </div>

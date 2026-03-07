@@ -1,8 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../services/api';
+import { getMyAttendance, getMyStats } from '../services/attendanceService';
 import toast from 'react-hot-toast';
+import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 /* ── Tiny helper ─────────────────────────────────────────────────────── */
 function formatDate(dateStr) {
@@ -20,6 +24,16 @@ function roleBadgeColor(role) {
         USER: 'from-blue-500 to-blue-600',
     };
     return map[role] || 'from-slate-500 to-slate-600';
+}
+
+function roleBadgeStyle(role) {
+    const map = {
+        ADMIN: { background: 'linear-gradient(to right, #ef4444, #e11d48)' },
+        MANAGER: { background: 'linear-gradient(to right, #a855f7, #7c3aed)' },
+        TECHNICIAN: { background: 'linear-gradient(to right, #f59e0b, #ea580c)' },
+        USER: { background: 'linear-gradient(to right, #3b82f6, #2563eb)' },
+    };
+    return map[role] || { background: 'linear-gradient(to right, #64748b, #475569)' };
 }
 
 function statusBadge(status) {
@@ -53,6 +67,15 @@ export default function Profile() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [activeTab, setActiveTab] = useState(location.state?.tab || 'profile');
+
+    /* ── Attendance data ───────────── */
+    const [attendance, setAttendance] = useState([]);
+    const [attendanceStats, setAttendanceStats] = useState(null);
+    const [attendanceLoading, setAttendanceLoading] = useState(false);
+
+    /* ── ID Card ref ───────────────── */
+    const idCardRef = useRef(null);
+    const qrRef = useRef(null);
 
     useEffect(() => {
         if (location.state?.tab) {
@@ -106,10 +129,29 @@ export default function Profile() {
         }
     }, []);
 
+    /* ── Fetch attendance ────────────── */
+    const fetchAttendance = useCallback(async () => {
+        setAttendanceLoading(true);
+        try {
+            const [historyRes, statsRes] = await Promise.all([
+                getMyAttendance(),
+                getMyStats(),
+            ]);
+            setAttendance(historyRes.data.data || []);
+            setAttendanceStats(statsRes.data.data || null);
+        } catch {
+            setAttendance([]);
+            setAttendanceStats(null);
+        } finally {
+            setAttendanceLoading(false);
+        }
+    }, []);
+
     useEffect(() => {
         fetchBookings();
         fetchTickets();
-    }, [fetchBookings, fetchTickets]);
+        fetchAttendance();
+    }, [fetchBookings, fetchTickets, fetchAttendance]);
 
     /* ── Handlers ───────────────────── */
     const handleUpdateProfile = async (e) => {
@@ -156,9 +198,131 @@ export default function Profile() {
         navigate('/login');
     };
 
+    /* ── Download handlers ──────────── */
+    const handleDownloadQR = () => {
+        const svg = qrRef.current?.querySelector('svg');
+        const canvasElement = qrRef.current?.querySelector('canvas');
+
+        if (canvasElement) {
+            // If it's a canvas (QRCodeCanvas)
+            const a = document.createElement('a');
+            a.download = `${user?.name?.replace(/\s+/g, '_') || 'QR'}_SmartCampus_QR.png`;
+            a.href = canvasElement.toDataURL('image/png');
+            a.click();
+            return;
+        }
+
+        if (svg) {
+            // If it's an SVG (fallback/older)
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                const a = document.createElement('a');
+                a.download = `${user?.name?.replace(/\s+/g, '_') || 'QR'}_SmartCampus_QR.png`;
+                a.href = canvas.toDataURL('image/png');
+                a.click();
+            };
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        }
+    };
+
+    const handleDownloadIDCardImage = async () => {
+        if (!idCardRef.current) return;
+        const toastId = toast.loading('Generating ID Card Image...');
+        try {
+            const element = idCardRef.current;
+            const images = element.getElementsByTagName('img');
+            await Promise.all(Array.from(images).map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+            }));
+
+            const canvas = await html2canvas(element, {
+                useCORS: true,
+                allowTaint: false,
+                scale: 4, 
+                logging: false,
+                scrollX: 0,
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeight,
+            });
+
+            const a = document.createElement('a');
+            a.download = `${user?.name?.replace(/\s+/g, '_') || 'ID'}_SmartCampus_IDCard.png`;
+            a.href = canvas.toDataURL('image/png');
+            a.click();
+            
+            toast.success('ID Card downloaded as Image!', { id: toastId });
+        } catch (error) {
+            console.error('Image Generation Error:', error);
+            toast.error(`Download failed: ${error.message}`, { id: toastId });
+        }
+    };
+
+    const handleDownloadIDCardPDF = async () => {
+        if (!idCardRef.current) return;
+        const toastId = toast.loading('Preparing PDF...');
+        try {
+            const element = idCardRef.current;
+            const images = element.getElementsByTagName('img');
+            await Promise.all(Array.from(images).map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+            }));
+
+            const canvas = await html2canvas(element, {
+                useCORS: true,
+                allowTaint: false,
+                scale: 4, 
+                logging: false,
+                scrollX: 0,
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeight,
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF('l', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            const cardWidth = 140;
+            const cardHeight = (canvas.height * cardWidth) / canvas.width;
+            
+            const x = (pdfWidth - cardWidth) / 2;
+            const y = (pdfHeight - cardHeight) / 2;
+
+            pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
+            pdf.save(`${user?.name?.replace(/\s+/g, '_') || 'ID'}_SmartCampus_IDCard.pdf`);
+            
+            toast.success('ID Card downloaded as PDF!', { id: toastId });
+        } catch (error) {
+            console.error('PDF Generation Error:', error);
+            toast.error(`Download failed: ${error.message}`, { id: toastId });
+        }
+    };
+
+    /* ── QR data ────────────────────── */
+    // Compressed for larger modules and better scanning
+    const qrData = JSON.stringify({
+        id: user?.id,
+        t: 'SCI', // Smart Campus ID
+    });
+
     /* ── Tabs config ────────────────── */
     const tabs = [
         { id: 'profile', label: 'Profile', icon: '👤' },
+        { id: 'id-card', label: 'ID Card', icon: '🪪' },
+        { id: 'attendance', label: `Attendance ${attendance.length > 0 ? `(${attendance.length})` : ''}`, icon: '📋' },
         { id: 'bookings', label: `My Bookings ${bookings.length > 0 ? `(${bookings.length})` : ''}`, icon: '📅' },
         { id: 'tickets', label: `My Tickets ${tickets.length > 0 ? `(${tickets.length})` : ''}`, icon: '🎫' },
     ];
@@ -200,7 +364,7 @@ export default function Profile() {
                                             referrerPolicy="no-referrer"
                                         />
                                     ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-5xl font-bold">
+                                        <div className="w-full h-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold">
                                             {user?.name?.charAt(0)?.toUpperCase() || '?'}
                                         </div>
                                     )}
@@ -440,6 +604,243 @@ export default function Profile() {
                                                     Cancel
                                                 </button>
                                             </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── Tab: ID Card ─────────────────────────────── */}
+                        {activeTab === 'id-card' && (
+                            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-5">
+                                {/* ID Card */}
+                                <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6">
+                                    <h3 className="text-lg font-bold text-blue-400 mb-6 flex items-center gap-2">
+                                        🪪 Student / Staff ID Card
+                                    </h3>
+
+                                     <div ref={idCardRef} className="max-w-lg mx-auto rounded-2xl overflow-hidden shadow-2xl" style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+                                        {/* Card Header */}
+                                        <div className="px-6 py-4" style={{ background: 'linear-gradient(to right, #2563eb, #1d4ed8, #4338ca)' }}>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255, 255, 255, 0.2)' }}>
+                                                    <span className="text-white text-xl font-bold">S</span>
+                                                </div>
+                                                <div>
+                                                    <p className="text-white font-bold text-lg tracking-tight">Smart Campus</p>
+                                                    <p className="text-blue-200 text-xs font-medium uppercase tracking-widest" style={{ color: '#bfdbfe' }}>Operations Hub</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Card Body */}
+                                        <div className="p-6 relative" style={{ background: 'linear-gradient(to bottom right, #1e293b, #0f172a)' }}>
+                                            {/* QR Code - Absolute Position Top Right */}
+                                            <div ref={qrRef} className="absolute top-4 right-4 bg-white p-1.5 rounded-lg shadow-xl z-10">
+                                                <QRCodeCanvas
+                                                    value={qrData}
+                                                    size={120} // Adjusted for corner placement
+                                                    level="M"
+                                                    includeMargin={true}
+                                                />
+                                            </div>
+
+                                            <div className="flex gap-6">
+                                                {/* Photo Section */}
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <div 
+                                                        className="w-24 h-24 rounded-xl overflow-hidden" 
+                                                        style={{ 
+                                                            border: '2px solid rgba(59, 130, 246, 0.4)',
+                                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
+                                                        }}
+                                                    >
+                                                        {user?.profilePicture ? (
+                                                            <img
+                                                                src={user.profilePicture}
+                                                                alt={user.name}
+                                                                className="w-full h-full object-cover"
+                                                                referrerPolicy="no-referrer"
+                                                                crossOrigin="anonymous"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #9333ea)' }}>
+                                                                {user?.name?.charAt(0)?.toUpperCase() || '?'}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Details */}
+                                                <div className="flex-1 min-w-0">
+                                                    <h2 className="text-white text-xl font-bold truncate">{user?.name}</h2>
+                                                    <span 
+                                                        className="inline-block mt-1 px-3 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider"
+                                                        style={roleBadgeStyle(user?.role)}
+                                                    >
+                                                        {user?.role}
+                                                    </span>
+
+                                                    <div className="mt-4 space-y-2">
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-xs w-9" style={{ color: '#64748b' }}>Email</span>
+                                                            <span className="text-xs truncate" style={{ color: '#cbd5e1' }}>{user?.email}</span>
+                                                        </div>
+                                                        {(user?.phoneNumber || phoneNumber) && (
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-xs w-9" style={{ color: '#64748b' }}>Phone</span>
+                                                                <span className="text-xs" style={{ color: '#cbd5e1' }}>{user?.phoneNumber || phoneNumber}</span>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-xs w-9" style={{ color: '#64748b' }}>Since</span>
+                                                            <span className="text-xs" style={{ color: '#cbd5e1' }}>{formatDate(user?.createdAt)}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-xs w-9" style={{ color: '#64748b' }}>ID</span>
+                                                            <span className="text-[10px] font-mono" style={{ color: '#94a3b8' }}>{user?.id}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Card Footer */}
+                                        <div className="border-t px-6 py-2" style={{ background: 'rgba(37, 99, 235, 0.1)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
+                                            <p className="text-[10px] text-center font-medium tracking-wide" style={{ color: 'rgba(96, 165, 250, 0.7)' }}>
+                                                Scan QR code to verify identity • Smart Campus © {new Date().getFullYear()}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-3 mt-6 justify-center">
+                                        <button
+                                            onClick={handleDownloadIDCardImage}
+                                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 cursor-pointer"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                            Download ID as Image
+                                        </button>
+                                        <button
+                                            onClick={handleDownloadIDCardPDF}
+                                            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-indigo-600/20 hover:-translate-y-0.5 cursor-pointer"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                            </svg>
+                                            Download ID as PDF
+                                        </button>
+                                        <button
+                                            onClick={handleDownloadQR}
+                                            className="flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-semibold text-sm transition-all shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                            </svg>
+                                            Download QR Code
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── Tab: Attendance ─────────────────────────── */}
+                        {activeTab === 'attendance' && (
+                            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-5">
+                                {/* Stats Cards */}
+                                {attendanceStats && (
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                        <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-xl p-4 text-center">
+                                            <p className="text-2xl font-bold text-blue-400">{attendanceStats.totalRecords}</p>
+                                            <p className="text-slate-400 text-xs mt-1 uppercase tracking-wider">Total</p>
+                                        </div>
+                                        <div className="bg-slate-800/50 backdrop-blur-xl border border-emerald-700/40 rounded-xl p-4 text-center">
+                                            <p className="text-2xl font-bold text-emerald-400">{attendanceStats.presentCount}</p>
+                                            <p className="text-slate-400 text-xs mt-1 uppercase tracking-wider">Present</p>
+                                        </div>
+                                        <div className="bg-slate-800/50 backdrop-blur-xl border border-amber-700/40 rounded-xl p-4 text-center">
+                                            <p className="text-2xl font-bold text-amber-400">{attendanceStats.lateCount}</p>
+                                            <p className="text-slate-400 text-xs mt-1 uppercase tracking-wider">Late</p>
+                                        </div>
+                                        <div className="bg-slate-800/50 backdrop-blur-xl border border-red-700/40 rounded-xl p-4 text-center">
+                                            <p className="text-2xl font-bold text-red-400">{attendanceStats.absentCount}</p>
+                                            <p className="text-slate-400 text-xs mt-1 uppercase tracking-wider">Absent</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Attendance Rate */}
+                                {attendanceStats && (
+                                    <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-2xl px-6 py-5">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-slate-300 font-semibold text-sm">Attendance Rate</span>
+                                            <span className={`text-sm font-bold ${attendanceStats.attendanceRate >= 75 ? 'text-emerald-400' : attendanceStats.attendanceRate >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                                                {attendanceStats.attendanceRate}%
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-slate-700/50 rounded-full h-3 overflow-hidden">
+                                            <div
+                                                className="h-full rounded-full transition-all duration-1000 ease-out"
+                                                style={{
+                                                    width: `${attendanceStats.attendanceRate}%`,
+                                                    background: attendanceStats.attendanceRate >= 75
+                                                        ? 'linear-gradient(90deg, #10b981, #34d399)'
+                                                        : attendanceStats.attendanceRate >= 50
+                                                            ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+                                                            : 'linear-gradient(90deg, #ef4444, #f87171)',
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Attendance Records */}
+                                <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6">
+                                    <h3 className="text-lg font-bold text-blue-400 mb-6 flex items-center gap-2">
+                                        <span>📋</span> Attendance History
+                                    </h3>
+
+                                    {attendanceLoading ? (
+                                        <LoadingSkeleton rows={4} />
+                                    ) : attendance.length === 0 ? (
+                                        <EmptyState icon="📋" text="No attendance records" subtext="Your attendance will appear here when marked." />
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {attendance.map((record) => (
+                                                <div
+                                                    key={record.id}
+                                                    className="flex items-center justify-between p-4 bg-slate-900/50 border border-slate-700/50 rounded-xl"
+                                                >
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-white font-medium text-sm">
+                                                            {formatDate(record.markedAt)}
+                                                        </p>
+                                                        <div className="flex items-center gap-3 mt-1">
+                                                            {record.location && (
+                                                                <span className="text-slate-500 text-xs flex items-center gap-1">
+                                                                    📍 {record.location}
+                                                                </span>
+                                                            )}
+                                                            {record.markedByName && (
+                                                                <span className="text-slate-500 text-xs">
+                                                                    by {record.markedByName}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <span className={`ml-3 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                                                        record.status === 'PRESENT'
+                                                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                                                            : record.status === 'LATE'
+                                                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                                                                : 'bg-red-500/10 text-red-400 border-red-500/30'
+                                                    } whitespace-nowrap`}>
+                                                        {record.status}
+                                                    </span>
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>

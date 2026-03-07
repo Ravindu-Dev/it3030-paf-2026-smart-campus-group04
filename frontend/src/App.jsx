@@ -12,6 +12,7 @@ import ChatBot from './components/ChatBot';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import ScanAttendance from './pages/ScanAttendance';
 import AdminUsers from './pages/AdminUsers';
 import Forbidden from './pages/Forbidden';
 import Facilities from './pages/Facilities';
@@ -43,7 +44,7 @@ function NotFound() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-slate-900 px-4">
       <div className="text-center">
-        <h1 className="text-7xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">404</h1>
+        <h1 className="text-7xl font-extrabold bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">404</h1>
         <p className="text-slate-400 mt-4 text-xl">Oops! The page you're looking for doesn't exist.</p>
         <Link
           to="/"
@@ -96,7 +97,7 @@ function App() {
       {/* Global Navbar */}
       {!hideNavbar && <Navbar />}
 
-      <main className="flex-grow">
+      <main className="grow">
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Home />} />
@@ -116,8 +117,14 @@ function App() {
           } />
 
           <Route path="/profile" element={
-            <ProtectedRoute allowedRoles={['USER']}>
+            <ProtectedRoute allowedRoles={['USER', 'ADMIN', 'MANAGER', 'TECHNICIAN']}>
               <Profile />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/attendance/scan" element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+              <ScanAttendance />
             </ProtectedRoute>
           } />
 
