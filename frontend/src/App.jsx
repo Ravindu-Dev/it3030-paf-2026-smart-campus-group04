@@ -32,6 +32,9 @@ import ManageEvents from './pages/ManageEvents';
 import EventCalendarPage from './pages/EventCalendarPage';
 import TechnicianDashboard from './pages/TechnicianDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
+import TransportMap from './pages/TransportMap';
+import ManageTransport from './pages/ManageTransport';
+import DriverTracking from './pages/DriverTracking';
 
 // ─── New Public Pages ────────────────────────────────────────────────
 import Home from './pages/Home';
@@ -68,9 +71,11 @@ function App() {
   const isFacilityRoute = location.pathname.startsWith('/facilities');
   const isBookingRoute = location.pathname.startsWith('/bookings');
   const isTicketRoute = location.pathname.startsWith('/tickets');
+  const isTransportRoute = location.pathname.startsWith('/transport') || location.pathname.startsWith('/admin/transport');
+  const isTrackingRoute = location.pathname.startsWith('/track/');
 
-  const hideFooter = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute));
-  const hideNavbar = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute));
+  const hideFooter = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute || isTransportRoute)) || isTrackingRoute;
+  const hideNavbar = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute || isTransportRoute)) || isTrackingRoute;
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-900 selection:bg-blue-500/30">
@@ -192,6 +197,11 @@ function App() {
               <AdminUsers />
             </ProtectedRoute>
           } />
+          <Route path="/admin/transport" element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ManageTransport />
+            </ProtectedRoute>
+          } />
 
           {/* Ticket routes */}
           <Route path="/tickets/new" element={
@@ -225,6 +235,16 @@ function App() {
               <TechnicianDashboard />
             </ProtectedRoute>
           } />
+
+          {/* Transport routes */}
+          <Route path="/transport" element={
+            <ProtectedRoute>
+              <TransportMap />
+            </ProtectedRoute>
+          } />
+
+          {/* Public Driver Tracking */}
+          <Route path="/track/:token" element={<DriverTracking />} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
