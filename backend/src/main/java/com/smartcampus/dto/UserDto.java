@@ -21,5 +21,6 @@ public class UserDto {
     private Role role;
     private String phoneNumber;
     private String provider;
+    private boolean notificationsEnabled;
     private String createdAt;
 }

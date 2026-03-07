@@ -6,6 +6,7 @@ import com.smartcampus.model.Notification;
 import com.smartcampus.model.NotificationType;
 import com.smartcampus.model.User;
 import com.smartcampus.repository.NotificationRepository;
+import com.smartcampus.repository.UserRepository;
 import com.smartcampus.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +26,11 @@ public class NotificationServiceImpl implements NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
     private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
 
-    public NotificationServiceImpl(NotificationRepository notificationRepository) {
+    public NotificationServiceImpl(NotificationRepository notificationRepository, UserRepository userRepository) {
         this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
     }
 
     private String getAuthenticatedUserId() {
@@ -40,6 +43,12 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void createNotification(String userId, String message, NotificationType type) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user != null && !user.isNotificationsEnabled()) {
+            logger.info("Skipping notification for user {} as notifications are disabled", userId);
+            return;
+        }
+
         Notification notification = new Notification();
         notification.setUserId(userId);
         notification.setMessage(message);
@@ -115,6 +124,19 @@ public class NotificationServiceImpl implements NotificationService {
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void toggleNotifications(User user, boolean enabled) {
+        user.setNotificationsEnabled(enabled);
+        userRepository.save(user);
+        logger.info("Notifications {} for user {}", enabled ? "enabled" : "disabled", user.getId());
+    }
+
+    @Override
+    public boolean isNotificationsEnabled(User user) {
+        return user.isNotificationsEnabled();
     }
 
     private NotificationDto mapToDto(Notification notification) {

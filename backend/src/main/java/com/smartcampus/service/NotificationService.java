@@ -23,4 +23,8 @@ public interface NotificationService {
     long getUnreadCount();
 
     List<NotificationDto> getAllNotifications();
+
+    void toggleNotifications(com.smartcampus.model.User user, boolean enabled);
+
+    boolean isNotificationsEnabled(com.smartcampus.model.User user);
 }

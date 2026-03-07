@@ -8,11 +8,13 @@ export default function NotificationBell() {
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const bellRef = useRef(null);
 
     // Fetch unread count on mount and every 30 seconds
     useEffect(() => {
         fetchUnreadCount();
+        fetchSettings();
         const interval = setInterval(fetchUnreadCount, 30000);
         return () => clearInterval(interval);
     }, []);
@@ -34,6 +36,15 @@ export default function NotificationBell() {
             setUnreadCount(count);
         } catch (error) {
             console.error('Failed to fetch unread count', error);
+        }
+    };
+
+    const fetchSettings = async () => {
+        try {
+            const enabled = await notificationService.getNotificationSettings();
+            setNotificationsEnabled(enabled);
+        } catch (error) {
+            console.error('Failed to fetch settings', error);
         }
     };
 
@@ -92,13 +103,33 @@ export default function NotificationBell() {
         }
     };
 
+    const handleToggleNotifications = async () => {
+        const newState = !notificationsEnabled;
+        try {
+            await notificationService.updateNotificationSettings(newState);
+            setNotificationsEnabled(newState);
+            toast.success(`Notifications turned ${newState ? 'ON' : 'OFF'}`);
+            if (!newState) {
+                setNotifications([]);
+                setUnreadCount(0);
+            } else {
+                fetchNotifications();
+                fetchUnreadCount();
+            }
+        } catch (error) {
+            toast.error('Failed to update notification settings');
+        }
+    };
+
     return (
         <div className="relative" ref={bellRef}>
             <button
                 onClick={toggleDropdown}
                 className={`relative p-2.5 rounded-xl transition-all group ${isOpen
                     ? 'bg-slate-800 text-amber-400 border border-amber-500/20 shadow-lg shadow-amber-500/5'
-                    : 'text-slate-400 hover:text-amber-400 hover:bg-slate-800/60 border border-transparent'
+                    : notificationsEnabled
+                        ? 'text-amber-400/80 hover:text-amber-400 hover:bg-slate-800/60 border border-transparent'
+                        : 'text-slate-500 hover:text-slate-400 hover:bg-slate-800/60 border border-transparent'
                     }`}
                 aria-label="Notifications"
             >
@@ -123,6 +154,8 @@ export default function NotificationBell() {
                     onMarkAllAsRead={handleMarkAllAsRead}
                     onDelete={handleDelete}
                     loading={loading}
+                    notificationsEnabled={notificationsEnabled}
+                    onToggleNotifications={handleToggleNotifications}
                 />
             )}
         </div>
