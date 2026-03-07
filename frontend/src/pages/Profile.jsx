@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../services/api';
+import SmartRecommendations from '../components/SmartRecommendations';
 import { getMyAttendance, getMyStats } from '../services/attendanceService';
 import toast from 'react-hot-toast';
 import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react';
@@ -247,7 +248,7 @@ export default function Profile() {
             const canvas = await html2canvas(element, {
                 useCORS: true,
                 allowTaint: false,
-                scale: 4, 
+                scale: 4,
                 logging: false,
                 scrollX: 0,
                 scrollY: -window.scrollY,
@@ -259,7 +260,7 @@ export default function Profile() {
             a.download = `${user?.name?.replace(/\s+/g, '_') || 'ID'}_SmartCampus_IDCard.png`;
             a.href = canvas.toDataURL('image/png');
             a.click();
-            
+
             toast.success('ID Card downloaded as Image!', { id: toastId });
         } catch (error) {
             console.error('Image Generation Error:', error);
@@ -281,7 +282,7 @@ export default function Profile() {
             const canvas = await html2canvas(element, {
                 useCORS: true,
                 allowTaint: false,
-                scale: 4, 
+                scale: 4,
                 logging: false,
                 scrollX: 0,
                 scrollY: -window.scrollY,
@@ -290,20 +291,20 @@ export default function Profile() {
             });
 
             const imgData = canvas.toDataURL('image/png');
-            
+
             const pdf = new jsPDF('l', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
-            
+
             const cardWidth = 140;
             const cardHeight = (canvas.height * cardWidth) / canvas.width;
-            
+
             const x = (pdfWidth - cardWidth) / 2;
             const y = (pdfHeight - cardHeight) / 2;
 
             pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
             pdf.save(`${user?.name?.replace(/\s+/g, '_') || 'ID'}_SmartCampus_IDCard.pdf`);
-            
+
             toast.success('ID Card downloaded as PDF!', { id: toastId });
         } catch (error) {
             console.error('PDF Generation Error:', error);
@@ -467,6 +468,9 @@ export default function Profile() {
                             </p>
                         </div>
 
+                        {/* AI Recommendations */}
+                        <SmartRecommendations />
+
                         {/* Tab Navigation */}
                         <div className="flex gap-1 bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl p-1.5 overflow-x-auto">
                             {tabs.map((tab) => (
@@ -619,7 +623,7 @@ export default function Profile() {
                                         🪪 Student / Staff ID Card
                                     </h3>
 
-                                     <div ref={idCardRef} className="max-w-lg mx-auto rounded-2xl overflow-hidden shadow-2xl" style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+                                    <div ref={idCardRef} className="max-w-lg mx-auto rounded-2xl overflow-hidden shadow-2xl" style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
                                         {/* Card Header */}
                                         <div className="px-6 py-4" style={{ background: 'linear-gradient(to right, #2563eb, #1d4ed8, #4338ca)' }}>
                                             <div className="flex items-center gap-3">
@@ -648,9 +652,9 @@ export default function Profile() {
                                             <div className="flex gap-6">
                                                 {/* Photo Section */}
                                                 <div className="flex flex-col items-center gap-3">
-                                                    <div 
-                                                        className="w-24 h-24 rounded-xl overflow-hidden" 
-                                                        style={{ 
+                                                    <div
+                                                        className="w-24 h-24 rounded-xl overflow-hidden"
+                                                        style={{
                                                             border: '2px solid rgba(59, 130, 246, 0.4)',
                                                             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
                                                         }}
@@ -674,7 +678,7 @@ export default function Profile() {
                                                 {/* Details */}
                                                 <div className="flex-1 min-w-0">
                                                     <h2 className="text-white text-xl font-bold truncate">{user?.name}</h2>
-                                                    <span 
+                                                    <span
                                                         className="inline-block mt-1 px-3 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider"
                                                         style={roleBadgeStyle(user?.role)}
                                                     >
@@ -830,13 +834,12 @@ export default function Profile() {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <span className={`ml-3 px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                                                        record.status === 'PRESENT'
+                                                    <span className={`ml-3 px-2.5 py-1 rounded-full text-xs font-semibold border ${record.status === 'PRESENT'
                                                             ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                                                             : record.status === 'LATE'
                                                                 ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
                                                                 : 'bg-red-500/10 text-red-400 border-red-500/30'
-                                                    } whitespace-nowrap`}>
+                                                        } whitespace-nowrap`}>
                                                         {record.status}
                                                     </span>
                                                 </div>
