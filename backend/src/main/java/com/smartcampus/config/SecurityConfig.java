@@ -62,6 +62,9 @@ public class SecurityConfig {
                         // Note: context-path is /api, so Spring Security paths are relative to it
                         .requestMatchers("/auth/google").permitAll()
                         .requestMatchers(HttpMethod.GET, "/facilities", "/facilities/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/shuttles", "/shuttles/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/routes", "/routes/**").permitAll()
+                        .requestMatchers("/shuttles/track/**").permitAll()
 
                         // Everything else requires authentication
                         .anyRequest().authenticated())
