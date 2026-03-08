@@ -8,9 +8,11 @@ import ManageBookings from './ManageBookings';
 import AdminUsers from './AdminUsers';
 import ManageTickets from './ManageTickets';
 import ManageEvents from './ManageEvents';
+import ManageTransport from './ManageTransport';
 import TechnicianDashboard from './TechnicianDashboard';
 import ManagerDashboard from './ManagerDashboard';
 import ManageAttendance from './ManageAttendance';
+import { ShuttleMap } from './TransportMap';
 
 /**
  * Dashboard — The main hub for the Smart Campus Operations Hub.
@@ -120,10 +122,11 @@ export default function Dashboard() {
                                         { id: 'event-management', label: 'Event Management', icon: '📅', roles: ['ADMIN'] },
                                         { id: 'notifications', label: 'Notifications', icon: '🔔', roles: ['ADMIN'] },
                                         { id: 'manage-tickets', label: 'Manage Tickets', icon: '🎫', roles: ['ADMIN'] },
+                                        { id: 'manage-transport', label: 'Manage Transport', icon: '🚌', roles: ['ADMIN'] },
                                         { id: 'manager-tickets', label: 'Manage Tickets', icon: '🎫', roles: ['MANAGER'] },
                                         { id: 'technician-tickets', label: 'My Assigned Tickets', icon: '🔧', roles: ['TECHNICIAN'] },
                                         { id: 'attendance', label: 'Attendance', icon: '📋', roles: ['ADMIN', 'MANAGER'] },
-                                         { id: 'users', label: 'Users', icon: '👥', roles: ['ADMIN'] },
+                                        { id: 'users', label: 'Users', icon: '👥', roles: ['ADMIN'] },
                                     ].filter(tab => tab.roles.includes(user?.role)).map((tab) => (
                                         <button
                                             key={tab.id}
@@ -288,10 +291,11 @@ export default function Dashboard() {
                                         { id: 'event-management', label: 'Event Management', icon: '📅', roles: ['ADMIN'] },
                                         { id: 'notifications', label: 'Notifications', icon: '🔔', roles: ['ADMIN'] },
                                         { id: 'manage-tickets', label: 'Manage Tickets', icon: '🎫', roles: ['ADMIN'] },
+                                        { id: 'manage-transport', label: 'Manage Transport', icon: '🚌', roles: ['ADMIN'] },
                                         { id: 'manager-tickets', label: 'Manage Tickets', icon: '🎫', roles: ['MANAGER'] },
                                         { id: 'technician-tickets', label: 'My Assigned Tickets', icon: '🔧', roles: ['TECHNICIAN'] },
                                         { id: 'attendance', label: 'Attendance', icon: '📋', roles: ['ADMIN', 'MANAGER'] },
-                                         { id: 'users', label: 'Users', icon: '👥', roles: ['ADMIN'] },
+                                        { id: 'users', label: 'Users', icon: '👥', roles: ['ADMIN'] },
                                     ].filter(tab => tab.roles.includes(user?.role)).map((tab) => (
                                         <button
                                             key={tab.id}
@@ -393,6 +397,17 @@ export default function Dashboard() {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* ── Live Shuttle Map ──────── */}
+                                        <div className="lg:col-span-3 mt-2">
+                                            <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
+                                                <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                                                    <span className="text-lg">🚌</span>
+                                                    Live Shuttle Tracker
+                                                </h3>
+                                                <ShuttleMap height="350px" showControls={false} compact={true} />
+                                            </div>
+                                        </div>
                                     </>
                                 ) : activeTab === 'facilities' ? (
                                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -432,6 +447,10 @@ export default function Dashboard() {
                                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <ManageTickets standalone={true} />
                                     </div>
+                                ) : activeTab === 'manage-transport' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <ManageTransport standalone={true} />
+                                    </div>
                                 ) : activeTab === 'manager-tickets' ? (
                                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <ManagerDashboard standalone={true} />
@@ -440,7 +459,7 @@ export default function Dashboard() {
                                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <TechnicianDashboard standalone={true} />
                                     </div>
-                                 ) : activeTab === 'attendance' ? (
+                                ) : activeTab === 'attendance' ? (
                                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <ManageAttendance standalone={true} />
                                     </div>
@@ -453,8 +472,9 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
-            ) : null}
-        </div>
+            ) : null
+            }
+        </div >
     );
 }
 

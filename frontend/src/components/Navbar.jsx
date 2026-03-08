@@ -83,6 +83,7 @@ export default function Navbar() {
                             <NavLink to="/facilities-assets" label="Facilities" active={isActive('/facilities-assets')} />
                             <NavLink to="/campus-map" label="Campus Map" active={isActive('/campus-map')} />
                             <NavLink to="/events" label="Events" active={isActive('/events')} />
+                            <NavLink to="/transport" label="Transport" active={isActive('/transport')} />
                             <NavLink to="/about" label="About Us" active={isActive('/about')} />
                             <NavLink to="/contact" label="Contact" active={isActive('/contact')} />
                             <NavLink to="/faq" label="FAQ" active={isActive('/faq')} />
@@ -234,6 +235,7 @@ export default function Navbar() {
                             <MobileNavLink to="/" label="Home" active={isActive('/')} />
                             <MobileNavLink to="/facilities-assets" label="Facilities" active={isActive('/facilities-assets')} />
                             <MobileNavLink to="/campus-map" label="Campus Map" active={isActive('/campus-map')} />
+                            <MobileNavLink to="/transport" label="Transport" active={isActive('/transport')} />
                             <MobileNavLink to="/about" label="About Us" active={isActive('/about')} />
                             <MobileNavLink to="/contact" label="Contact" active={isActive('/contact')} />
                             <MobileNavLink to="/faq" label="FAQ" active={isActive('/faq')} />

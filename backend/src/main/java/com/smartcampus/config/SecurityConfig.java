@@ -61,6 +61,9 @@ public class SecurityConfig {
                         // Public endpoints — no JWT required
                         .requestMatchers("/auth/google").permitAll()
                         .requestMatchers(HttpMethod.GET, "/facilities", "/facilities/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/shuttles", "/shuttles/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/routes", "/routes/**").permitAll()
+                        .requestMatchers("/shuttles/track/**").permitAll()
 
                         // Everything else requires authentication
                         .anyRequest().authenticated())
