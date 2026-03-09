@@ -12,6 +12,7 @@ import ManageTransport from './ManageTransport';
 import TechnicianDashboard from './TechnicianDashboard';
 import ManagerDashboard from './ManagerDashboard';
 import ManageAttendance from './ManageAttendance';
+import ManageLostFound from './ManageLostFound';
 import { ShuttleMap } from './TransportMap';
 
 /**
@@ -125,6 +126,7 @@ export default function Dashboard() {
                                         { id: 'manage-transport', label: 'Manage Transport', icon: '🚌', roles: ['ADMIN'] },
                                         { id: 'manager-tickets', label: 'Manage Tickets', icon: '🎫', roles: ['MANAGER'] },
                                         { id: 'technician-tickets', label: 'My Assigned Tickets', icon: '🔧', roles: ['TECHNICIAN'] },
+                                        { id: 'manage-lost-found', label: 'Lost & Found', icon: '📦', roles: ['ADMIN'] },
                                         { id: 'attendance', label: 'Attendance', icon: '📋', roles: ['ADMIN', 'MANAGER'] },
                                         { id: 'users', label: 'Users', icon: '👥', roles: ['ADMIN'] },
                                     ].filter(tab => tab.roles.includes(user?.role)).map((tab) => (
@@ -462,6 +464,10 @@ export default function Dashboard() {
                                 ) : activeTab === 'attendance' ? (
                                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <ManageAttendance standalone={true} />
+                                    </div>
+                                ) : activeTab === 'manage-lost-found' ? (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <ManageLostFound standalone={true} />
                                     </div>
                                 ) : activeTab === 'users' ? (
                                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">

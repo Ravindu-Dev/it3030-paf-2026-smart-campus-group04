@@ -43,6 +43,10 @@ import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
 import CampusMap from './pages/CampusMap';
+import LostFound from './pages/LostFound';
+import ReportLostFound from './pages/ReportLostFound';
+import LostFoundDetail from './pages/LostFoundDetail';
+import ManageLostFound from './pages/ManageLostFound';
 
 function NotFound() {
   return (
@@ -112,6 +116,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/campus-map" element={<CampusMap />} />
+          <Route path="/lost-found" element={<LostFound />} />
 
           <Route path="/login" element={<Login />} />
           <Route path="/forbidden" element={<Forbidden />} />
@@ -240,6 +245,21 @@ function App() {
           <Route path="/transport" element={
             <ProtectedRoute>
               <TransportMap />
+            </ProtectedRoute>
+          } />
+
+          {/* Public Driver Tracking */}
+          {/* Lost & Found routes */}
+          <Route path="/lost-found/report" element={
+            <ProtectedRoute>
+              <ReportLostFound />
+            </ProtectedRoute>
+          } />
+          <Route path="/lost-found/:id" element={<LostFoundDetail />} />
+
+          <Route path="/admin/lost-found" element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ManageLostFound />
             </ProtectedRoute>
           } />
 
