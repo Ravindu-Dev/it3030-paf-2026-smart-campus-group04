@@ -29,6 +29,8 @@ public interface EventService {
     void cancelRegistration(String eventId);
 
     List<EventDto> getUserRegisteredEvents();
+    
+    long getUpcomingRegisteredEventsCount();
 
     // Utility
     void updateParticipantCount(String eventId);

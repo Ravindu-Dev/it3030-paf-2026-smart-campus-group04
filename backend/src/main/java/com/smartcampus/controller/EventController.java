@@ -83,4 +83,10 @@ public class EventController {
         List<EventDto> events = eventService.getUserRegisteredEvents();
         return ResponseEntity.ok(ApiResponse.success("Your registered events fetched successfully", events));
     }
+
+    @GetMapping("/my-count")
+    public ResponseEntity<ApiResponse<Long>> getMyEventsCount() {
+        long count = eventService.getUpcomingRegisteredEventsCount();
+        return ResponseEntity.ok(ApiResponse.success("Your upcoming registered events count fetched successfully", count));
+    }
 }

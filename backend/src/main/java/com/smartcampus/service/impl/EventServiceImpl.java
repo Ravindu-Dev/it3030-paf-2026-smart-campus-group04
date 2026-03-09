@@ -200,6 +200,26 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public long getUpcomingRegisteredEventsCount() {
+        User user = getCurrentUser();
+        if (user == null) return 0;
+
+        List<EventRegistration> registrations = registrationRepository.findByUserId(user.getId());
+        if (registrations.isEmpty()) return 0;
+
+        List<String> eventIds = registrations.stream()
+                .map(EventRegistration::getEventId)
+                .collect(Collectors.toList());
+
+        return eventRepository.findAllById(eventIds).stream()
+                .filter(e -> {
+                    EventStatus status = resolveStatus(e);
+                    return status == EventStatus.UPCOMING || status == EventStatus.ONGOING;
+                })
+                .count();
+    }
+
+    @Override
     public void updateParticipantCount(String eventId) {
         Event event = eventRepository.findById(eventId).orElse(null);
         if (event != null) {

@@ -8,6 +8,7 @@ export const getEventById = (id) => api.get(`/events/${id}`);
 export const registerForEvent = (id) => api.post(`/events/${id}/register`);
 export const cancelRegistration = (id) => api.delete(`/events/${id}/cancel`);
 export const getMyEvents = () => api.get('/events/my-events');
+export const getMyEventsCount = () => api.get('/events/my-count');
 
 // Admin Functions
 export const getAllEventsAdmin = () => api.get('/events/admin');
