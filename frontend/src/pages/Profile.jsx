@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../services/api';
+import { getMyEventsCount } from '../services/eventService';
 import SmartRecommendations from '../components/SmartRecommendations';
 import { getMyAttendance, getMyStats } from '../services/attendanceService';
 import toast from 'react-hot-toast';
@@ -91,6 +92,7 @@ export default function Profile() {
     const [tickets, setTickets] = useState([]);
     const [bookingsLoading, setBookingsLoading] = useState(false);
     const [ticketsLoading, setTicketsLoading] = useState(false);
+    const [registeredEventsCount, setRegisteredEventsCount] = useState(0);
 
     /* ── Profile completion ─────────── */
     // Based on: name, email, phoneNumber, profilePicture
@@ -148,11 +150,22 @@ export default function Profile() {
         }
     }, []);
 
+    /* ── Fetch Registered Events Count ── */
+    const fetchEventsCount = useCallback(async () => {
+        try {
+            const res = await getMyEventsCount();
+            setRegisteredEventsCount(res.data?.data || 0);
+        } catch {
+            setRegisteredEventsCount(0);
+        }
+    }, []);
+
     useEffect(() => {
         fetchBookings();
         fetchTickets();
         fetchAttendance();
-    }, [fetchBookings, fetchTickets, fetchAttendance]);
+        fetchEventsCount();
+    }, [fetchBookings, fetchTickets, fetchAttendance, fetchEventsCount]);
 
     /* ── Handlers ───────────────────── */
     const handleUpdateProfile = async (e) => {
@@ -409,32 +422,35 @@ export default function Profile() {
 
                         {/* Quick Stats card */}
                         <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-6 shadow-2xl">
-                            <h3 className="text-white font-bold mb-5 flex items-center gap-2 text-lg">
+                            <h3 className="text-white font-bold mb-6 flex items-center gap-2 text-lg">
                                 <span className="text-blue-400 text-xl">📊</span> Quick Stats
                             </h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <StatTile
-                                    value={bookings.length}
-                                    label="Bookings"
-                                    color="from-blue-400 to-blue-600"
-                                    onClick={() => setActiveTab('bookings')}
-                                />
-                                <StatTile
-                                    value={tickets.length}
-                                    label="Tickets"
-                                    color="from-purple-400 to-purple-600"
-                                    onClick={() => setActiveTab('tickets')}
-                                />
-                                <StatTile
-                                    value={bookings.filter(b => b.status === 'APPROVED').length}
-                                    label="Approved"
-                                    color="from-emerald-400 to-emerald-600"
-                                />
-                                <StatTile
-                                    value={tickets.filter(t => t.status === 'OPEN').length}
-                                    label="Open Tickets"
-                                    color="from-amber-400 to-amber-600"
-                                />
+                            <div className="space-y-5">
+                                {(() => {
+                                    const stats = [
+                                        { value: bookings.length, label: "Bookings", color: "from-blue-400 to-blue-600", onClick: () => setActiveTab('bookings') },
+                                        { value: tickets.length, label: "Tickets", color: "from-purple-400 to-purple-600", onClick: () => setActiveTab('tickets') },
+                                        { value: bookings.filter(b => b.status === 'APPROVED').length, label: "Approved", color: "from-emerald-400 to-emerald-600" },
+                                        { value: tickets.filter(t => t.status === 'OPEN').length, label: "Open Tickets", color: "from-amber-400 to-amber-600" }
+                                    ];
+
+                                    if (registeredEventsCount > 0) {
+                                        stats.push({ value: registeredEventsCount, label: "Registered Events", color: "from-rose-400 to-rose-600", onClick: () => navigate('/events', { state: { filter: 'my' } }) });
+                                    }
+
+                                    const maxVal = Math.max(...stats.map(s => s.value), 5); // Fallback to 5 for better initial scale
+
+                                    return stats.map((stat, idx) => (
+                                        <StatBar
+                                            key={idx}
+                                            value={stat.value}
+                                            label={stat.label}
+                                            color={stat.color}
+                                            onClick={stat.onClick}
+                                            max={maxVal}
+                                        />
+                                    ));
+                                })()}
                             </div>
                         </div>
                     </div>
@@ -835,10 +851,10 @@ export default function Profile() {
                                                         </div>
                                                     </div>
                                                     <span className={`ml-3 px-2.5 py-1 rounded-full text-xs font-semibold border ${record.status === 'PRESENT'
-                                                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                                                            : record.status === 'LATE'
-                                                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                                                                : 'bg-red-500/10 text-red-400 border-red-500/30'
+                                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                                                        : record.status === 'LATE'
+                                                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                                                            : 'bg-red-500/10 text-red-400 border-red-500/30'
                                                         } whitespace-nowrap`}>
                                                         {record.status}
                                                     </span>
@@ -991,16 +1007,28 @@ function InfoField({ label, icon, value, editable, readOnly, verified, onChange,
     );
 }
 
-function StatTile({ value, label, color, onClick }) {
+function StatBar({ value, label, color, onClick, max }) {
+    const percentage = Math.max(5, (value / max) * 100);
     return (
-        <button
+        <div
             onClick={onClick}
-            className={`bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 text-center transition-all duration-300 relative overflow-hidden group ${onClick ? 'hover:border-blue-500/40 hover:bg-slate-900/80 cursor-pointer hover:shadow-[0_10px_20px_-10px_rgba(59,130,246,0.3)] hover:-translate-y-1' : 'cursor-default'}`}
+            className={`group w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
         >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <p className={`text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br ${color} mb-1 drop-shadow-md`}>{value}</p>
-            <p className="text-slate-400 text-xs font-medium tracking-wide uppercase">{label}</p>
-        </button>
+            <div className="flex justify-between items-end mb-2 px-1">
+                <span className="text-slate-400 text-xs font-bold uppercase tracking-wider group-hover:text-blue-400 transition-colors">
+                    {label}
+                </span>
+                <span className={`text-lg font-black text-transparent bg-clip-text bg-gradient-to-br ${color} drop-shadow-sm`}>
+                    {value}
+                </span>
+            </div>
+            <div className="w-full bg-slate-900/60 rounded-full h-2.5 overflow-hidden border border-slate-700/30 p-[1px]">
+                <div
+                    className={`h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r ${color} shadow-[0_0_12px_-2px_rgba(59,130,246,0.3)] shadow-blue-500/20`}
+                    style={{ width: `${percentage}%` }}
+                />
+            </div>
+        </div>
     );
 }
 
