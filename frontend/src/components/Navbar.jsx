@@ -65,15 +65,10 @@ export default function Navbar() {
                 <div className="flex items-center justify-between h-20">
 
                     {/* Logo / Brand */}
-                    <Link to="/" className="flex items-center gap-3 group shrink-0">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all group-hover:scale-105">
-                            <span className="text-white text-xl font-bold">S</span>
-                        </div>
-                        <div className="hidden lg:block">
-                            <span className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors tracking-tight">
-                                Smart Campus
-                            </span>
-                        </div>
+                    <Link to="/" className="flex items-center gap-2 group shrink-0">
+                        <span className="text-xl font-extrabold text-white group-hover:text-slate-100 transition-colors tracking-tight">
+                            Smart Campus<span className="text-blue-500">.</span>
+                        </span>
                     </Link>
 
                     {/* Main Nav Links (Center) */}
