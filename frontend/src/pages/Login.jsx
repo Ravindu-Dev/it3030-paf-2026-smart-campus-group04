@@ -53,8 +53,10 @@ export default function Login() {
 
                     {/* Header */}
                     <div className="text-center mb-10">
-                        <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.5)] mb-8 group-hover:scale-110 transition-transform duration-500 border border-blue-400/30">
-                            <span className="text-white text-4xl font-black">S</span>
+                        <div className="mx-auto mb-8">
+                            <span className="text-4xl font-extrabold text-white tracking-tight">
+                                Smart Campus<span className="text-blue-500">.</span>
+                            </span>
                         </div>
                         <h1 className="text-4xl font-extrabold tracking-tight mb-4 drop-shadow-lg text-white">
                             Welcome <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Back</span>

@@ -90,16 +90,11 @@ export default function Dashboard() {
                     <aside className="hidden lg:flex lg:flex-col w-64 fixed left-0 top-0 bottom-0 bg-slate-800/80 backdrop-blur-xl border-r border-slate-700/50 z-30">
                         {/* Brand/Logo */}
                         <div className="p-6 border-b border-slate-700/50">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                    <span className="text-white text-xl font-bold">S</span>
-                                </div>
-                                <div>
-                                    <span className="text-lg font-bold text-white tracking-tight block">
-                                        Smart Campus
-                                    </span>
-                                    <span className="text-xs text-slate-400">Admin Dashboard</span>
-                                </div>
+                            <div className="flex flex-col">
+                                <span className="text-xl font-extrabold text-white tracking-tight">
+                                    Smart Campus<span className="text-blue-500">.</span>
+                                </span>
+                                <span className="text-xs text-slate-400">Admin Dashboard</span>
                             </div>
                         </div>
 
@@ -210,12 +205,9 @@ export default function Dashboard() {
                             <div className="lg:hidden mb-6 bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                            <span className="text-white text-xl font-bold">S</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-base font-bold text-white tracking-tight block">
-                                                Smart Campus
+                                        <div className="flex flex-col">
+                                            <span className="text-lg font-extrabold text-white tracking-tight">
+                                                Smart Campus<span className="text-blue-500">.</span>
                                             </span>
                                             <span className="text-xs text-slate-400">Admin Dashboard</span>
                                         </div>

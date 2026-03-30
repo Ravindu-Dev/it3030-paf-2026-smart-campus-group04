@@ -643,11 +643,8 @@ export default function Profile() {
                                         {/* Card Header */}
                                         <div className="px-6 py-4" style={{ background: 'linear-gradient(to right, #2563eb, #1d4ed8, #4338ca)' }}>
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255, 255, 255, 0.2)' }}>
-                                                    <span className="text-white text-xl font-bold">S</span>
-                                                </div>
                                                 <div>
-                                                    <p className="text-white font-bold text-lg tracking-tight">Smart Campus</p>
+                                                    <p className="text-white font-extrabold text-lg tracking-tight">Smart Campus<span style={{ color: '#60a5fa' }}>.</span></p>
                                                     <p className="text-blue-200 text-xs font-medium uppercase tracking-widest" style={{ color: '#bfdbfe' }}>Operations Hub</p>
                                                 </div>
                                             </div>

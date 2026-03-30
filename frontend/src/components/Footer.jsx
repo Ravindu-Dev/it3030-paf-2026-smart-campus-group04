@@ -13,15 +13,10 @@ export default function Footer() {
 
                     {/* Brand */}
                     <div className="space-y-4">
-                        <Link to="/" className="flex items-center gap-2.5 group inline-flex">
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                <span className="text-white text-base font-bold">S</span>
-                            </div>
-                            <div>
-                                <span className="text-base font-bold text-white group-hover:text-blue-400 transition-colors">
-                                    Smart Campus
-                                </span>
-                            </div>
+                        <Link to="/" className="flex items-center gap-2 group inline-flex">
+                            <span className="text-lg font-extrabold text-white group-hover:text-slate-100 transition-colors tracking-tight">
+                                Smart Campus<span className="text-blue-500">.</span>
+                            </span>
                         </Link>
                         <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
                             Empowering university life with a unified platform for tracking assets, booking facilities, and managing campus operations.
