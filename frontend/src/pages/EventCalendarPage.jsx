@@ -85,21 +85,31 @@ export default function EventCalendarPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-8">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">
-                        Event <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Calendar</span>
-                    </h1>
-                    <p className="text-slate-400 text-lg max-w-2xl mx-auto">Plan your schedule and browse upcoming campus activities</p>
-                    <Link
-                        to="/events"
-                        className="inline-flex items-center gap-2 mt-6 px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-orange-500/20 hover:-translate-y-0.5"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                        Back to Events
-                    </Link>
-                </div>
+        <div className="min-h-screen bg-slate-900 relative overflow-hidden">
+            {/* Background mesh */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px]" />
+            </div>
+
+            {/* Header / Hero */}
+            <div className="pt-32 pb-20 text-center px-4 sm:px-6 lg:px-8 relative z-10 border-b border-slate-800/50 mb-10">
+                <h1 className="text-5xl sm:text-6xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg">
+                    Event <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Calendar</span>
+                </h1>
+                <p className="text-xl text-slate-300 max-w-2xl mx-auto drop-shadow-md">
+                    Plan your schedule and browse upcoming campus activities
+                </p>
+                <Link
+                    to="/events"
+                    className="inline-flex items-center gap-2 mt-8 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 border border-blue-500/50 text-white rounded-xl font-bold transition-all duration-300 shadow-xl shadow-blue-600/20 hover:shadow-blue-500/40 hover:-translate-y-1"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                    Back to Events
+                </Link>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pb-12">
 
                 <div className="flex items-center justify-center gap-4 mb-8">
                     <div className="flex items-center gap-4 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700">
