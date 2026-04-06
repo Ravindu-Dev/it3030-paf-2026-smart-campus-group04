@@ -211,12 +211,12 @@ export default function TransportMap() {
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100">
             {/* Full-width header */}
-            <div className="pt-20 px-4 md:px-8 pb-4">
-                <div className="max-w-7xl mx-auto">
-                    <h1 className="text-3xl font-extrabold bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                        🚌 Campus Shuttle Tracker
+            <div className="pt-28 px-4 md:px-8 pb-6">
+                <div className="max-w-7xl mx-auto text-center">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">
+                        Shuttle <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Tracker</span>
                     </h1>
-                    <p className="text-slate-400 mt-1 text-sm">Real-time locations of SLIIT Kandy campus shuttles</p>
+                    <p className="text-slate-400 text-lg max-w-2xl mx-auto">Real-time locations of SLIIT Kandy campus shuttles</p>
                 </div>
             </div>
 

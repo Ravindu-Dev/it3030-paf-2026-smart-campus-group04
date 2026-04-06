@@ -26,18 +26,16 @@ export default function Events() {
     return (
         <div className="min-h-screen bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto pt-16">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-                    <div>
-                        <h1 className="text-4xl font-extrabold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent inline-block">
-                            Campus Events
-                        </h1>
-                        <p className="text-slate-400">Discover workshops, seminars, and social gatherings happening on campus.</p>
-                    </div>
+                <div className="text-center mb-12">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">
+                        Campus <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Events</span>
+                    </h1>
+                    <p className="text-slate-400 text-lg max-w-2xl mx-auto">Discover workshops, seminars, and social gatherings happening on campus.</p>
                     <Link
                         to="/events/calendar"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-medium transition-all border border-slate-700 hover:border-blue-500/50"
+                        className="inline-flex items-center gap-2 mt-6 px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-orange-500/20 hover:-translate-y-0.5"
                     >
-                        <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         Calendar View
