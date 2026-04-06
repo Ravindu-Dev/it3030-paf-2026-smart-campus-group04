@@ -94,7 +94,7 @@ export default function Facilities({ standalone = false }) {
     };
 
     return (
-        <div className={standalone ? "" : "min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"}>
+        <div className={standalone ? "" : "min-h-screen bg-slate-900"}>
             {/* Background decoration */}
             {!standalone && (
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">

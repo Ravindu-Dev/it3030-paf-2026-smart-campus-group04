@@ -12,6 +12,7 @@ import ChatBot from './components/ChatBot';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import ScanAttendance from './pages/ScanAttendance';
 import AdminUsers from './pages/AdminUsers';
 import Forbidden from './pages/Forbidden';
 import Facilities from './pages/Facilities';
@@ -31,6 +32,9 @@ import ManageEvents from './pages/ManageEvents';
 import EventCalendarPage from './pages/EventCalendarPage';
 import TechnicianDashboard from './pages/TechnicianDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
+import TransportMap from './pages/TransportMap';
+import ManageTransport from './pages/ManageTransport';
+import DriverTracking from './pages/DriverTracking';
 
 // ─── New Public Pages ────────────────────────────────────────────────
 import Home from './pages/Home';
@@ -38,12 +42,17 @@ import PublicFacilities from './pages/PublicFacilities';
 import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
+import CampusMap from './pages/CampusMap';
+import LostFound from './pages/LostFound';
+import ReportLostFound from './pages/ReportLostFound';
+import LostFoundDetail from './pages/LostFoundDetail';
+import ManageLostFound from './pages/ManageLostFound';
 
 function NotFound() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-slate-900 px-4">
       <div className="text-center">
-        <h1 className="text-7xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">404</h1>
+        <h1 className="text-7xl font-extrabold bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">404</h1>
         <p className="text-slate-400 mt-4 text-xl">Oops! The page you're looking for doesn't exist.</p>
         <Link
           to="/"
@@ -66,9 +75,11 @@ function App() {
   const isFacilityRoute = location.pathname.startsWith('/facilities');
   const isBookingRoute = location.pathname.startsWith('/bookings');
   const isTicketRoute = location.pathname.startsWith('/tickets');
+  const isTransportRoute = location.pathname.startsWith('/transport') || location.pathname.startsWith('/admin/transport');
+  const isTrackingRoute = location.pathname.startsWith('/track/');
 
-  const hideFooter = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute));
-  const hideNavbar = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute));
+  const hideFooter = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute || isTransportRoute)) || isTrackingRoute;
+  const hideNavbar = location.pathname === '/dashboard' || (isPrivilegedUser && (isFacilityRoute || isBookingRoute || isTicketRoute || isTransportRoute)) || isTrackingRoute;
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-900 selection:bg-blue-500/30">
@@ -96,7 +107,7 @@ function App() {
       {/* Global Navbar */}
       {!hideNavbar && <Navbar />}
 
-      <main className="flex-grow">
+      <main className="grow">
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Home />} />
@@ -104,6 +115,8 @@ function App() {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/campus-map" element={<CampusMap />} />
+          <Route path="/lost-found" element={<LostFound />} />
 
           <Route path="/login" element={<Login />} />
           <Route path="/forbidden" element={<Forbidden />} />
@@ -116,8 +129,14 @@ function App() {
           } />
 
           <Route path="/profile" element={
-            <ProtectedRoute allowedRoles={['USER']}>
+            <ProtectedRoute allowedRoles={['USER', 'ADMIN', 'MANAGER', 'TECHNICIAN']}>
               <Profile />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/attendance/scan" element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+              <ScanAttendance />
             </ProtectedRoute>
           } />
 
@@ -183,6 +202,11 @@ function App() {
               <AdminUsers />
             </ProtectedRoute>
           } />
+          <Route path="/admin/transport" element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ManageTransport />
+            </ProtectedRoute>
+          } />
 
           {/* Ticket routes */}
           <Route path="/tickets/new" element={
@@ -216,6 +240,31 @@ function App() {
               <TechnicianDashboard />
             </ProtectedRoute>
           } />
+
+          {/* Transport routes */}
+          <Route path="/transport" element={
+            <ProtectedRoute>
+              <TransportMap />
+            </ProtectedRoute>
+          } />
+
+          {/* Public Driver Tracking */}
+          {/* Lost & Found routes */}
+          <Route path="/lost-found/report" element={
+            <ProtectedRoute>
+              <ReportLostFound />
+            </ProtectedRoute>
+          } />
+          <Route path="/lost-found/:id" element={<LostFoundDetail />} />
+
+          <Route path="/admin/lost-found" element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ManageLostFound />
+            </ProtectedRoute>
+          } />
+
+          {/* Public Driver Tracking */}
+          <Route path="/track/:token" element={<DriverTracking />} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

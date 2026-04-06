@@ -1,8 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../services/api';
+import { getMyEventsCount } from '../services/eventService';
+import SmartRecommendations from '../components/SmartRecommendations';
+import { getMyAttendance, getMyStats } from '../services/attendanceService';
 import toast from 'react-hot-toast';
+import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 /* ── Tiny helper ─────────────────────────────────────────────────────── */
 function formatDate(dateStr) {
@@ -20,6 +26,16 @@ function roleBadgeColor(role) {
         USER: 'from-blue-500 to-blue-600',
     };
     return map[role] || 'from-slate-500 to-slate-600';
+}
+
+function roleBadgeStyle(role) {
+    const map = {
+        ADMIN: { background: 'linear-gradient(to right, #ef4444, #e11d48)' },
+        MANAGER: { background: 'linear-gradient(to right, #a855f7, #7c3aed)' },
+        TECHNICIAN: { background: 'linear-gradient(to right, #f59e0b, #ea580c)' },
+        USER: { background: 'linear-gradient(to right, #3b82f6, #2563eb)' },
+    };
+    return map[role] || { background: 'linear-gradient(to right, #64748b, #475569)' };
 }
 
 function statusBadge(status) {
@@ -54,6 +70,15 @@ export default function Profile() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [activeTab, setActiveTab] = useState(location.state?.tab || 'profile');
 
+    /* ── Attendance data ───────────── */
+    const [attendance, setAttendance] = useState([]);
+    const [attendanceStats, setAttendanceStats] = useState(null);
+    const [attendanceLoading, setAttendanceLoading] = useState(false);
+
+    /* ── ID Card ref ───────────────── */
+    const idCardRef = useRef(null);
+    const qrRef = useRef(null);
+
     useEffect(() => {
         if (location.state?.tab) {
             setActiveTab(location.state.tab);
@@ -67,6 +92,7 @@ export default function Profile() {
     const [tickets, setTickets] = useState([]);
     const [bookingsLoading, setBookingsLoading] = useState(false);
     const [ticketsLoading, setTicketsLoading] = useState(false);
+    const [registeredEventsCount, setRegisteredEventsCount] = useState(0);
 
     /* ── Profile completion ─────────── */
     // Based on: name, email, phoneNumber, profilePicture
@@ -106,10 +132,40 @@ export default function Profile() {
         }
     }, []);
 
+    /* ── Fetch attendance ────────────── */
+    const fetchAttendance = useCallback(async () => {
+        setAttendanceLoading(true);
+        try {
+            const [historyRes, statsRes] = await Promise.all([
+                getMyAttendance(),
+                getMyStats(),
+            ]);
+            setAttendance(historyRes.data.data || []);
+            setAttendanceStats(statsRes.data.data || null);
+        } catch {
+            setAttendance([]);
+            setAttendanceStats(null);
+        } finally {
+            setAttendanceLoading(false);
+        }
+    }, []);
+
+    /* ── Fetch Registered Events Count ── */
+    const fetchEventsCount = useCallback(async () => {
+        try {
+            const res = await getMyEventsCount();
+            setRegisteredEventsCount(res.data?.data || 0);
+        } catch {
+            setRegisteredEventsCount(0);
+        }
+    }, []);
+
     useEffect(() => {
         fetchBookings();
         fetchTickets();
-    }, [fetchBookings, fetchTickets]);
+        fetchAttendance();
+        fetchEventsCount();
+    }, [fetchBookings, fetchTickets, fetchAttendance, fetchEventsCount]);
 
     /* ── Handlers ───────────────────── */
     const handleUpdateProfile = async (e) => {
@@ -156,9 +212,131 @@ export default function Profile() {
         navigate('/login');
     };
 
+    /* ── Download handlers ──────────── */
+    const handleDownloadQR = () => {
+        const svg = qrRef.current?.querySelector('svg');
+        const canvasElement = qrRef.current?.querySelector('canvas');
+
+        if (canvasElement) {
+            // If it's a canvas (QRCodeCanvas)
+            const a = document.createElement('a');
+            a.download = `${user?.name?.replace(/\s+/g, '_') || 'QR'}_SmartCampus_QR.png`;
+            a.href = canvasElement.toDataURL('image/png');
+            a.click();
+            return;
+        }
+
+        if (svg) {
+            // If it's an SVG (fallback/older)
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                const a = document.createElement('a');
+                a.download = `${user?.name?.replace(/\s+/g, '_') || 'QR'}_SmartCampus_QR.png`;
+                a.href = canvas.toDataURL('image/png');
+                a.click();
+            };
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        }
+    };
+
+    const handleDownloadIDCardImage = async () => {
+        if (!idCardRef.current) return;
+        const toastId = toast.loading('Generating ID Card Image...');
+        try {
+            const element = idCardRef.current;
+            const images = element.getElementsByTagName('img');
+            await Promise.all(Array.from(images).map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+            }));
+
+            const canvas = await html2canvas(element, {
+                useCORS: true,
+                allowTaint: false,
+                scale: 4,
+                logging: false,
+                scrollX: 0,
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeight,
+            });
+
+            const a = document.createElement('a');
+            a.download = `${user?.name?.replace(/\s+/g, '_') || 'ID'}_SmartCampus_IDCard.png`;
+            a.href = canvas.toDataURL('image/png');
+            a.click();
+
+            toast.success('ID Card downloaded as Image!', { id: toastId });
+        } catch (error) {
+            console.error('Image Generation Error:', error);
+            toast.error(`Download failed: ${error.message}`, { id: toastId });
+        }
+    };
+
+    const handleDownloadIDCardPDF = async () => {
+        if (!idCardRef.current) return;
+        const toastId = toast.loading('Preparing PDF...');
+        try {
+            const element = idCardRef.current;
+            const images = element.getElementsByTagName('img');
+            await Promise.all(Array.from(images).map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+            }));
+
+            const canvas = await html2canvas(element, {
+                useCORS: true,
+                allowTaint: false,
+                scale: 4,
+                logging: false,
+                scrollX: 0,
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeight,
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+
+            const pdf = new jsPDF('l', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            const cardWidth = 140;
+            const cardHeight = (canvas.height * cardWidth) / canvas.width;
+
+            const x = (pdfWidth - cardWidth) / 2;
+            const y = (pdfHeight - cardHeight) / 2;
+
+            pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
+            pdf.save(`${user?.name?.replace(/\s+/g, '_') || 'ID'}_SmartCampus_IDCard.pdf`);
+
+            toast.success('ID Card downloaded as PDF!', { id: toastId });
+        } catch (error) {
+            console.error('PDF Generation Error:', error);
+            toast.error(`Download failed: ${error.message}`, { id: toastId });
+        }
+    };
+
+    /* ── QR data ────────────────────── */
+    // Compressed for larger modules and better scanning
+    const qrData = JSON.stringify({
+        id: user?.id,
+        t: 'SCI', // Smart Campus ID
+    });
+
     /* ── Tabs config ────────────────── */
     const tabs = [
         { id: 'profile', label: 'Profile', icon: '👤' },
+        { id: 'id-card', label: 'ID Card', icon: '🪪' },
+        { id: 'attendance', label: `Attendance ${attendance.length > 0 ? `(${attendance.length})` : ''}`, icon: '📋' },
         { id: 'bookings', label: `My Bookings ${bookings.length > 0 ? `(${bookings.length})` : ''}`, icon: '📅' },
         { id: 'tickets', label: `My Tickets ${tickets.length > 0 ? `(${tickets.length})` : ''}`, icon: '🎫' },
     ];
@@ -200,7 +378,7 @@ export default function Profile() {
                                             referrerPolicy="no-referrer"
                                         />
                                     ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-5xl font-bold">
+                                        <div className="w-full h-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold">
                                             {user?.name?.charAt(0)?.toUpperCase() || '?'}
                                         </div>
                                     )}
@@ -244,32 +422,35 @@ export default function Profile() {
 
                         {/* Quick Stats card */}
                         <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-6 shadow-2xl">
-                            <h3 className="text-white font-bold mb-5 flex items-center gap-2 text-lg">
+                            <h3 className="text-white font-bold mb-6 flex items-center gap-2 text-lg">
                                 <span className="text-blue-400 text-xl">📊</span> Quick Stats
                             </h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <StatTile
-                                    value={bookings.length}
-                                    label="Bookings"
-                                    color="from-blue-400 to-blue-600"
-                                    onClick={() => setActiveTab('bookings')}
-                                />
-                                <StatTile
-                                    value={tickets.length}
-                                    label="Tickets"
-                                    color="from-purple-400 to-purple-600"
-                                    onClick={() => setActiveTab('tickets')}
-                                />
-                                <StatTile
-                                    value={bookings.filter(b => b.status === 'APPROVED').length}
-                                    label="Approved"
-                                    color="from-emerald-400 to-emerald-600"
-                                />
-                                <StatTile
-                                    value={tickets.filter(t => t.status === 'OPEN').length}
-                                    label="Open Tickets"
-                                    color="from-amber-400 to-amber-600"
-                                />
+                            <div className="space-y-5">
+                                {(() => {
+                                    const stats = [
+                                        { value: bookings.length, label: "Bookings", color: "from-blue-400 to-blue-600", onClick: () => setActiveTab('bookings') },
+                                        { value: tickets.length, label: "Tickets", color: "from-purple-400 to-purple-600", onClick: () => setActiveTab('tickets') },
+                                        { value: bookings.filter(b => b.status === 'APPROVED').length, label: "Approved", color: "from-emerald-400 to-emerald-600" },
+                                        { value: tickets.filter(t => t.status === 'OPEN').length, label: "Open Tickets", color: "from-amber-400 to-amber-600" }
+                                    ];
+
+                                    if (registeredEventsCount > 0) {
+                                        stats.push({ value: registeredEventsCount, label: "Registered Events", color: "from-rose-400 to-rose-600", onClick: () => navigate('/events', { state: { filter: 'my' } }) });
+                                    }
+
+                                    const maxVal = Math.max(...stats.map(s => s.value), 5); // Fallback to 5 for better initial scale
+
+                                    return stats.map((stat, idx) => (
+                                        <StatBar
+                                            key={idx}
+                                            value={stat.value}
+                                            label={stat.label}
+                                            color={stat.color}
+                                            onClick={stat.onClick}
+                                            max={maxVal}
+                                        />
+                                    ));
+                                })()}
                             </div>
                         </div>
                     </div>
@@ -302,6 +483,9 @@ export default function Profile() {
                                     : `Complete your profile to unlock all features. Missing: ${missingFields.join(', ')}`}
                             </p>
                         </div>
+
+                        {/* AI Recommendations */}
+                        <SmartRecommendations />
 
                         {/* Tab Navigation */}
                         <div className="flex gap-1 bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl p-1.5 overflow-x-auto">
@@ -440,6 +624,239 @@ export default function Profile() {
                                                     Cancel
                                                 </button>
                                             </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── Tab: ID Card ─────────────────────────────── */}
+                        {activeTab === 'id-card' && (
+                            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-5">
+                                {/* ID Card */}
+                                <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6">
+                                    <h3 className="text-lg font-bold text-blue-400 mb-6 flex items-center gap-2">
+                                        🪪 Student / Staff ID Card
+                                    </h3>
+
+                                    <div ref={idCardRef} className="max-w-lg mx-auto rounded-2xl overflow-hidden shadow-2xl" style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+                                        {/* Card Header */}
+                                        <div className="px-6 py-4" style={{ background: 'linear-gradient(to right, #2563eb, #1d4ed8, #4338ca)' }}>
+                                            <div className="flex items-center gap-3">
+                                                <div>
+                                                    <p className="text-white font-extrabold text-lg tracking-tight">Smart Campus<span style={{ color: '#60a5fa' }}>.</span></p>
+                                                    <p className="text-blue-200 text-xs font-medium uppercase tracking-widest" style={{ color: '#bfdbfe' }}>Operations Hub</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Card Body */}
+                                        <div className="p-6 relative" style={{ background: 'linear-gradient(to bottom right, #1e293b, #0f172a)' }}>
+                                            {/* QR Code - Absolute Position Top Right */}
+                                            <div ref={qrRef} className="absolute top-4 right-4 bg-white p-1.5 rounded-lg shadow-xl z-10">
+                                                <QRCodeCanvas
+                                                    value={qrData}
+                                                    size={120} // Adjusted for corner placement
+                                                    level="M"
+                                                    includeMargin={true}
+                                                />
+                                            </div>
+
+                                            <div className="flex gap-6">
+                                                {/* Photo Section */}
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <div
+                                                        className="w-24 h-24 rounded-xl overflow-hidden"
+                                                        style={{
+                                                            border: '2px solid rgba(59, 130, 246, 0.4)',
+                                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
+                                                        }}
+                                                    >
+                                                        {user?.profilePicture ? (
+                                                            <img
+                                                                src={user.profilePicture}
+                                                                alt={user.name}
+                                                                className="w-full h-full object-cover"
+                                                                referrerPolicy="no-referrer"
+                                                                crossOrigin="anonymous"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #9333ea)' }}>
+                                                                {user?.name?.charAt(0)?.toUpperCase() || '?'}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Details */}
+                                                <div className="flex-1 min-w-0">
+                                                    <h2 className="text-white text-xl font-bold truncate">{user?.name}</h2>
+                                                    <span
+                                                        className="inline-block mt-1 px-3 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider"
+                                                        style={roleBadgeStyle(user?.role)}
+                                                    >
+                                                        {user?.role}
+                                                    </span>
+
+                                                    <div className="mt-4 space-y-2">
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-xs w-9" style={{ color: '#64748b' }}>Email</span>
+                                                            <span className="text-xs truncate" style={{ color: '#cbd5e1' }}>{user?.email}</span>
+                                                        </div>
+                                                        {(user?.phoneNumber || phoneNumber) && (
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-xs w-9" style={{ color: '#64748b' }}>Phone</span>
+                                                                <span className="text-xs" style={{ color: '#cbd5e1' }}>{user?.phoneNumber || phoneNumber}</span>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-xs w-9" style={{ color: '#64748b' }}>Since</span>
+                                                            <span className="text-xs" style={{ color: '#cbd5e1' }}>{formatDate(user?.createdAt)}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-xs w-9" style={{ color: '#64748b' }}>ID</span>
+                                                            <span className="text-[10px] font-mono" style={{ color: '#94a3b8' }}>{user?.id}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Card Footer */}
+                                        <div className="border-t px-6 py-2" style={{ background: 'rgba(37, 99, 235, 0.1)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
+                                            <p className="text-[10px] text-center font-medium tracking-wide" style={{ color: 'rgba(96, 165, 250, 0.7)' }}>
+                                                Scan QR code to verify identity • Smart Campus © {new Date().getFullYear()}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-3 mt-6 justify-center">
+                                        <button
+                                            onClick={handleDownloadIDCardImage}
+                                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 cursor-pointer"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                            Download ID as Image
+                                        </button>
+                                        <button
+                                            onClick={handleDownloadIDCardPDF}
+                                            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-indigo-600/20 hover:-translate-y-0.5 cursor-pointer"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                            </svg>
+                                            Download ID as PDF
+                                        </button>
+                                        <button
+                                            onClick={handleDownloadQR}
+                                            className="flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-semibold text-sm transition-all shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                            </svg>
+                                            Download QR Code
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── Tab: Attendance ─────────────────────────── */}
+                        {activeTab === 'attendance' && (
+                            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-5">
+                                {/* Stats Cards */}
+                                {attendanceStats && (
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                        <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-xl p-4 text-center">
+                                            <p className="text-2xl font-bold text-blue-400">{attendanceStats.totalRecords}</p>
+                                            <p className="text-slate-400 text-xs mt-1 uppercase tracking-wider">Total</p>
+                                        </div>
+                                        <div className="bg-slate-800/50 backdrop-blur-xl border border-emerald-700/40 rounded-xl p-4 text-center">
+                                            <p className="text-2xl font-bold text-emerald-400">{attendanceStats.presentCount}</p>
+                                            <p className="text-slate-400 text-xs mt-1 uppercase tracking-wider">Present</p>
+                                        </div>
+                                        <div className="bg-slate-800/50 backdrop-blur-xl border border-amber-700/40 rounded-xl p-4 text-center">
+                                            <p className="text-2xl font-bold text-amber-400">{attendanceStats.lateCount}</p>
+                                            <p className="text-slate-400 text-xs mt-1 uppercase tracking-wider">Late</p>
+                                        </div>
+                                        <div className="bg-slate-800/50 backdrop-blur-xl border border-red-700/40 rounded-xl p-4 text-center">
+                                            <p className="text-2xl font-bold text-red-400">{attendanceStats.absentCount}</p>
+                                            <p className="text-slate-400 text-xs mt-1 uppercase tracking-wider">Absent</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Attendance Rate */}
+                                {attendanceStats && (
+                                    <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-2xl px-6 py-5">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-slate-300 font-semibold text-sm">Attendance Rate</span>
+                                            <span className={`text-sm font-bold ${attendanceStats.attendanceRate >= 75 ? 'text-emerald-400' : attendanceStats.attendanceRate >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                                                {attendanceStats.attendanceRate}%
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-slate-700/50 rounded-full h-3 overflow-hidden">
+                                            <div
+                                                className="h-full rounded-full transition-all duration-1000 ease-out"
+                                                style={{
+                                                    width: `${attendanceStats.attendanceRate}%`,
+                                                    background: attendanceStats.attendanceRate >= 75
+                                                        ? 'linear-gradient(90deg, #10b981, #34d399)'
+                                                        : attendanceStats.attendanceRate >= 50
+                                                            ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+                                                            : 'linear-gradient(90deg, #ef4444, #f87171)',
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Attendance Records */}
+                                <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6">
+                                    <h3 className="text-lg font-bold text-blue-400 mb-6 flex items-center gap-2">
+                                        <span>📋</span> Attendance History
+                                    </h3>
+
+                                    {attendanceLoading ? (
+                                        <LoadingSkeleton rows={4} />
+                                    ) : attendance.length === 0 ? (
+                                        <EmptyState icon="📋" text="No attendance records" subtext="Your attendance will appear here when marked." />
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {attendance.map((record) => (
+                                                <div
+                                                    key={record.id}
+                                                    className="flex items-center justify-between p-4 bg-slate-900/50 border border-slate-700/50 rounded-xl"
+                                                >
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-white font-medium text-sm">
+                                                            {formatDate(record.markedAt)}
+                                                        </p>
+                                                        <div className="flex items-center gap-3 mt-1">
+                                                            {record.location && (
+                                                                <span className="text-slate-500 text-xs flex items-center gap-1">
+                                                                    📍 {record.location}
+                                                                </span>
+                                                            )}
+                                                            {record.markedByName && (
+                                                                <span className="text-slate-500 text-xs">
+                                                                    by {record.markedByName}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <span className={`ml-3 px-2.5 py-1 rounded-full text-xs font-semibold border ${record.status === 'PRESENT'
+                                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                                                        : record.status === 'LATE'
+                                                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                                                            : 'bg-red-500/10 text-red-400 border-red-500/30'
+                                                        } whitespace-nowrap`}>
+                                                        {record.status}
+                                                    </span>
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
@@ -587,16 +1004,28 @@ function InfoField({ label, icon, value, editable, readOnly, verified, onChange,
     );
 }
 
-function StatTile({ value, label, color, onClick }) {
+function StatBar({ value, label, color, onClick, max }) {
+    const percentage = Math.max(5, (value / max) * 100);
     return (
-        <button
+        <div
             onClick={onClick}
-            className={`bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 text-center transition-all duration-300 relative overflow-hidden group ${onClick ? 'hover:border-blue-500/40 hover:bg-slate-900/80 cursor-pointer hover:shadow-[0_10px_20px_-10px_rgba(59,130,246,0.3)] hover:-translate-y-1' : 'cursor-default'}`}
+            className={`group w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
         >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <p className={`text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br ${color} mb-1 drop-shadow-md`}>{value}</p>
-            <p className="text-slate-400 text-xs font-medium tracking-wide uppercase">{label}</p>
-        </button>
+            <div className="flex justify-between items-end mb-2 px-1">
+                <span className="text-slate-400 text-xs font-bold uppercase tracking-wider group-hover:text-blue-400 transition-colors">
+                    {label}
+                </span>
+                <span className={`text-lg font-black text-transparent bg-clip-text bg-gradient-to-br ${color} drop-shadow-sm`}>
+                    {value}
+                </span>
+            </div>
+            <div className="w-full bg-slate-900/60 rounded-full h-2.5 overflow-hidden border border-slate-700/30 p-[1px]">
+                <div
+                    className={`h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r ${color} shadow-[0_0_12px_-2px_rgba(59,130,246,0.3)] shadow-blue-500/20`}
+                    style={{ width: `${percentage}%` }}
+                />
+            </div>
+        </div>
     );
 }
 

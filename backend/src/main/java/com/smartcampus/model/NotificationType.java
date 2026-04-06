@@ -10,5 +10,6 @@ public enum NotificationType {
     NEW_COMMENT,
     EVENT_REGISTERED,
     EVENT_CANCELLED,
-    EVENT_REMINDER
+    EVENT_REMINDER,
+    LOST_ITEM_CLAIMED
 }

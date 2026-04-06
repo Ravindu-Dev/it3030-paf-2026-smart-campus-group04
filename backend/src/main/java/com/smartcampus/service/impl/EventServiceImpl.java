@@ -27,8 +27,8 @@ public class EventServiceImpl implements EventService {
     private final NotificationService notificationService;
 
     public EventServiceImpl(EventRepository eventRepository,
-                            EventRegistrationRepository registrationRepository,
-                            NotificationService notificationService) {
+            EventRegistrationRepository registrationRepository,
+            NotificationService notificationService) {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
         this.notificationService = notificationService;
@@ -51,7 +51,7 @@ public class EventServiceImpl implements EventService {
         event.setCreatedBy(user.getId());
         event.setParticipantCount(0);
         event.setCreatedAt(LocalDateTime.now());
-        
+
         Event savedEvent = eventRepository.save(event);
         return mapToDto(savedEvent);
     }
@@ -61,7 +61,7 @@ public class EventServiceImpl implements EventService {
         validateEventDate(eventDto.getEventDate());
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
-        
+
         mapDtoToEntity(eventDto, event);
         Event savedEvent = eventRepository.save(event);
         return mapToDto(savedEvent);
@@ -69,10 +69,12 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public void deleteEvent(String eventId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
-        
-        // Notify participants before deletion? The requirement says "Admin cancels event".
+        if (!eventRepository.existsById(eventId)) {
+            throw new ResourceNotFoundException("Event", "id", eventId);
+        }
+
+        // Notify participants before deletion? The requirement says "Admin cancels
+        // event".
         // Usually delete = cancel in this context.
         cancelEvent(eventId);
         eventRepository.deleteById(eventId);
@@ -89,18 +91,17 @@ public class EventServiceImpl implements EventService {
     public void cancelEvent(String eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
-        
+
         event.setStatus(EventStatus.CANCELLED);
         eventRepository.save(event);
-        
+
         // Notify all registered users
         List<EventRegistration> registrations = registrationRepository.findByEventId(eventId);
         for (EventRegistration reg : registrations) {
             notificationService.createNotification(
                     reg.getUserId(),
                     "The event: " + event.getTitle() + " has been cancelled by the administrator.",
-                    NotificationType.EVENT_CANCELLED
-            );
+                    NotificationType.EVENT_CANCELLED);
         }
     }
 
@@ -118,7 +119,8 @@ public class EventServiceImpl implements EventService {
                 .map(e -> {
                     EventDto dto = mapToDto(e);
                     if (user != null) {
-                        dto.setRegistered(registrationRepository.findByEventIdAndUserId(e.getId(), user.getId()).isPresent());
+                        dto.setRegistered(
+                                registrationRepository.findByEventIdAndUserId(e.getId(), user.getId()).isPresent());
                     }
                     return dto;
                 })
@@ -129,7 +131,7 @@ public class EventServiceImpl implements EventService {
     public EventDto getEventById(String eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
-        
+
         User user = getCurrentUser();
         EventDto dto = mapToDto(event);
         if (user != null) {
@@ -143,32 +145,31 @@ public class EventServiceImpl implements EventService {
         User user = getCurrentUser();
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
-        
+
         if (event.getStatus() != EventStatus.UPCOMING) {
             throw new IllegalStateException("Cannot register for an event that is not upcoming.");
         }
-        
+
         if (event.getParticipantCount() >= event.getCapacity()) {
             throw new IllegalStateException("Event is already at full capacity.");
         }
-        
+
         if (registrationRepository.findByEventIdAndUserId(eventId, user.getId()).isPresent()) {
             throw new IllegalStateException("You are already registered for this event.");
         }
-        
+
         EventRegistration registration = new EventRegistration();
         registration.setEventId(eventId);
         registration.setUserId(user.getId());
         registration.setRegisteredAt(LocalDateTime.now());
         registrationRepository.save(registration);
-        
+
         updateParticipantCount(eventId);
-        
+
         notificationService.createNotification(
                 user.getId(),
                 "You successfully registered for the event: " + event.getTitle(),
-                NotificationType.EVENT_REGISTERED
-        );
+                NotificationType.EVENT_REGISTERED);
     }
 
     @Override
@@ -176,7 +177,7 @@ public class EventServiceImpl implements EventService {
         User user = getCurrentUser();
         EventRegistration registration = registrationRepository.findByEventIdAndUserId(eventId, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("EventRegistration", "eventId/userId", eventId));
-        
+
         registrationRepository.delete(registration);
         updateParticipantCount(eventId);
     }
@@ -188,7 +189,7 @@ public class EventServiceImpl implements EventService {
         List<String> eventIds = registrations.stream()
                 .map(EventRegistration::getEventId)
                 .collect(Collectors.toList());
-        
+
         return eventRepository.findAllById(eventIds).stream()
                 .map(e -> {
                     EventDto dto = mapToDto(e);
@@ -196,6 +197,26 @@ public class EventServiceImpl implements EventService {
                     return dto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public long getUpcomingRegisteredEventsCount() {
+        User user = getCurrentUser();
+        if (user == null) return 0;
+
+        List<EventRegistration> registrations = registrationRepository.findByUserId(user.getId());
+        if (registrations.isEmpty()) return 0;
+
+        List<String> eventIds = registrations.stream()
+                .map(EventRegistration::getEventId)
+                .collect(Collectors.toList());
+
+        return eventRepository.findAllById(eventIds).stream()
+                .filter(e -> {
+                    EventStatus status = resolveStatus(e);
+                    return status == EventStatus.UPCOMING || status == EventStatus.ONGOING;
+                })
+                .count();
     }
 
     @Override
@@ -212,16 +233,16 @@ public class EventServiceImpl implements EventService {
     public void sendEventReminders() {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         List<Event> upcomingEvents = eventRepository.findByStatus(EventStatus.UPCOMING);
-        
+
         for (Event event : upcomingEvents) {
             if (event.getEventDate().isEqual(tomorrow)) {
                 List<EventRegistration> registrations = registrationRepository.findByEventId(event.getId());
                 for (EventRegistration reg : registrations) {
                     notificationService.createNotification(
                             reg.getUserId(),
-                            "Reminder: The event \"" + event.getTitle() + "\" is happening tomorrow at " + event.getStartTime() + ".",
-                            NotificationType.EVENT_REMINDER
-                    );
+                            "Reminder: The event \"" + event.getTitle() + "\" is happening tomorrow at "
+                                    + event.getStartTime() + ".",
+                            NotificationType.EVENT_REMINDER);
                 }
             }
         }
@@ -289,7 +310,7 @@ public class EventServiceImpl implements EventService {
         } else if (now.isBefore(start)) {
             return EventStatus.UPCOMING;
         }
-        
+
         return event.getStatus();
     }
 }

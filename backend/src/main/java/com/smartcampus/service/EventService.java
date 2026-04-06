@@ -1,7 +1,6 @@
 package com.smartcampus.service;
 
 import com.smartcampus.dto.EventDto;
-import com.smartcampus.model.EventStatus;
 
 import java.util.List;
 
@@ -11,19 +10,30 @@ import java.util.List;
 public interface EventService {
     // Admin Functions
     EventDto createEvent(EventDto eventDto);
+
     EventDto updateEvent(String eventId, EventDto eventDto);
+
     void deleteEvent(String eventId);
+
     List<EventDto> getAllEventsForAdmin();
+
     void cancelEvent(String eventId);
 
     // User Functions
     List<EventDto> getAllEvents(boolean includePast);
+
     EventDto getEventById(String eventId);
+
     void registerForEvent(String eventId);
+
     void cancelRegistration(String eventId);
+
     List<EventDto> getUserRegisteredEvents();
     
+    long getUpcomingRegisteredEventsCount();
+
     // Utility
     void updateParticipantCount(String eventId);
+
     void sendEventReminders();
 }

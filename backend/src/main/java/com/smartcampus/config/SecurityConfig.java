@@ -59,9 +59,12 @@ public class SecurityConfig {
                 // 4. Authorization rules
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints — no JWT required
-                        // Note: context-path is /api, so Spring Security paths are relative to it
                         .requestMatchers("/auth/google").permitAll()
                         .requestMatchers(HttpMethod.GET, "/facilities", "/facilities/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/lost-found", "/lost-found/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/shuttles", "/shuttles/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/routes", "/routes/**").permitAll()
+                        .requestMatchers("/shuttles/track/**").permitAll()
 
                         // Everything else requires authentication
                         .anyRequest().authenticated())

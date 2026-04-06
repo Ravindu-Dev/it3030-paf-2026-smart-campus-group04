@@ -26,6 +26,8 @@ public class FacilityDto {
     private FacilityStatus status;
     private List<AvailabilityWindow> availabilityWindows;
     private String imageUrl;
+    private Double mapX;
+    private Double mapY;
     private String createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

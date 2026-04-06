@@ -49,6 +49,9 @@ api.interceptors.response.use(
             if (status === 403) {
                 console.error('Access denied.');
             }
+            if (status >= 500) {
+                console.error('Backend 500 Error Data:', error.response.data);
+            }
         }
         return Promise.reject(error);
     },
