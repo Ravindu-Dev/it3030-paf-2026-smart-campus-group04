@@ -209,15 +209,21 @@ export default function TransportMap() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-100">
-            {/* Full-width header */}
-            <div className="pt-28 px-4 md:px-8 pb-6">
-                <div className="max-w-7xl mx-auto text-center">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">
-                        Shuttle <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Tracker</span>
-                    </h1>
-                    <p className="text-slate-400 text-lg max-w-2xl mx-auto">Real-time locations of SLIIT Kandy campus shuttles</p>
-                </div>
+        <div className="min-h-screen bg-slate-900 text-slate-100 relative overflow-hidden">
+            {/* Background mesh */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+                <div className="absolute top-0 right-1/3 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px]" />
+            </div>
+
+            {/* Header / Hero */}
+            <div className="pt-32 pb-20 text-center px-4 sm:px-6 lg:px-8 relative z-10 border-b border-slate-800/50 mb-8">
+                <h1 className="text-5xl sm:text-6xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg">
+                    Shuttle <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Tracker</span>
+                </h1>
+                <p className="text-xl text-slate-300 max-w-2xl mx-auto drop-shadow-md">
+                    Real-time locations of SLIIT Kandy campus shuttles
+                </p>
             </div>
 
             {/* Main content — map takes most space */}
