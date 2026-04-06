@@ -56,6 +56,7 @@ export default function ManageTickets({ standalone = false }) {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectTicketId, setRejectTicketId] = useState('');
     const [rejectReason, setRejectReason] = useState('');
+    const [rejectError, setRejectError] = useState('');
 
     useEffect(() => {
         fetchTickets();
@@ -110,7 +111,11 @@ export default function ManageTickets({ standalone = false }) {
     };
 
     const handleReject = async () => {
-        if (!rejectReason.trim()) return;
+        const reason = rejectReason.trim();
+        if (!reason) { setRejectError('Rejection reason is required.'); return; }
+        if (reason.length < 5) { setRejectError('Reason must be at least 5 characters.'); return; }
+        if (reason.length > 500) { setRejectError('Reason must be under 500 characters.'); return; }
+        setRejectError('');
         setActionLoading(true);
         try {
             await rejectTicket(rejectTicketId, { remarks: rejectReason });
@@ -431,21 +436,40 @@ export default function ManageTickets({ standalone = false }) {
                                 <span className="p-2 bg-red-500/20 rounded-xl text-red-500">✕</span>
                                 Reject Ticket
                             </h3>
-                            <button onClick={() => { setShowRejectModal(false); setRejectReason(''); }} className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
+                            <button onClick={() => { setShowRejectModal(false); setRejectReason(''); setRejectError(''); }} className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                             </button>
                         </div>
-                        <div className="mb-6 bg-slate-900/50 rounded-2xl p-4 border border-slate-700/50">
+                        <div className="mb-2 bg-slate-900/50 rounded-2xl p-4 border border-slate-700/50">
                             <label className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2 block">Reason for Rejection</label>
                             <textarea
                                 value={rejectReason}
-                                onChange={(e) => setRejectReason(e.target.value)}
+                                onChange={(e) => {
+                                    setRejectReason(e.target.value);
+                                    if (rejectError) {
+                                        const val = e.target.value.trim();
+                                        if (!val) setRejectError('Rejection reason is required.');
+                                        else if (val.length < 5) setRejectError('Reason must be at least 5 characters.');
+                                        else if (val.length > 500) setRejectError('Reason must be under 500 characters.');
+                                        else setRejectError('');
+                                    }
+                                }}
                                 placeholder="Please explain why this ticket is being rejected..."
-                                className="w-full h-32 bg-slate-800/80 border border-slate-700 rounded-xl p-4 text-white text-[15px] placeholder-slate-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30 resize-none transition-all shadow-inner"
+                                className={`w-full h-32 bg-slate-800/80 border rounded-xl p-4 text-white text-[15px] placeholder-slate-500 focus:outline-none focus:ring-1 resize-none transition-all shadow-inner ${rejectError ? 'border-red-500/60 focus:border-red-500/50 focus:ring-red-500/30' : 'border-slate-700 focus:border-red-500/50 focus:ring-red-500/30'}`}
+                                maxLength={500}
                             />
                         </div>
+                        <div className="flex items-center justify-between mb-6 px-1">
+                            {rejectError ? (
+                                <p className="text-xs text-red-400 flex items-center gap-1">
+                                    <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                    {rejectError}
+                                </p>
+                            ) : <span />}
+                            <span className={`text-[10px] ${rejectReason.length > 500 ? 'text-red-400' : 'text-slate-500'}`}>{rejectReason.length}/500</span>
+                        </div>
                         <div className="flex gap-4 justify-end">
-                            <button onClick={() => { setShowRejectModal(false); setRejectReason(''); }} className="px-6 py-3 text-slate-300 font-bold hover:bg-slate-700 rounded-xl transition-colors cursor-pointer">Cancel</button>
+                            <button onClick={() => { setShowRejectModal(false); setRejectReason(''); setRejectError(''); }} className="px-6 py-3 text-slate-300 font-bold hover:bg-slate-700 rounded-xl transition-colors cursor-pointer">Cancel</button>
                             <button
                                 onClick={handleReject}
                                 disabled={!rejectReason.trim() || actionLoading}

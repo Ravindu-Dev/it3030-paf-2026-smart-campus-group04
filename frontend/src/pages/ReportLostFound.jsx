@@ -20,6 +20,8 @@ export default function ReportLostFound() {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({});
     const [form, setForm] = useState({
         type: 'LOST',
         title: '',
@@ -32,13 +34,90 @@ export default function ReportLostFound() {
         contactPhone: '',
     });
 
+    // ── Validation rules ─────────────────────────────────────────
+    const validate = (fieldName, value, allValues = form) => {
+        switch (fieldName) {
+            case 'title':
+                if (!value.trim()) return 'Item title is required.';
+                if (value.trim().length < 3) return 'Title must be at least 3 characters.';
+                if (value.trim().length > 100) return 'Title must be under 100 characters.';
+                return '';
+            case 'description':
+                if (!value.trim()) return 'Description is required.';
+                if (value.trim().length < 10) return 'Description must be at least 10 characters.';
+                if (value.trim().length > 1000) return 'Description must be under 1000 characters.';
+                return '';
+            case 'category':
+                if (!value) return 'Please select a category.';
+                return '';
+            case 'location':
+                if (value && value.trim().length < 2) return 'Location must be at least 2 characters.';
+                if (value && value.trim().length > 100) return 'Location must be under 100 characters.';
+                return '';
+            case 'dateOccurred':
+                if (value) {
+                    const selected = new Date(value);
+                    const today = new Date();
+                    today.setHours(23, 59, 59, 999);
+                    if (selected > today) return 'Date cannot be in the future.';
+                }
+                return '';
+            case 'contactEmail':
+                if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address.';
+                return '';
+            case 'contactPhone':
+                if (value && !/^[+]?[\d\s()-]{7,15}$/.test(value)) return 'Please enter a valid phone number.';
+                return '';
+            default:
+                return '';
+        }
+    };
+
+    const validateAll = () => {
+        const newErrors = {};
+        Object.keys(form).forEach(key => {
+            if (key === 'type' || key === 'imageUrl') return; // skip non-validated fields
+            const err = validate(key, form[key], form);
+            if (err) newErrors[key] = err;
+        });
+        return newErrors;
+    };
+
+    // ── Handlers ─────────────────────────────────────────────────
     const handleChange = (e) => {
-        setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+        // Real-time validation for touched fields
+        if (touched[name]) {
+            setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
+        }
+    };
+
+    const handleBlur = (e) => {
+        const { name, value } = e.target;
+        setTouched(prev => ({ ...prev, [name]: true }));
+        setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
+    };
+
+    const handleCategorySelect = (value) => {
+        setForm(prev => ({ ...prev, category: value }));
+        setTouched(prev => ({ ...prev, category: true }));
+        setErrors(prev => ({ ...prev, category: '' }));
     };
 
     const handleImageChange = (e) => {
         const file = e.target.files?.[0];
         if (file) {
+            // Validate file size (10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error('Image must be under 10MB.');
+                return;
+            }
+            // Validate file type
+            if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+                toast.error('Only JPG, PNG, GIF, and WebP images are allowed.');
+                return;
+            }
             setImageFile(file);
             setImagePreview(URL.createObjectURL(file));
         }
@@ -52,10 +131,21 @@ export default function ReportLostFound() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.title.trim() || !form.description.trim() || !form.category) {
-            toast.error('Please fill in all required fields.');
+
+        // Mark all as touched
+        const allTouched = {};
+        Object.keys(form).forEach(k => { allTouched[k] = true; });
+        setTouched(allTouched);
+
+        // Validate all fields
+        const newErrors = validateAll();
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length > 0) {
+            toast.error('Please fix the errors before submitting.');
             return;
         }
+
         setSubmitting(true);
         try {
             const payload = { ...form };
@@ -91,6 +181,12 @@ export default function ReportLostFound() {
         }
     };
 
+    // Helper for field error styling
+    const fieldBorder = (name) =>
+        errors[name] && touched[name]
+            ? 'border-red-500/60 focus:ring-red-500/40'
+            : 'border-slate-700/60 focus:ring-blue-500/40';
+
     return (
         <div className="min-h-screen bg-slate-900 pt-28 pb-16 px-4">
             <div className="max-w-2xl mx-auto">
@@ -110,7 +206,7 @@ export default function ReportLostFound() {
                     <p className="text-slate-400">Help us keep the campus connected. Report a lost or found item.</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 md:p-8 space-y-6">
+                <form onSubmit={handleSubmit} className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 md:p-8 space-y-6" noValidate>
                     {/* Type Toggle */}
                     <div>
                         <label className="block text-sm font-semibold text-slate-300 mb-3">I want to report a:</label>
@@ -135,28 +231,45 @@ export default function ReportLostFound() {
                     {/* Title */}
                     <div>
                         <label className="block text-sm font-semibold text-slate-300 mb-2">Item Title *</label>
-                        <input type="text" name="title" value={form.title} onChange={handleChange} required
+                        <input type="text" name="title" value={form.title} onChange={handleChange} onBlur={handleBlur}
                             placeholder="e.g. Black iPhone 15 Pro, Blue Backpack..."
-                            className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
+                            className={`w-full px-4 py-3 bg-slate-900/60 border rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 ${fieldBorder('title')}`} />
+                        {errors.title && touched.title && (
+                            <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                {errors.title}
+                            </p>
+                        )}
                     </div>
 
                     {/* Description */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-300 mb-2">Description *</label>
-                        <textarea name="description" value={form.description} onChange={handleChange} required rows={4}
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="block text-sm font-semibold text-slate-300">Description *</label>
+                            <span className={`text-xs ${form.description.length > 1000 ? 'text-red-400' : 'text-slate-500'}`}>
+                                {form.description.length}/1000
+                            </span>
+                        </div>
+                        <textarea name="description" value={form.description} onChange={handleChange} onBlur={handleBlur} rows={4}
                             placeholder="Describe the item in detail — color, brand, distinguishing features..."
-                            className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none" />
+                            className={`w-full px-4 py-3 bg-slate-900/60 border rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 resize-none ${fieldBorder('description')}`} />
+                        {errors.description && touched.description && (
+                            <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                {errors.description}
+                            </p>
+                        )}
                     </div>
 
                     {/* Category */}
                     <div>
                         <label className="block text-sm font-semibold text-slate-300 mb-2">Category *</label>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        <div className={`grid grid-cols-3 sm:grid-cols-4 gap-2 rounded-xl ${errors.category && touched.category ? 'ring-2 ring-red-500/40 p-1' : ''}`}>
                             {CATEGORIES.map(cat => (
                                 <button
                                     key={cat.value}
                                     type="button"
-                                    onClick={() => setForm(prev => ({ ...prev, category: cat.value }))}
+                                    onClick={() => handleCategorySelect(cat.value)}
                                     className={`p-3 rounded-xl border text-center text-sm font-medium transition-all cursor-pointer ${form.category === cat.value
                                         ? 'border-blue-500 bg-blue-500/10 text-blue-400'
                                         : 'border-slate-700 bg-slate-900/40 text-slate-400 hover:border-slate-600'
@@ -167,20 +280,39 @@ export default function ReportLostFound() {
                                 </button>
                             ))}
                         </div>
+                        {errors.category && touched.category && (
+                            <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                {errors.category}
+                            </p>
+                        )}
                     </div>
 
                     {/* Location & Date */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-semibold text-slate-300 mb-2">Location</label>
-                            <input type="text" name="location" value={form.location} onChange={handleChange}
+                            <input type="text" name="location" value={form.location} onChange={handleChange} onBlur={handleBlur}
                                 placeholder="e.g. Library, Building A..."
-                                className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
+                                className={`w-full px-4 py-3 bg-slate-900/60 border rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 ${fieldBorder('location')}`} />
+                            {errors.location && touched.location && (
+                                <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+                                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                    {errors.location}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-slate-300 mb-2">Date</label>
-                            <input type="date" name="dateOccurred" value={form.dateOccurred} onChange={handleChange}
-                                className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
+                            <input type="date" name="dateOccurred" value={form.dateOccurred} onChange={handleChange} onBlur={handleBlur}
+                                max={new Date().toISOString().split('T')[0]}
+                                className={`w-full px-4 py-3 bg-slate-900/60 border rounded-xl text-white text-sm focus:outline-none focus:ring-2 ${fieldBorder('dateOccurred')}`} />
+                            {errors.dateOccurred && touched.dateOccurred && (
+                                <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+                                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                    {errors.dateOccurred}
+                                </p>
+                            )}
                         </div>
                     </div>
 
@@ -204,7 +336,7 @@ export default function ReportLostFound() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                                 <span className="text-sm text-slate-500">Click to upload a photo</span>
-                                <span className="text-xs text-slate-600 mt-1">JPG, PNG, GIF up to 10MB</span>
+                                <span className="text-xs text-slate-600 mt-1">JPG, PNG, GIF, WebP up to 10MB</span>
                                 <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                             </label>
                         )}
@@ -214,15 +346,27 @@ export default function ReportLostFound() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-semibold text-slate-300 mb-2">Contact Email</label>
-                            <input type="email" name="contactEmail" value={form.contactEmail} onChange={handleChange}
+                            <input type="email" name="contactEmail" value={form.contactEmail} onChange={handleChange} onBlur={handleBlur}
                                 placeholder="your@email.com"
-                                className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
+                                className={`w-full px-4 py-3 bg-slate-900/60 border rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 ${fieldBorder('contactEmail')}`} />
+                            {errors.contactEmail && touched.contactEmail && (
+                                <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+                                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                    {errors.contactEmail}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-slate-300 mb-2">Contact Phone</label>
-                            <input type="tel" name="contactPhone" value={form.contactPhone} onChange={handleChange}
+                            <input type="tel" name="contactPhone" value={form.contactPhone} onChange={handleChange} onBlur={handleBlur}
                                 placeholder="+94 77 xxx xxxx"
-                                className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
+                                className={`w-full px-4 py-3 bg-slate-900/60 border rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 ${fieldBorder('contactPhone')}`} />
+                            {errors.contactPhone && touched.contactPhone && (
+                                <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+                                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                    {errors.contactPhone}
+                                </p>
+                            )}
                         </div>
                     </div>
 
