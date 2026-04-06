@@ -94,6 +94,14 @@ export default function ReportLostFound() {
     return (
         <div className="min-h-screen bg-slate-900 pt-28 pb-16 px-4">
             <div className="max-w-2xl mx-auto">
+                {/* Back Button */}
+                <div className="mb-6 flex">
+                    <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors bg-slate-800/50 px-4 py-2 rounded-xl backdrop-blur-sm border border-slate-700/50 hover:border-amber-500/50 cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><polyline points="12 19 5 12 12 5" /></svg>
+                        Back
+                    </button>
+                </div>
+
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-2">

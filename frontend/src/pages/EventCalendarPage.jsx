@@ -87,25 +87,29 @@ export default function EventCalendarPage() {
     return (
         <div className="min-h-screen bg-slate-900 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-                    <div>
-                        <div className="flex items-center gap-4 mb-2">
-                            <Link to="/events" className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg transition-colors">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                            </Link>
-                            <h1 className="text-3xl font-extrabold text-white">Event Calendar</h1>
-                        </div>
-                        <p className="text-slate-400 pl-14">Plan your schedule and browse upcoming campus activities</p>
-                    </div>
+                <div className="text-center mb-8">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">
+                        Event <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Calendar</span>
+                    </h1>
+                    <p className="text-slate-400 text-lg max-w-2xl mx-auto">Plan your schedule and browse upcoming campus activities</p>
+                    <Link
+                        to="/events"
+                        className="inline-flex items-center gap-2 mt-6 px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-orange-500/20 hover:-translate-y-0.5"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                        Back to Events
+                    </Link>
+                </div>
 
+                <div className="flex items-center justify-center gap-4 mb-8">
                     <div className="flex items-center gap-4 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700">
-                        <button onClick={prevMonth} className="p-2 hover:bg-slate-700 text-white rounded-xl transition-colors">
+                        <button onClick={prevMonth} className="p-2 hover:bg-slate-700 text-white rounded-xl transition-colors cursor-pointer">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                         </button>
                         <h2 className="text-lg font-bold text-white px-4 min-w-[160px] text-center">
                             {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                         </h2>
-                        <button onClick={nextMonth} className="p-2 hover:bg-slate-700 text-white rounded-xl transition-colors">
+                        <button onClick={nextMonth} className="p-2 hover:bg-slate-700 text-white rounded-xl transition-colors cursor-pointer">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                         </button>
                     </div>
