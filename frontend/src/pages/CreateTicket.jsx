@@ -34,6 +34,9 @@ export default function CreateTicket() {
     const [loadingBookings, setLoadingBookings] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [uploadingImages, setUploadingImages] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({});
+    const [stepAttempted, setStepAttempted] = useState({});
 
     // Form state
     const [form, setForm] = useState({
@@ -48,6 +51,65 @@ export default function CreateTicket() {
 
     const [imageFiles, setImageFiles] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
+
+    // ── Validation ─────────────────────────────────────────────
+    const validate = (field, value) => {
+        switch (field) {
+            case 'bookingId':
+                if (!value) return 'Please select a booking.';
+                return '';
+            case 'category':
+                if (!value) return 'Please select an issue category.';
+                return '';
+            case 'priority':
+                if (!value) return 'Please select a priority level.';
+                return '';
+            case 'description':
+                if (!value.trim()) return 'Description is required.';
+                if (value.trim().length < 10) return 'Description must be at least 10 characters.';
+                if (value.trim().length > 2000) return 'Description must be under 2000 characters.';
+                return '';
+            case 'contactEmail':
+                if (!value.trim()) return 'Contact email is required.';
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address.';
+                return '';
+            case 'contactPhone':
+                if (value && !/^[+]?[\d\s()-]{7,15}$/.test(value)) return 'Please enter a valid phone number.';
+                return '';
+            default:
+                return '';
+        }
+    };
+
+    const validateStep = (s) => {
+        const newErrors = {};
+        switch (s) {
+            case 1:
+                { const e = validate('bookingId', form.bookingId); if (e) newErrors.bookingId = e; }
+                break;
+            case 2:
+                { const e = validate('category', form.category); if (e) newErrors.category = e; }
+                { const e = validate('priority', form.priority); if (e) newErrors.priority = e; }
+                break;
+            case 3:
+                { const e = validate('description', form.description); if (e) newErrors.description = e; }
+                { const e = validate('contactEmail', form.contactEmail); if (e) newErrors.contactEmail = e; }
+                { const e = validate('contactPhone', form.contactPhone); if (e) newErrors.contactPhone = e; }
+                break;
+            default: break;
+        }
+        return newErrors;
+    };
+
+    const ErrorMessage = ({ field }) => {
+        if (!errors[field] || (!touched[field] && !stepAttempted[step])) return null;
+        return (
+            <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                {errors[field]}
+            </p>
+        );
+    };
 
     useEffect(() => {
         fetchBookings();
@@ -71,6 +133,17 @@ export default function CreateTicket() {
         if (imageFiles.length + files.length > 3) {
             toast.error('Maximum 3 images allowed');
             return;
+        }
+        // Validate each file
+        for (const file of files) {
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error(`"${file.name}" exceeds the 10MB file size limit.`);
+                return;
+            }
+            if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+                toast.error(`"${file.name}" is not a supported image format. Use JPG, PNG, GIF, or WebP.`);
+                return;
+            }
         }
         const newFiles = [...imageFiles, ...files].slice(0, 3);
         setImageFiles(newFiles);
@@ -116,14 +189,31 @@ export default function CreateTicket() {
     };
 
     const canProceed = () => {
-        switch (step) {
-            case 1: return form.bookingId;
-            case 2: return form.category && form.priority;
-            case 3: return form.description.trim().length >= 10;
-            case 4: return true; // images optional
-            case 5: return true; // review
-            default: return false;
+        const stepErrors = validateStep(step);
+        return Object.keys(stepErrors).length === 0;
+    };
+
+    const handleNext = () => {
+        setStepAttempted(prev => ({ ...prev, [step]: true }));
+        const stepErrors = validateStep(step);
+        setErrors(prev => ({ ...prev, ...stepErrors }));
+        if (Object.keys(stepErrors).length > 0) {
+            toast.error('Please fix the errors before continuing.');
+            return;
         }
+        setStep(s => s + 1);
+    };
+
+    const handleFieldChange = (field, value) => {
+        setForm(prev => ({ ...prev, [field]: value }));
+        if (touched[field] || stepAttempted[step]) {
+            setErrors(prev => ({ ...prev, [field]: validate(field, value) }));
+        }
+    };
+
+    const handleFieldBlur = (field) => {
+        setTouched(prev => ({ ...prev, [field]: true }));
+        setErrors(prev => ({ ...prev, [field]: validate(field, form[field]) }));
     };
     return (
         <div className="min-h-screen bg-slate-900 relative overflow-hidden pt-28 pb-10">
@@ -179,7 +269,8 @@ export default function CreateTicket() {
                                 <span className="p-2 bg-blue-500/20 rounded-lg text-blue-400">📋</span>
                                 Select a Booking
                             </h2>
-                            <p className="text-slate-400 text-[15px] mb-8">Choose the resource booking you want to report an issue for</p>
+                            <p className="text-slate-400 text-[15px] mb-4">Choose the resource booking you want to report an issue for</p>
+                            <ErrorMessage field="bookingId" />
 
                             {loadingBookings ? (
                                 <div className="space-y-4">
@@ -258,6 +349,7 @@ export default function CreateTicket() {
                                         </button>
                                     ))}
                                 </div>
+                                <ErrorMessage field="category" />
                             </div>
 
                             <div>
@@ -297,19 +389,23 @@ export default function CreateTicket() {
                             <p className="text-slate-400 text-[15px] mb-8">Provide as much detail as possible about the problem</p>
 
                             <div className="relative group">
-                                <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500/30 to-orange-500/30 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-500"></div>
+                                <div className={`absolute -inset-0.5 bg-gradient-to-r from-amber-500/30 to-orange-500/30 rounded-2xl blur transition duration-500 ${errors.description && (touched.description || stepAttempted[3]) ? 'opacity-0' : 'opacity-0 group-focus-within:opacity-100'}`}></div>
                                 <textarea
                                     value={form.description}
-                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                    onChange={(e) => handleFieldChange('description', e.target.value)}
+                                    onBlur={() => handleFieldBlur('description')}
                                     placeholder="Describe the issue in detail... What happened? When did you notice it? Is it affecting usage?"
-                                    className="relative w-full h-48 bg-slate-900/80 border border-slate-700 rounded-2xl p-5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-all resize-none shadow-inner"
+                                    className={`relative w-full h-48 bg-slate-900/80 border rounded-2xl p-5 text-white placeholder-slate-500 focus:outline-none transition-all resize-none shadow-inner ${errors.description && (touched.description || stepAttempted[3]) ? 'border-red-500/60 focus:border-red-500/60' : 'border-slate-700 focus:border-amber-500/50'}`}
                                 />
                             </div>
                             <div className="flex justify-between items-center mt-2 px-2">
-                                <p className={`text-xs font-medium ${form.description.length >= 10 ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                    {form.description.length >= 10 ? '✓ Minimum length met' : 'Requires at least 10 characters'}
-                                </p>
-                                <p className="text-slate-400 text-xs font-bold bg-slate-800 px-2 py-1 rounded-md">{form.description.length} chars</p>
+                                <div>
+                                    <p className={`text-xs font-medium ${form.description.length >= 10 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                        {form.description.length >= 10 ? '✓ Minimum length met' : 'Requires at least 10 characters'}
+                                    </p>
+                                    <ErrorMessage field="description" />
+                                </div>
+                                <p className={`text-xs font-bold px-2 py-1 rounded-md ${form.description.length > 2000 ? 'bg-red-500/20 text-red-400' : 'bg-slate-800 text-slate-400'}`}>{form.description.length}/2000</p>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-10">
@@ -322,11 +418,13 @@ export default function CreateTicket() {
                                         <input
                                             type="email"
                                             value={form.contactEmail}
-                                            onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
+                                            onChange={(e) => handleFieldChange('contactEmail', e.target.value)}
+                                            onBlur={() => handleFieldBlur('contactEmail')}
                                             placeholder="your@email.com"
-                                            className="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-11 pr-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 transition-all"
+                                            className={`w-full bg-slate-900/50 border rounded-xl pl-11 pr-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 transition-all ${errors.contactEmail && (touched.contactEmail || stepAttempted[3]) ? 'border-red-500/60' : 'border-slate-700'}`}
                                         />
                                     </div>
+                                    <ErrorMessage field="contactEmail" />
                                 </div>
                                 <div>
                                     <label className="text-sm font-bold text-slate-300 mb-3 block uppercase tracking-wider">Contact Phone <span className="text-slate-500 normal-case font-normal ml-1">(Optional)</span></label>
@@ -337,11 +435,13 @@ export default function CreateTicket() {
                                         <input
                                             type="tel"
                                             value={form.contactPhone}
-                                            onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
-                                            placeholder="+1 (555) 000-0000"
-                                            className="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-11 pr-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 transition-all"
+                                            onChange={(e) => handleFieldChange('contactPhone', e.target.value)}
+                                            onBlur={() => handleFieldBlur('contactPhone')}
+                                            placeholder="+94 77 xxx xxxx"
+                                            className={`w-full bg-slate-900/50 border rounded-xl pl-11 pr-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 transition-all ${errors.contactPhone && (touched.contactPhone || stepAttempted[3]) ? 'border-red-500/60' : 'border-slate-700'}`}
                                         />
                                     </div>
+                                    <ErrorMessage field="contactPhone" />
                                 </div>
                             </div>
                         </div>
@@ -479,9 +579,8 @@ export default function CreateTicket() {
 
                         {step < 5 ? (
                             <button
-                                onClick={() => setStep(s => s + 1)}
-                                disabled={!canProceed()}
-                                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-xl font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] hover:-translate-y-0.5 cursor-pointer flex justify-center items-center"
+                                onClick={handleNext}
+                                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] hover:-translate-y-0.5 cursor-pointer flex justify-center items-center"
                             >
                                 Continue →
                             </button>

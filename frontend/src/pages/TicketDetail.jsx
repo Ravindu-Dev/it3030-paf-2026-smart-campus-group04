@@ -63,6 +63,9 @@ export default function TicketDetail() {
     const [editingComment, setEditingComment] = useState(null);
     const [editContent, setEditContent] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
+    const [commentError, setCommentError] = useState('');
+    const [editError, setEditError] = useState('');
+    const [rejectError, setRejectError] = useState('');
 
     // Modals
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -98,8 +101,20 @@ export default function TicketDetail() {
         }
     };
 
+    const validateComment = (text) => {
+        if (!text.trim()) return 'Comment cannot be empty.';
+        if (text.trim().length < 2) return 'Comment must be at least 2 characters.';
+        if (text.trim().length > 500) return 'Comment must be under 500 characters.';
+        return '';
+    };
+
     const handleAddComment = async () => {
-        if (!newComment.trim()) return;
+        const error = validateComment(newComment);
+        if (error) {
+            setCommentError(error);
+            return;
+        }
+        setCommentError('');
         setSubmittingComment(true);
         try {
             await addComment(id, { content: newComment });
@@ -114,7 +129,12 @@ export default function TicketDetail() {
     };
 
     const handleEditComment = async (commentId) => {
-        if (!editContent.trim()) return;
+        const error = validateComment(editContent);
+        if (error) {
+            setEditError(error);
+            return;
+        }
+        setEditError('');
         try {
             await updateComment(id, commentId, { content: editContent });
             setEditingComment(null);
@@ -152,10 +172,20 @@ export default function TicketDetail() {
     };
 
     const handleReject = async () => {
-        if (!rejectReason.trim()) {
-            toast.error('Rejection reason is required');
+        const reason = rejectReason.trim();
+        if (!reason) {
+            setRejectError('Rejection reason is required.');
             return;
         }
+        if (reason.length < 5) {
+            setRejectError('Reason must be at least 5 characters.');
+            return;
+        }
+        if (reason.length > 500) {
+            setRejectError('Reason must be under 500 characters.');
+            return;
+        }
+        setRejectError('');
         setActionLoading(true);
         try {
             const res = await rejectTicket(id, { remarks: rejectReason });
@@ -413,14 +443,26 @@ export default function TicketDetail() {
                                                 </div>
 
                                                 {editingComment === comment.id ? (
-                                                    <div className="flex gap-2">
-                                                        <input
-                                                            value={editContent}
-                                                            onChange={(e) => setEditContent(e.target.value)}
-                                                            className="flex-1 bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-amber-500/50"
-                                                        />
-                                                        <button onClick={() => handleEditComment(comment.id)} className="px-3 py-1.5 bg-amber-500/20 text-amber-400 rounded-lg text-xs hover:bg-amber-500/30 cursor-pointer">Save</button>
-                                                        <button onClick={() => setEditingComment(null)} className="px-3 py-1.5 text-slate-400 rounded-lg text-xs hover:text-white cursor-pointer">Cancel</button>
+                                                    <div>
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                value={editContent}
+                                                                onChange={(e) => { setEditContent(e.target.value); if (editError) setEditError(validateComment(e.target.value)); }}
+                                                                className={`flex-1 bg-slate-700/50 border rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none transition-all ${editError ? 'border-red-500/60 focus:border-red-500/60' : 'border-slate-600/50 focus:border-amber-500/50'}`}
+                                                                maxLength={500}
+                                                            />
+                                                            <button onClick={() => handleEditComment(comment.id)} className="px-3 py-1.5 bg-amber-500/20 text-amber-400 rounded-lg text-xs hover:bg-amber-500/30 cursor-pointer">Save</button>
+                                                            <button onClick={() => { setEditingComment(null); setEditError(''); }} className="px-3 py-1.5 text-slate-400 rounded-lg text-xs hover:text-white cursor-pointer">Cancel</button>
+                                                        </div>
+                                                        <div className="flex items-center justify-between mt-1">
+                                                            {editError && (
+                                                                <p className="text-xs text-red-400 flex items-center gap-1">
+                                                                    <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                                                    {editError}
+                                                                </p>
+                                                            )}
+                                                            <span className={`text-[10px] ml-auto ${editContent.length > 500 ? 'text-red-400' : 'text-slate-500'}`}>{editContent.length}/500</span>
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <>
@@ -449,21 +491,33 @@ export default function TicketDetail() {
                             </div>
 
                             {/* Add Comment */}
-                            <div className="flex gap-3 pt-4 border-t border-slate-700/50">
-                                <input
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    placeholder="Add a comment..."
-                                    className="flex-1 bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-2.5 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-all"
-                                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleAddComment()}
-                                />
-                                <button
-                                    onClick={handleAddComment}
-                                    disabled={submittingComment || !newComment.trim()}
-                                    className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl text-sm font-medium hover:from-amber-400 hover:to-amber-500 transition-all disabled:opacity-40 cursor-pointer"
-                                >
-                                    {submittingComment ? '...' : 'Send'}
-                                </button>
+                            <div className="pt-4 border-t border-slate-700/50">
+                                <div className="flex gap-3">
+                                    <input
+                                        value={newComment}
+                                        onChange={(e) => { setNewComment(e.target.value); if (commentError) setCommentError(validateComment(e.target.value)); }}
+                                        placeholder="Add a comment..."
+                                        className={`flex-1 bg-slate-700/50 border rounded-xl px-4 py-2.5 text-white text-sm placeholder-slate-500 focus:outline-none transition-all ${commentError ? 'border-red-500/60 focus:border-red-500/60' : 'border-slate-600/50 focus:border-amber-500/50'}`}
+                                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleAddComment()}
+                                        maxLength={500}
+                                    />
+                                    <button
+                                        onClick={handleAddComment}
+                                        disabled={submittingComment}
+                                        className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl text-sm font-medium hover:from-amber-400 hover:to-amber-500 transition-all disabled:opacity-40 cursor-pointer"
+                                    >
+                                        {submittingComment ? '...' : 'Send'}
+                                    </button>
+                                </div>
+                                <div className="flex items-center justify-between mt-1.5 px-1">
+                                    {commentError ? (
+                                        <p className="text-xs text-red-400 flex items-center gap-1">
+                                            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                            {commentError}
+                                        </p>
+                                    ) : <span />}
+                                    <span className={`text-[10px] ${newComment.length > 500 ? 'text-red-400' : 'text-slate-500'}`}>{newComment.length}/500</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -601,14 +655,33 @@ export default function TicketDetail() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
                             <h3 className="text-xl font-bold text-white">Reject Ticket</h3>
                         </div>
-                        <p className="text-slate-300 text-sm mb-6 leading-relaxed">Please provide a reason for rejecting this ticket. This will be sent to the reporter.</p>
+                        <p className="text-slate-300 text-sm mb-4 leading-relaxed">Please provide a reason for rejecting this ticket. This will be sent to the reporter.</p>
                         <textarea
                             value={rejectReason}
-                            onChange={(e) => setRejectReason(e.target.value)}
+                            onChange={(e) => {
+                                setRejectReason(e.target.value);
+                                if (rejectError) {
+                                    const val = e.target.value.trim();
+                                    if (!val) setRejectError('Rejection reason is required.');
+                                    else if (val.length < 5) setRejectError('Reason must be at least 5 characters.');
+                                    else if (val.length > 500) setRejectError('Reason must be under 500 characters.');
+                                    else setRejectError('');
+                                }
+                            }}
                             placeholder="Enter detailed rejection reason..."
-                            className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-xl p-4 text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none shadow-inner mb-6"
+                            className={`w-full h-32 bg-slate-900/50 border rounded-xl p-4 text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 resize-none shadow-inner mb-2 ${rejectError ? 'border-red-500/60 focus:ring-red-500/50' : 'border-slate-700 focus:ring-red-500/50'}`}
                             autoFocus
+                            maxLength={500}
                         />
+                        <div className="flex items-center justify-between mb-6">
+                            {rejectError ? (
+                                <p className="text-xs text-red-400 flex items-center gap-1">
+                                    <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                    {rejectError}
+                                </p>
+                            ) : <span />}
+                            <span className={`text-[10px] ${rejectReason.length > 500 ? 'text-red-400' : 'text-slate-500'}`}>{rejectReason.length}/500</span>
+                        </div>
                         <div className="flex gap-4">
                             <button onClick={() => setShowRejectModal(false)} className="flex-1 px-5 py-3 text-white bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 rounded-xl text-sm font-semibold transition-all cursor-pointer">Cancel</button>
                             <button onClick={handleReject} disabled={!rejectReason.trim() || actionLoading} className="flex-1 px-5 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-600/20 hover:shadow-red-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
