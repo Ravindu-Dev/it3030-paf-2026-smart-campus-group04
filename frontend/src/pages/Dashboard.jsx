@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import ManageFacilities from './ManageFacilities';
@@ -126,7 +126,8 @@ export default function Dashboard() {
     const navigate = useNavigate();
     const [stats, setStats] = useState({ totalUsers: 0, admins: 0, managers: 0, technicians: 0 });
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('overview');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -159,8 +160,9 @@ export default function Dashboard() {
     // Close mobile menu on tab change
     const handleTabChange = useCallback((id) => {
         setActiveTab(id);
+        setSearchParams({ tab: id });
         setMobileMenuOpen(false);
-    }, []);
+    }, [setSearchParams]);
 
     // Fetch stats
     useEffect(() => {
@@ -364,14 +366,6 @@ export default function Dashboard() {
                                     ${sidebarCollapsed ? 'left-full ml-2 bottom-0 mb-0 w-48' : 'left-0 right-0'}
                                 `}>
                                     <div className="p-1.5">
-                                        <Link
-                                            to="/"
-                                            onClick={() => setDropdownOpen(false)}
-                                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all"
-                                        >
-                                            {Icons.home}
-                                            <span>Back to Home</span>
-                                        </Link>
                                         <button
                                             onClick={handleLogout}
                                             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer"
@@ -421,13 +415,6 @@ export default function Dashboard() {
                                         {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                 </div>
-                                <Link
-                                    to="/"
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
-                                >
-                                    {Icons.home}
-                                    <span className="hidden sm:inline">Home</span>
-                                </Link>
                             </div>
                         </div>
                     </header>
