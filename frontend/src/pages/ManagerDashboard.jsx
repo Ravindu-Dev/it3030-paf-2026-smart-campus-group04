@@ -26,6 +26,7 @@ export default function ManagerDashboard({ standalone = false }) {
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [visibleCount, setVisibleCount] = useState(6);
 
     // Assign Modal
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -36,7 +37,8 @@ export default function ManagerDashboard({ standalone = false }) {
 
     useEffect(() => {
         fetchTickets();
-    }, [statusFilter]);
+        setVisibleCount(6);
+    }, [statusFilter, searchQuery]);
 
     const fetchTickets = async () => {
         setLoading(true);
@@ -109,7 +111,7 @@ export default function ManagerDashboard({ standalone = false }) {
                     <div>
                         <h2 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md flex items-center gap-3 mb-2">
                             <span className="p-2.5 bg-amber-500/20 rounded-xl text-amber-500">📊</span>
-                            Equipment <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 ml-1.5">Overview</span>
+                            Equipment <span className="text-transparent bg-clip-text bg-linear-to-r from-amber-400 to-orange-500 ml-1.5">Overview</span>
                         </h2>
                         <p className="text-slate-400 text-sm mt-1">Overview of all maintenance tickets across campus.</p>
                     </div>
@@ -122,7 +124,7 @@ export default function ManagerDashboard({ standalone = false }) {
                         <div className="relative z-10 flex flex-col justify-between h-full">
                             <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total</p>
                             <div className="flex items-end gap-3 mt-auto">
-                                <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 drop-shadow-sm">{stats.total}</p>
+                                <p className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-blue-600 drop-shadow-sm">{stats.total}</p>
                             </div>
                         </div>
                     </div>
@@ -132,7 +134,7 @@ export default function ManagerDashboard({ standalone = false }) {
                         <div className="relative z-10 flex flex-col justify-between h-full">
                             <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Open</p>
                             <div className="flex items-end gap-3 mt-auto">
-                                <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-500 drop-shadow-sm">{stats.open}</p>
+                                <p className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-blue-300 to-blue-500 drop-shadow-sm">{stats.open}</p>
                             </div>
                         </div>
                     </div>
@@ -142,7 +144,7 @@ export default function ManagerDashboard({ standalone = false }) {
                         <div className="relative z-10 flex flex-col justify-between h-full">
                             <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">In Progress</p>
                             <div className="flex items-end gap-3 mt-auto">
-                                <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 drop-shadow-sm">{stats.inProgress}</p>
+                                <p className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-amber-400 to-amber-600 drop-shadow-sm">{stats.inProgress}</p>
                             </div>
                         </div>
                     </div>
@@ -152,7 +154,7 @@ export default function ManagerDashboard({ standalone = false }) {
                         <div className="relative z-10 flex flex-col justify-between h-full">
                             <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Resolved</p>
                             <div className="flex items-end gap-3 mt-auto">
-                                <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 drop-shadow-sm">{stats.resolved}</p>
+                                <p className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-emerald-600 drop-shadow-sm">{stats.resolved}</p>
                             </div>
                         </div>
                     </div>
@@ -162,7 +164,7 @@ export default function ManagerDashboard({ standalone = false }) {
                         <div className="relative z-10 flex flex-col justify-between h-full">
                             <p className="text-red-400/80 text-xs font-bold uppercase tracking-wider mb-2">Unassigned</p>
                             <div className="flex items-end gap-3 mt-auto">
-                                <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600 drop-shadow-sm">{stats.unassigned}</p>
+                                <p className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-red-400 to-red-600 drop-shadow-sm">{stats.unassigned}</p>
                             </div>
                         </div>
                     </div>
@@ -178,20 +180,20 @@ export default function ManagerDashboard({ standalone = false }) {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search tickets by facility, user, or description..."
-                            className="w-full bg-slate-900/50 border border-slate-600/50 rounded-xl pl-11 pr-4 py-3 text-white text-[15px] placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 transition-all shadow-inner"
+                            className="w-full bg-slate-900/80 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-white text-[15px] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all shadow-inner opacity-100"
                         />
                     </div>
                     <div className="min-w-[200px] relative">
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full appearance-none bg-slate-900/50 border border-slate-600/50 rounded-xl pl-4 pr-10 py-3 text-white text-[15px] focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 cursor-pointer transition-all shadow-inner"
+                            className="w-full appearance-none bg-slate-900/80 border border-slate-800 rounded-xl pl-4 pr-10 py-3 text-white text-[15px] focus:outline-none focus:ring-2 focus:ring-amber-500/40 cursor-pointer transition-all shadow-inner scheme-dark outline-none"
                         >
-                            <option value="" className="bg-slate-800">All Statuses</option>
-                            <option value="OPEN" className="bg-slate-800">Open</option>
-                            <option value="IN_PROGRESS" className="bg-slate-800">In Progress</option>
-                            <option value="RESOLVED" className="bg-slate-800">Resolved</option>
-                            <option value="CLOSED" className="bg-slate-800">Closed</option>
+                            <option value="" className="bg-slate-900 text-white">All Statuses</option>
+                            <option value="OPEN" className="bg-slate-900 text-white">Open</option>
+                            <option value="IN_PROGRESS" className="bg-slate-900 text-white">In Progress</option>
+                            <option value="RESOLVED" className="bg-slate-900 text-white">Resolved</option>
+                            <option value="CLOSED" className="bg-slate-900 text-white">Closed</option>
                         </select>
                         <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
@@ -213,8 +215,9 @@ export default function ManagerDashboard({ standalone = false }) {
                         <p className="text-slate-400 max-w-md mx-auto">Try adjusting your search criteria or status filters.</p>
                     </div>
                 ) : (
-                    <div className="space-y-4">
-                        {filtered.map(ticket => (
+                    <div className="space-y-4 animate-in fade-in duration-500">
+                        <div className="space-y-4">
+                            {filtered.slice(0, visibleCount).map(ticket => (
                             <div key={ticket.id} className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:bg-slate-800/60 hover:border-slate-600 hover:shadow-xl transition-all duration-300 group">
                                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
                                     <div className="flex-1 min-w-0">
@@ -251,7 +254,7 @@ export default function ManagerDashboard({ standalone = false }) {
                                         </div>
                                         <p className="text-slate-300 text-[15px] line-clamp-2 leading-relaxed bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">{ticket.description}</p>
 
-                                        <div className="flex flex-wrap items-center gap-4 mt-4 bg-slate-800/50 inline-flex p-2 rounded-xl border border-slate-700/50">
+                                        <div className="flex p-2 rounded-xl border border-slate-700/50">
                                             <span className="text-sm text-slate-300 flex items-center gap-2">
                                                 <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold">{ticket.userName?.charAt(0)}</div>
                                                 {ticket.userName}
@@ -268,12 +271,12 @@ export default function ManagerDashboard({ standalone = false }) {
                                         </div>
                                     </div>
 
-                                    <div className="flex sm:flex-col items-center sm:items-end gap-3 flex-shrink-0 pt-2 sm:pt-0">
+                                    <div className="flex sm:flex-col items-center sm:items-end gap-3 shrink-0 pt-2 sm:pt-0">
                                         {ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && ticket.status !== 'RESOLVED' && (
                                             <button
                                                 onClick={() => openAssign(ticket.id)}
                                                 className={`w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex justify-center items-center gap-2 shadow-sm cursor-pointer ${!ticket.assignedTechnicianId
-                                                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-400 hover:to-indigo-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-blue-400/30'
+                                                    ? 'bg-linear-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-400 hover:to-indigo-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-blue-400/30'
                                                     : 'bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25'
                                                     }`}
                                             >
@@ -289,6 +292,53 @@ export default function ManagerDashboard({ standalone = false }) {
                                 </div>
                             </div>
                         ))}
+                        </div>
+
+                        {/* ─── See More / See Less (Refined Professional Style) ── */}
+                        {filtered.length > 6 && (
+                            <div className="relative pt-12 pb-8">
+                                {/* Subtle Gradient Fade when more are available */}
+                                {visibleCount < filtered.length && (
+                                    <div className="absolute top-0 left-0 right-0 h-24 bg-linear-to-t from-slate-950/80 to-transparent pointer-events-none -translate-y-full" />
+                                )}
+                                
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="flex items-center gap-1.5 p-1 bg-slate-900/40 border border-slate-800/60 rounded-2xl backdrop-blur-xl shadow-2xl">
+                                        {visibleCount < filtered.length ? (
+                                            <button 
+                                                onClick={() => setVisibleCount(prev => Math.min(prev + 6, filtered.length))}
+                                                className="group flex items-center gap-2.5 px-6 py-2.5 bg-white/3 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                            >
+                                                <span>View More Tickets</span>
+                                                <svg className="w-4 h-4 text-amber-500 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </button>
+                                        ) : (
+                                            <button 
+                                                onClick={() => setVisibleCount(6)}
+                                                className="group flex items-center gap-2.5 px-6 py-2.5 bg-white/3 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                            >
+                                                <span>Collapse List</span>
+                                                <svg className="w-4 h-4 text-amber-500 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                        
+                                        <div className="h-4 w-px bg-slate-800 mx-1" />
+                                        
+                                        <div className="px-4 py-1 flex items-center gap-2 font-mono">
+                                            <span className="text-white text-xs font-bold">{Math.min(visibleCount, filtered.length)}</span>
+                                            <span className="text-slate-600 text-[10px] font-black uppercase tracking-tighter">/</span>
+                                            <span className="text-slate-500 text-xs font-medium">{filtered.length}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[0.2em]">End of filtered results</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -318,7 +368,7 @@ export default function ManagerDashboard({ standalone = false }) {
                                         key={tech.id}
                                         onClick={() => setSelectedTechId(tech.id)}
                                         className={`w-full text-left p-4 rounded-2xl border transition-all cursor-pointer group flex items-center gap-4 ${selectedTechId === tech.id
-                                            ? 'bg-gradient-to-r from-blue-500/20 to-indigo-500/10 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.1)] pb-4' // Fixed tailwind classes
+                                            ? 'bg-linear-to-r from-blue-500/20 to-indigo-500/10 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.1)] pb-4' // Fixed tailwind classes
                                             : 'bg-slate-900/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600/80'
                                             }`}
                                     >
@@ -348,7 +398,7 @@ export default function ManagerDashboard({ standalone = false }) {
                             <button
                                 onClick={handleAssign}
                                 disabled={!selectedTechId || actionLoading}
-                                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl text-sm font-bold disabled:opacity-40 cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all flex items-center gap-2"
+                                className="px-6 py-3 bg-linear-to-r from-blue-500 to-indigo-600 text-white rounded-xl text-sm font-bold disabled:opacity-40 cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all flex items-center gap-2"
                             >
                                 {actionLoading ? (
                                     <>

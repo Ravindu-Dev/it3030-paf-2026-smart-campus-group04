@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 
 /**
  * Admin User Management page — premium admin panel.
@@ -15,6 +16,7 @@ export default function AdminUsers({ standalone = false }) {
     const [isLoading, setIsLoading] = useState(true);
     const [roleFilter, setRoleFilter] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [visibleUsers, setVisibleUsers] = useState(6);
     const [updatingUserId, setUpdatingUserId] = useState(null);
 
     const roles = ['USER', 'ADMIN', 'TECHNICIAN', 'MANAGER'];
@@ -22,6 +24,11 @@ export default function AdminUsers({ standalone = false }) {
     useEffect(() => {
         fetchUsers();
     }, [roleFilter]);
+
+    // Reset visibility on filter/search
+    useEffect(() => {
+        setVisibleUsers(6);
+    }, [roleFilter, searchQuery]);
 
     const fetchUsers = async () => {
         setIsLoading(true);
@@ -140,13 +147,13 @@ export default function AdminUsers({ standalone = false }) {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search by name or email..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                            className="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all opacity-100"
                         />
                     </div>
                     <select
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
-                        className="px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer"
+                        className="px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer scheme-dark outline-none"
                     >
                         <option value="">All Roles</option>
                         {roles.map((role) => (
@@ -182,7 +189,7 @@ export default function AdminUsers({ standalone = false }) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-700/30">
-                                    {filteredUsers.map((user, index) => (
+                                    {filteredUsers.slice(0, visibleUsers).map((user, index) => (
                                         <tr
                                             key={user.id}
                                             className="hover:bg-slate-700/20 transition-colors"
@@ -224,10 +231,10 @@ export default function AdminUsers({ standalone = false }) {
                                                         value={user.role}
                                                         onChange={(e) => handleRoleChange(user.id, e.target.value)}
                                                         disabled={updatingUserId === user.id}
-                                                        className={`px-3 py-1.5 border rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 cursor-pointer ${roleConfig[user.role]?.color}`}
+                                                        className={`px-3 py-1.5 border border-slate-800 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:opacity-50 cursor-pointer scheme-dark outline-none ${roleConfig[user.role]?.color} bg-slate-900/80`}
                                                     >
                                                         {roles.map((role) => (
-                                                            <option key={role} value={role} className="bg-slate-800 text-white">
+                                                            <option key={role} value={role} className="bg-slate-900 text-white">
                                                                 {role}
                                                             </option>
                                                         ))}
@@ -254,6 +261,45 @@ export default function AdminUsers({ standalone = false }) {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+
+                    {filteredUsers.length > 6 && (
+                        <div className="relative pt-10 pb-6 bg-slate-800/40 border-t border-slate-700/30">
+                            {visibleUsers < filteredUsers.length && (
+                                <div className="absolute top-0 left-0 right-0 h-24 bg-linear-to-t from-slate-900/80 to-transparent pointer-events-none -translate-y-full" />
+                            )}
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="flex items-center gap-1.5 p-1 bg-slate-900/40 border border-slate-800/60 rounded-2xl backdrop-blur-xl shadow-2xl">
+                                    {visibleUsers < filteredUsers.length ? (
+                                        <button 
+                                            onClick={() => setVisibleUsers(prev => Math.min(prev + 6, filteredUsers.length))}
+                                            className="group flex items-center gap-2.5 px-6 py-2.5 bg-white/3 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                        >
+                                            <span>View More Users</span>
+                                            <svg className="w-4 h-4 text-blue-500 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                    ) : (
+                                        <button 
+                                            onClick={() => setVisibleUsers(6)}
+                                            className="group flex items-center gap-2.5 px-6 py-2.5 bg-white/3 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                        >
+                                            <span>Collapse List</span>
+                                            <svg className="w-4 h-4 text-blue-500 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                    <div className="h-4 w-px bg-slate-800 mx-1" />
+                                    <div className="px-4 py-1 flex items-center gap-2 font-mono">
+                                        <span className="text-white text-xs font-bold">{Math.min(visibleUsers, filteredUsers.length)}</span>
+                                        <span className="text-slate-600 text-[10px] font-black uppercase tracking-tighter">/</span>
+                                        <span className="text-slate-500 text-xs font-medium">{filteredUsers.length}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

@@ -83,7 +83,7 @@ public class FacilityController {
          * Restricted to ADMIN role.
          */
         @PostMapping
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
         public ResponseEntity<ApiResponse<FacilityDto>> createFacility(
                         @Valid @RequestBody CreateFacilityRequest request,
                         Authentication authentication) {
@@ -101,7 +101,7 @@ public class FacilityController {
          * Restricted to ADMIN role.
          */
         @PutMapping("/{id}")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
         public ResponseEntity<ApiResponse<FacilityDto>> updateFacility(
                         @PathVariable(name = "id") String id,
                         @Valid @RequestBody UpdateFacilityRequest request) {
@@ -117,7 +117,7 @@ public class FacilityController {
          * Restricted to ADMIN role.
          */
         @DeleteMapping("/{id}")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
         public ResponseEntity<ApiResponse<Void>> deleteFacility(@PathVariable(name = "id") String id) {
 
                 facilityService.deleteFacility(id);

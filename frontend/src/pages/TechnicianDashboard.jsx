@@ -86,7 +86,7 @@ export default function TechnicianDashboard({ standalone = false }) {
                     <div>
                         <h2 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md flex items-center gap-3 mb-2">
                             <span className="p-2.5 bg-blue-500/20 rounded-xl text-blue-400">🔧</span>
-                            My Assigned <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 ml-1.5">Tickets</span>
+                            My Assigned <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-indigo-500 ml-1.5">Tickets</span>
                         </h2>
                         <p className="text-slate-400 text-sm mt-1">Welcome back, <span className="text-white font-medium">{user?.name?.split(' ')[0]}</span>. Here are your current assignments.</p>
                     </div>
@@ -99,7 +99,7 @@ export default function TechnicianDashboard({ standalone = false }) {
                         <div className="relative z-10 flex flex-col justify-between h-full">
                             <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total Assigned</p>
                             <div className="flex items-end gap-3 mt-auto">
-                                <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 drop-shadow-sm">{stats.total}</p>
+                                <p className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-blue-600 drop-shadow-sm">{stats.total}</p>
                             </div>
                         </div>
                     </div>
@@ -109,7 +109,7 @@ export default function TechnicianDashboard({ standalone = false }) {
                         <div className="relative z-10 flex flex-col justify-between h-full">
                             <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">In Progress</p>
                             <div className="flex items-end gap-3 mt-auto">
-                                <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 drop-shadow-sm">{stats.inProgress}</p>
+                                <p className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-amber-400 to-amber-600 drop-shadow-sm">{stats.inProgress}</p>
                             </div>
                         </div>
                     </div>
@@ -119,7 +119,7 @@ export default function TechnicianDashboard({ standalone = false }) {
                         <div className="relative z-10 flex flex-col justify-between h-full">
                             <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Resolved</p>
                             <div className="flex items-end gap-3 mt-auto">
-                                <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 drop-shadow-sm">{stats.resolved}</p>
+                                <p className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-emerald-600 drop-shadow-sm">{stats.resolved}</p>
                             </div>
                         </div>
                     </div>
@@ -142,7 +142,7 @@ export default function TechnicianDashboard({ standalone = false }) {
                             key={status}
                             onClick={() => setStatusFilter(status)}
                             className={`flex-1 min-w-[120px] px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${statusFilter === status
-                                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]'
+                                ? 'bg-linear-to-r from-blue-500 to-indigo-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]'
                                 : 'text-slate-400 hover:text-white hover:bg-slate-700/60'
                                 }`}
                         >
@@ -193,7 +193,7 @@ export default function TechnicianDashboard({ standalone = false }) {
                                             </span>
                                         </div>
                                         <p className="text-slate-300 text-[15px] line-clamp-2 leading-relaxed bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">{ticket.description}</p>
-                                        <div className="flex flex-wrap items-center gap-4 mt-4 bg-slate-800/50 inline-flex p-2 rounded-xl border border-slate-700/50">
+                                        <div className="flex p-2 rounded-xl border border-slate-700/50">
                                             <span className="text-sm text-slate-300 flex items-center gap-2">
                                                 <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold">{ticket.userName?.charAt(0)}</div>
                                                 {ticket.userName}
@@ -210,12 +210,12 @@ export default function TechnicianDashboard({ standalone = false }) {
                                         </div>
                                     </div>
 
-                                    <div className="flex sm:flex-col items-center sm:items-end gap-3 flex-shrink-0 pt-2 sm:pt-0">
+                                    <div className="flex sm:flex-col items-center sm:items-end gap-3 shrink-0 pt-2 sm:pt-0">
                                         {ticket.status === 'IN_PROGRESS' && (
                                             <button
                                                 onClick={() => { setResolveTicketId(ticket.id); setShowResolveModal(true); }}
                                                 disabled={actionLoading === ticket.id}
-                                                className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-bold hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-40 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all flex justify-center items-center gap-2 border border-emerald-400/30"
+                                                className="w-full sm:w-auto px-5 py-2.5 bg-linear-to-r from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-bold hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-40 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all flex justify-center items-center gap-2 border border-emerald-400/30"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                                                 {actionLoading === ticket.id ? 'Resolving...' : 'Resolve'}
@@ -252,7 +252,7 @@ export default function TechnicianDashboard({ standalone = false }) {
                                 value={resolutionNotes}
                                 onChange={(e) => setResolutionNotes(e.target.value)}
                                 placeholder="Describe the actions taken to resolve this issue (optional but recommended)..."
-                                className="w-full h-32 bg-slate-800/80 border border-slate-700 rounded-xl p-4 text-white text-[15px] placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 resize-none transition-all shadow-inner"
+                                className="w-full h-32 bg-linear-to-b from-slate-900/80 to-slate-900/90 border border-slate-800 rounded-xl p-4 text-white text-[15px] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 resize-none transition-all shadow-inner opacity-100"
                             />
                         </div>
                         <div className="flex gap-4 justify-end">
@@ -260,7 +260,7 @@ export default function TechnicianDashboard({ standalone = false }) {
                             <button
                                 onClick={handleResolve}
                                 disabled={actionLoading}
-                                className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-bold hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-40 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all flex items-center gap-2"
+                                className="px-6 py-3 bg-linear-to-r from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-bold hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-40 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all flex items-center gap-2"
                             >
                                 {actionLoading ? (
                                     <>

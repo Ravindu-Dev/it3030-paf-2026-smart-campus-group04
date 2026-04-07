@@ -183,7 +183,7 @@ public class TicketController {
      * Restricted to ADMIN role.
      */
     @PatchMapping("/{id}/reject")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<TicketDto>> rejectTicket(
             @PathVariable(name = "id") String id,
             @RequestBody UpdateTicketStatusRequest request,
@@ -201,7 +201,7 @@ public class TicketController {
      * Restricted to ADMIN role.
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<Void>> deleteTicket(
             @PathVariable(name = "id") String id) {
 

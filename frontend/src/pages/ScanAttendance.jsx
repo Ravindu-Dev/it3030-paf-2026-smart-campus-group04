@@ -128,7 +128,7 @@ export default function ScanAttendance() {
 
             <div className="relative max-w-2xl mx-auto px-4 sm:px-6 py-10">
                 {/* Header */}
-                <div className="mb-8 pt-16">
+                <div className="mb-8 pt-6">
                     <button
                         onClick={() => navigate(-1)}
                         className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm mb-4 cursor-pointer"

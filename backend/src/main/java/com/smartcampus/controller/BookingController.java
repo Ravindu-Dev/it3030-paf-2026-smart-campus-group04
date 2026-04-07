@@ -94,7 +94,7 @@ public class BookingController {
          * Supports optional filters: ?status=PENDING&facilityId=abc123
          */
         @GetMapping
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
         public ResponseEntity<ApiResponse<List<BookingDto>>> getAllBookings(
                         @RequestParam(name = "status", required = false) BookingStatus status,
                         @RequestParam(name = "facilityId", required = false) String facilityId) {
@@ -122,7 +122,7 @@ public class BookingController {
          * Restricted to ADMIN role.
          */
         @PatchMapping("/{id}/approve")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
         public ResponseEntity<ApiResponse<BookingDto>> approveBooking(
                         @PathVariable(name = "id") String id,
                         @RequestBody(required = false) UpdateBookingStatusRequest request,
@@ -140,7 +140,7 @@ public class BookingController {
          * Restricted to ADMIN role. Requires a rejection reason.
          */
         @PatchMapping("/{id}/reject")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
         public ResponseEntity<ApiResponse<BookingDto>> rejectBooking(
                         @PathVariable(name = "id") String id,
                         @RequestBody UpdateBookingStatusRequest request,
@@ -174,7 +174,7 @@ public class BookingController {
          * Restricted to ADMIN role.
          */
         @DeleteMapping("/{id}")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
         public ResponseEntity<ApiResponse<Void>> deleteBooking(@PathVariable(name = "id") String id) {
 
                 bookingService.deleteBooking(id);
