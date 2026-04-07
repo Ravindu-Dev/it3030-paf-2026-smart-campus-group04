@@ -100,7 +100,7 @@ public class LostFoundController {
      * PATCH /api/lost-found/{id}/close — Close a resolved item (admin only).
      */
     @PatchMapping("/{id}/close")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<LostFoundItemDto>> closeItem(
             @PathVariable(name = "id") String id,
             @RequestBody(required = false) UpdateLostFoundItemRequest request) {
@@ -113,7 +113,7 @@ public class LostFoundController {
      * DELETE /api/lost-found/{id} — Delete an item (admin only).
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<Void>> deleteItem(@PathVariable(name = "id") String id) {
         lostFoundService.deleteItem(id);
         return ResponseEntity.ok(ApiResponse.success("Item deleted successfully"));

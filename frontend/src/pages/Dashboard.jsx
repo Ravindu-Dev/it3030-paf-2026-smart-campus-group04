@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import Facilities from './Facilities';
 import ManageFacilities from './ManageFacilities';
 import ManageBookings from './ManageBookings';
 import AdminUsers from './AdminUsers';
@@ -22,11 +21,6 @@ const Icons = {
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
         </svg>
     ),
-    facilities: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5M3.75 3v18m4.5-18v18m4.5-18v18m4.5-18v18m3-18v18M5.25 3h13.5M5.25 21h13.5M5.25 12h13.5" />
-        </svg>
-    ),
     manageFacilities: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085" />
@@ -37,19 +31,9 @@ const Icons = {
             <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
         </svg>
     ),
-    maintenance: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.686.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
-        </svg>
-    ),
     events: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
-        </svg>
-    ),
-    notifications: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
         </svg>
     ),
     tickets: (
@@ -122,12 +106,9 @@ const Icons = {
 /* ─── Navigation Tab Definitions ──────────────────────────────────────── */
 const NAV_TABS = [
     { id: 'overview', label: 'Overview', icon: Icons.overview, roles: ['ADMIN', 'MANAGER', 'TECHNICIAN'], section: 'Main' },
-    { id: 'facilities', label: 'Facilities', icon: Icons.facilities, roles: ['ADMIN'], section: 'Management' },
     { id: 'manage-facilities', label: 'Manage Facilities', icon: Icons.manageFacilities, roles: ['ADMIN'], section: 'Management' },
-    { id: 'manage-bookings', label: 'Bookings', icon: Icons.bookings, roles: ['ADMIN'], section: 'Management' },
-    { id: 'maintenance-requests', label: 'Maintenance', icon: Icons.maintenance, roles: ['ADMIN'], section: 'Management' },
+    { id: 'manage-bookings', label: 'Bookings', icon: Icons.bookings, roles: ['ADMIN', 'MANAGER'], section: 'Management' },
     { id: 'event-management', label: 'Events', icon: Icons.events, roles: ['ADMIN'], section: 'Management' },
-    { id: 'notifications', label: 'Notifications', icon: Icons.notifications, roles: ['ADMIN'], section: 'Management' },
     { id: 'manage-tickets', label: 'Tickets', icon: Icons.tickets, roles: ['ADMIN'], section: 'Operations' },
     { id: 'manage-transport', label: 'Transport', icon: Icons.transport, roles: ['ADMIN'], section: 'Operations' },
     { id: 'manager-tickets', label: 'Manage Tickets', icon: Icons.tickets, roles: ['MANAGER'], section: 'Operations' },
@@ -251,7 +232,7 @@ export default function Dashboard() {
                     `}>
                         {!sidebarCollapsed && (
                             <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
                                     <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                                     </svg>
@@ -265,7 +246,7 @@ export default function Dashboard() {
                             </div>
                         )}
                         {sidebarCollapsed && (
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
                                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                                 </svg>
@@ -359,7 +340,7 @@ export default function Dashboard() {
                                         referrerPolicy="no-referrer"
                                     />
                                 ) : (
-                                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shrink-0 relative">
+                                    <div className="w-9 h-9 rounded-lg bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shrink-0 relative">
                                         {user?.name?.charAt(0)?.toUpperCase() || '?'}
                                     </div>
                                 )}
@@ -379,7 +360,7 @@ export default function Dashboard() {
                             {/* User Dropdown */}
                             {dropdownOpen && (
                                 <div className={`
-                                    absolute bottom-full mb-2 bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl shadow-black/50 overflow-hidden
+                                    absolute bottom-full mb-2 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl shadow-black/50 overflow-hidden
                                     ${sidebarCollapsed ? 'left-full ml-2 bottom-0 mb-0 w-48' : 'left-0 right-0'}
                                 `}>
                                     <div className="p-1.5">
@@ -460,7 +441,7 @@ export default function Dashboard() {
                                 <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                                     <div>
                                         <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight">
-                                            {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">{user?.name?.split(' ')[0]}</span>
+                                            {greeting}, <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-cyan-400">{user?.name?.split(' ')[0]}</span>
                                         </h1>
                                         <p className="text-slate-400 mt-1 text-sm lg:text-base">
                                             Here's what's happening on your campus today.
@@ -523,7 +504,7 @@ export default function Dashboard() {
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                     {/* Welcome Card */}
                                     <div className="lg:col-span-2">
-                                        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/50 rounded-2xl p-6 lg:p-8">
+                                        <div className="relative overflow-hidden bg-linear-to-br from-slate-900 to-slate-800 border border-slate-700/50 rounded-2xl p-6 lg:p-8">
                                             {/* Decorative elements */}
                                             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                                             <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
@@ -548,7 +529,10 @@ export default function Dashboard() {
                                                         { icon: Icons.bookings, label: 'Bookings', desc: 'Process reservations', color: 'purple', tab: 'manage-bookings' },
                                                         { icon: Icons.tickets, label: 'Tickets', desc: 'Support requests', color: 'amber', tab: 'manage-tickets' },
                                                         { icon: Icons.users, label: 'Users', desc: 'Manage accounts', color: 'emerald', tab: 'users' },
-                                                    ].filter(() => user?.role === 'ADMIN').map(item => (
+                                                    ].filter(item => {
+                                                        if (item.tab === 'manage-bookings') return ['ADMIN', 'MANAGER'].includes(user?.role);
+                                                        return user?.role === 'ADMIN';
+                                                    }).map(item => (
                                                         <button
                                                             key={item.label}
                                                             onClick={() => setActiveTab(item.tab)}
@@ -638,22 +622,12 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                             </div>
-                        ) : activeTab === 'facilities' ? (
-                            <TabWrapper><Facilities standalone={true} /></TabWrapper>
                         ) : activeTab === 'manage-facilities' ? (
                             <TabWrapper><ManageFacilities standalone={true} /></TabWrapper>
                         ) : activeTab === 'manage-bookings' ? (
                             <TabWrapper><ManageBookings standalone={true} /></TabWrapper>
-                        ) : activeTab === 'maintenance-requests' ? (
-                            <TabWrapper>
-                                <PlaceholderCard icon={Icons.maintenance} title="Maintenance Requests" description="Submit and track facility maintenance and repair requests." />
-                            </TabWrapper>
                         ) : activeTab === 'event-management' ? (
                             <TabWrapper><ManageEvents standalone={true} /></TabWrapper>
-                        ) : activeTab === 'notifications' ? (
-                            <TabWrapper>
-                                <PlaceholderCard icon={Icons.notifications} title="Notifications" description="Real-time alerts for campus announcements and updates." />
-                            </TabWrapper>
                         ) : activeTab === 'manage-tickets' ? (
                             <TabWrapper><ManageTickets standalone={true} /></TabWrapper>
                         ) : activeTab === 'manage-transport' ? (

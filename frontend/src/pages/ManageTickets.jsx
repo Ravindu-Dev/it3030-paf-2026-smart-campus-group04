@@ -44,6 +44,7 @@ export default function ManageTickets({ standalone = false }) {
     const [statusFilter, setStatusFilter] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [visibleCount, setVisibleCount] = useState(6);
 
     // Assign Modal
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -60,7 +61,12 @@ export default function ManageTickets({ standalone = false }) {
 
     useEffect(() => {
         fetchTickets();
+        setVisibleCount(6); // Reset pagination on filter change
     }, [statusFilter, priorityFilter]);
+
+    useEffect(() => {
+        setVisibleCount(6); // Reset pagination on search
+    }, [searchQuery]);
 
     const fetchTickets = async () => {
         setLoading(true);
@@ -165,7 +171,7 @@ export default function ManageTickets({ standalone = false }) {
                     <div>
                         <h2 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md flex items-center gap-3 mb-2">
                             <span className="p-2.5 bg-blue-500/20 rounded-xl text-blue-400">🎫</span>
-                            Ticket <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 ml-1.5">Management</span>
+                            Ticket <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-indigo-500 ml-1.5">Management</span>
                         </h2>
                         <p className="text-slate-400 text-sm mt-1">Administer all facility maintenance tickets and assignments.</p>
                     </div>
@@ -188,7 +194,7 @@ export default function ManageTickets({ standalone = false }) {
                                     <p className={`text-${s.color}-400/80 text-xs font-bold uppercase tracking-wider`}>{s.label}</p>
                                 </div>
                                 <div className="flex items-end gap-3 mt-auto">
-                                    <p className={`text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-${s.color}-400 to-${s.color}-600 drop-shadow-sm`}>{s.value}</p>
+                                    <p className={`text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-${s.color}-400 to-${s.color}-600 drop-shadow-sm`}>{s.value}</p>
                                 </div>
                             </div>
                         </div>
@@ -205,7 +211,7 @@ export default function ManageTickets({ standalone = false }) {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search tickets by facility, user, category..."
-                            className="w-full bg-slate-900/50 border border-slate-600/50 rounded-xl pl-11 pr-4 py-3 text-white text-[15px] placeholder-slate-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-all shadow-inner"
+                            className="w-full bg-slate-900/80 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-white text-[15px] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all shadow-inner opacity-100"
                         />
                     </div>
                     <div className="min-w-[180px] relative">
@@ -215,14 +221,14 @@ export default function ManageTickets({ standalone = false }) {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full appearance-none bg-slate-900/50 border border-slate-600/50 rounded-xl pl-11 pr-10 py-3 text-white text-[15px] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 cursor-pointer transition-all shadow-inner"
+                            className="w-full appearance-none bg-slate-900/80 border border-slate-800 rounded-xl pl-11 pr-10 py-3 text-white text-[15px] focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer transition-all shadow-inner scheme-dark outline-none"
                         >
-                            <option value="" className="bg-slate-800">All Statuses</option>
-                            <option value="OPEN" className="bg-slate-800">Open</option>
-                            <option value="IN_PROGRESS" className="bg-slate-800">In Progress</option>
-                            <option value="RESOLVED" className="bg-slate-800">Resolved</option>
-                            <option value="CLOSED" className="bg-slate-800">Closed</option>
-                            <option value="REJECTED" className="bg-slate-800">Rejected</option>
+                            <option value="" className="bg-slate-900 text-white">All Statuses</option>
+                            <option value="OPEN" className="bg-slate-900 text-white">Open</option>
+                            <option value="IN_PROGRESS" className="bg-slate-900 text-white">In Progress</option>
+                            <option value="RESOLVED" className="bg-slate-900 text-white">Resolved</option>
+                            <option value="CLOSED" className="bg-slate-900 text-white">Closed</option>
+                            <option value="REJECTED" className="bg-slate-900 text-white">Rejected</option>
                         </select>
                         <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
@@ -235,13 +241,13 @@ export default function ManageTickets({ standalone = false }) {
                         <select
                             value={priorityFilter}
                             onChange={(e) => setPriorityFilter(e.target.value)}
-                            className="w-full appearance-none bg-slate-900/50 border border-slate-600/50 rounded-xl pl-11 pr-10 py-3 text-white text-[15px] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 cursor-pointer transition-all shadow-inner"
+                            className="w-full appearance-none bg-slate-900/80 border border-slate-800 rounded-xl pl-11 pr-10 py-3 text-white text-[15px] focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer transition-all shadow-inner scheme-dark outline-none"
                         >
-                            <option value="" className="bg-slate-800">All Priorities</option>
-                            <option value="LOW" className="bg-slate-800">Low</option>
-                            <option value="MEDIUM" className="bg-slate-800">Medium</option>
-                            <option value="HIGH" className="bg-slate-800">High</option>
-                            <option value="CRITICAL" className="bg-slate-800">Critical</option>
+                            <option value="" className="bg-slate-900 text-white">All Priorities</option>
+                            <option value="LOW" className="bg-slate-900 text-white">Low</option>
+                            <option value="MEDIUM" className="bg-slate-900 text-white">Medium</option>
+                            <option value="HIGH" className="bg-slate-900 text-white">High</option>
+                            <option value="CRITICAL" className="bg-slate-900 text-white">Critical</option>
                         </select>
                         <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
@@ -263,8 +269,9 @@ export default function ManageTickets({ standalone = false }) {
                         <p className="text-slate-400 max-w-md mx-auto">Adjust your filters or search query to find tickets.</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
-                        {filtered.map(ticket => (
+                    <div className="space-y-4 animate-in fade-in duration-500">
+                        <div className="space-y-3">
+                            {filtered.slice(0, visibleCount).map(ticket => (
                             <div key={ticket.id} className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-5 hover:bg-slate-800/60 hover:border-slate-600 hover:shadow-xl transition-all duration-300 group">
                                 <div className="flex flex-col md:flex-row md:items-center gap-6">
                                     <div className="flex-1 min-w-0">
@@ -282,7 +289,7 @@ export default function ManageTickets({ standalone = false }) {
                                             {ticket.facilityName}
                                         </Link>
                                         <p className="text-slate-300 text-sm line-clamp-1 mb-3">{ticket.description}</p>
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] text-slate-400 bg-slate-900/50 inline-flex p-2.5 rounded-xl border border-slate-700/50">
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] text-slate-400 bg-slate-900/50 p-2.5 rounded-xl border border-slate-700/50">
                                             <span className="flex items-center gap-1.5">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                                                 {ticket.userName}
@@ -322,7 +329,7 @@ export default function ManageTickets({ standalone = false }) {
                                         </div>
                                     </div>
 
-                                    <div className="flex md:flex-col lg:flex-row flex-wrap items-center gap-2 flex-shrink-0">
+                                    <div className="flex md:flex-col lg:flex-row flex-wrap items-center gap-2 shrink-0">
                                         {ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED' && ticket.status !== 'RESOLVED' && (
                                             <button onClick={() => openAssign(ticket.id)} className={`flex items-center gap-2 px-4 py-2.5 font-bold rounded-xl text-xs cursor-pointer transition-all ${!ticket.assignedTechnicianId
                                                 ? 'bg-blue-500/15 text-blue-400 border border-blue-500/20 hover:bg-blue-500/25 hover:border-blue-400/40'
@@ -349,6 +356,53 @@ export default function ManageTickets({ standalone = false }) {
                                 </div>
                             </div>
                         ))}
+                        </div>
+
+                        {/* ─── See More / See Less (Refined Professional Style) ── */}
+                        {filtered.length > 6 && (
+                            <div className="relative pt-12 pb-8">
+                                {/* Subtle Gradient Fade when more are available */}
+                                {visibleCount < filtered.length && (
+                                    <div className="absolute top-0 left-0 right-0 h-24 bg-linear-to-t from-slate-950/80 to-transparent pointer-events-none -translate-y-full" />
+                                )}
+                                
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="flex items-center gap-1.5 p-1 bg-slate-900/40 border border-slate-800/60 rounded-2xl backdrop-blur-xl shadow-2xl">
+                                        {visibleCount < filtered.length ? (
+                                            <button 
+                                                onClick={() => setVisibleCount(prev => Math.min(prev + 6, filtered.length))}
+                                                className="group flex items-center gap-2.5 px-6 py-2.5 bg-white/3 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                            >
+                                                <span>View More Tickets</span>
+                                                <svg className="w-4 h-4 text-blue-500 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </button>
+                                        ) : (
+                                            <button 
+                                                onClick={() => setVisibleCount(6)}
+                                                className="group flex items-center gap-2.5 px-6 py-2.5 bg-white/3 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                            >
+                                                <span>Collapse List</span>
+                                                <svg className="w-4 h-4 text-blue-500 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                        
+                                        <div className="h-4 w-px bg-slate-800 mx-1" />
+                                        
+                                        <div className="px-4 py-1 flex items-center gap-2 font-mono">
+                                            <span className="text-white text-xs font-bold">{Math.min(visibleCount, filtered.length)}</span>
+                                            <span className="text-slate-600 text-[10px] font-black uppercase tracking-tighter">/</span>
+                                            <span className="text-slate-500 text-xs font-medium">{filtered.length}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[0.2em]">End of filtered results</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -378,7 +432,7 @@ export default function ManageTickets({ standalone = false }) {
                                         key={tech.id}
                                         onClick={() => setSelectedTechId(tech.id)}
                                         className={`w-full text-left p-4 rounded-2xl border transition-all cursor-pointer group flex items-center gap-4 ${selectedTechId === tech.id
-                                            ? 'bg-gradient-to-r from-blue-500/20 to-indigo-500/10 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.1)] pb-4'
+                                            ? 'bg-linear-to-r from-blue-500/20 to-indigo-500/10 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.1)] pb-4'
                                             : 'bg-slate-900/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600/80'
                                             }`}
                                     >
@@ -408,7 +462,7 @@ export default function ManageTickets({ standalone = false }) {
                             <button
                                 onClick={handleAssign}
                                 disabled={!selectedTechId || actionLoading}
-                                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl text-sm font-bold disabled:opacity-40 cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all flex items-center gap-2"
+                                className="px-6 py-3 bg-linear-to-r from-blue-500 to-indigo-600 text-white rounded-xl text-sm font-bold disabled:opacity-40 cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all flex items-center gap-2"
                             >
                                 {actionLoading ? (
                                     <>
@@ -455,7 +509,7 @@ export default function ManageTickets({ standalone = false }) {
                                     }
                                 }}
                                 placeholder="Please explain why this ticket is being rejected..."
-                                className={`w-full h-32 bg-slate-800/80 border rounded-xl p-4 text-white text-[15px] placeholder-slate-500 focus:outline-none focus:ring-1 resize-none transition-all shadow-inner ${rejectError ? 'border-red-500/60 focus:border-red-500/50 focus:ring-red-500/30' : 'border-slate-700 focus:border-red-500/50 focus:ring-red-500/30'}`}
+                                className={`w-full h-32 bg-slate-900/80 border rounded-xl p-4 text-white text-[15px] placeholder-slate-500 focus:outline-none focus:ring-2 resize-none transition-all shadow-inner opacity-100 ${rejectError ? 'border-red-500/60 focus:ring-red-500/20' : 'border-slate-800 focus:ring-blue-500/40'}`}
                                 maxLength={500}
                             />
                         </div>
@@ -473,7 +527,7 @@ export default function ManageTickets({ standalone = false }) {
                             <button
                                 onClick={handleReject}
                                 disabled={!rejectReason.trim() || actionLoading}
-                                className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl text-sm font-bold disabled:opacity-40 cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all flex items-center gap-2"
+                                className="px-6 py-3 bg-linear-to-r from-red-500 to-red-600 text-white rounded-xl text-sm font-bold disabled:opacity-40 cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all flex items-center gap-2"
                             >
                                 {actionLoading ? (
                                     <>

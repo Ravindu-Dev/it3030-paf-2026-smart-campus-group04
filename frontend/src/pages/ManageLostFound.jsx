@@ -122,7 +122,7 @@ export default function ManageLostFound() {
                                             alt={item.title}
                                             className="w-full h-56 object-cover rounded-xl border border-slate-700/50 shadow-lg"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                     </div>
                                 ) : (
                                     <div className="w-full h-56 bg-slate-900/50 border border-slate-700/50 rounded-xl flex flex-col items-center justify-center">
@@ -191,7 +191,7 @@ export default function ManageLostFound() {
                                     <div className="bg-slate-900/40 border border-slate-700/40 rounded-xl p-5">
                                         <h3 className="text-xs text-slate-500 mb-3 uppercase tracking-wider font-semibold">Reported By</h3>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
                                                 {item.reportedByUserName?.charAt(0)?.toUpperCase() || '?'}
                                             </div>
                                             <div>
@@ -235,7 +235,7 @@ export default function ManageLostFound() {
                                             Claimed By
                                         </h3>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold">
+                                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold">
                                                 {item.claimedByUserName?.charAt(0)?.toUpperCase() || '?'}
                                             </div>
                                             <div>
@@ -281,7 +281,7 @@ export default function ManageLostFound() {
                                             onChange={(e) => setCloseNotes(e.target.value)}
                                             placeholder="Add admin notes (optional)..."
                                             rows={3}
-                                            className="w-full px-4 py-3 bg-slate-800/60 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none"
+                                            className="w-full px-4 py-3 bg-slate-900/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none opacity-100"
                                         />
                                         <div className="flex gap-3">
                                             <button
@@ -318,13 +318,13 @@ export default function ManageLostFound() {
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
                     <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-                        className="px-4 py-2.5 bg-slate-800/60 border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer">
+                        className="px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer scheme-dark outline-none">
                         <option value="">All Types</option>
                         <option value="LOST">🔍 Lost</option>
                         <option value="FOUND">📦 Found</option>
                     </select>
                     <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-                        className="px-4 py-2.5 bg-slate-800/60 border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer">
+                        className="px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer scheme-dark outline-none">
                         <option value="">All Status</option>
                         <option value="OPEN">Open</option>
                         <option value="CLAIMED">Claimed</option>
@@ -390,7 +390,7 @@ export default function ManageLostFound() {
                                     {/* Footer */}
                                     <div className="flex items-center justify-between text-[10px] text-slate-500 border-t border-slate-700/50 pt-2.5 mt-3">
                                         <div className="flex items-center gap-1 truncate">
-                                            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold" style={{ fontSize: '6px' }}>
+                                            <div className="w-4 h-4 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold" style={{ fontSize: '6px' }}>
                                                 {item.reportedByUserName?.charAt(0)?.toUpperCase()}
                                             </div>
                                             <span className="truncate">{item.reportedByUserName}</span>

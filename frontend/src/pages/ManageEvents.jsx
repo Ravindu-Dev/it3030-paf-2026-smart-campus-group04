@@ -33,6 +33,7 @@ export default function ManageEvents({ standalone = false }) {
     const [submitting, setSubmitting] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [imagePreview, setImagePreview] = useState('');
+    const [visibleEvents, setVisibleEvents] = useState(6);
     const fileInputRef = useRef(null);
 
     const fetchEvents = async () => {
@@ -40,6 +41,7 @@ export default function ManageEvents({ standalone = false }) {
             setLoading(true);
             const res = await getAllEventsAdmin();
             setEvents(res.data.data || []);
+            setVisibleEvents(6);
         } catch (err) {
             toast.error('Failed to load events');
         } finally {
@@ -163,7 +165,7 @@ export default function ManageEvents({ standalone = false }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-700/30">
-                                {events.map(event => (
+                                {events.slice(0, visibleEvents).map(event => (
                                     <tr key={event.id} className="hover:bg-slate-700/20 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="font-semibold text-white">{event.title}</div>
@@ -199,6 +201,45 @@ export default function ManageEvents({ standalone = false }) {
                                 ))}
                             </tbody>
                         </table>
+
+                        {events.length > 6 && (
+                            <div className="relative pt-10 pb-6 bg-slate-800/40 border-t border-slate-700/30">
+                                {visibleEvents < events.length && (
+                                    <div className="absolute top-0 left-0 right-0 h-24 bg-linear-to-t from-slate-900/80 to-transparent pointer-events-none -translate-y-full" />
+                                )}
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="flex items-center gap-1.5 p-1 bg-slate-900/40 border border-slate-800/60 rounded-2xl backdrop-blur-xl shadow-2xl">
+                                        {visibleEvents < events.length ? (
+                                            <button 
+                                                onClick={() => setVisibleEvents(prev => Math.min(prev + 6, events.length))}
+                                                className="group flex items-center gap-2.5 px-6 py-2.5 bg-white/3 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                            >
+                                                <span>View More Events</span>
+                                                <svg className="w-4 h-4 text-blue-500 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </button>
+                                        ) : (
+                                            <button 
+                                                onClick={() => setVisibleEvents(6)}
+                                                className="group flex items-center gap-2.5 px-6 py-2.5 bg-white/3 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                            >
+                                                <span>Collapse List</span>
+                                                <svg className="w-4 h-4 text-blue-500 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                        <div className="h-4 w-px bg-slate-800 mx-1" />
+                                        <div className="px-4 py-1 flex items-center gap-2 font-mono">
+                                            <span className="text-white text-xs font-bold">{Math.min(visibleEvents, events.length)}</span>
+                                            <span className="text-slate-600 text-[10px] font-black uppercase tracking-tighter">/</span>
+                                            <span className="text-slate-500 text-xs font-medium">{events.length}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -213,12 +254,12 @@ export default function ManageEvents({ standalone = false }) {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-slate-400 text-sm font-medium mb-1.5">Title</label>
-                                        <input required className="w-full bg-slate-700/50 border border-slate-600 rounded-xl px-4 py-2.5 text-white"
+                                        <input required className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
                                             value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
                                     </div>
                                     <div>
                                         <label className="block text-slate-400 text-sm font-medium mb-1.5">Location</label>
-                                        <input required className="w-full bg-slate-700/50 border border-slate-600 rounded-xl px-4 py-2.5 text-white"
+                                        <input required className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
                                             value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
@@ -226,24 +267,24 @@ export default function ManageEvents({ standalone = false }) {
                                             <label className="block text-slate-400 text-sm font-medium mb-1.5">Date</label>
                                             <input type="date" required
                                                 min={today}
-                                                className="w-full bg-slate-700/50 border border-slate-600 rounded-xl px-4 py-2.5 text-white"
+                                                className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 scheme-dark opacity-100"
                                                 value={form.eventDate} onChange={e => setForm({ ...form, eventDate: e.target.value })} />
                                         </div>
                                         <div>
                                             <label className="block text-slate-400 text-sm font-medium mb-1.5">Capacity</label>
-                                            <input type="number" required className="w-full bg-slate-700/50 border border-slate-600 rounded-xl px-4 py-2.5 text-white"
+                                            <input type="number" required className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
                                                 value={form.capacity} onChange={e => setForm({ ...form, capacity: parseInt(e.target.value) })} />
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-slate-400 text-sm font-medium mb-1.5">Start Time</label>
-                                            <input type="time" required className="w-full bg-slate-700/50 border border-slate-600 rounded-xl px-4 py-2.5 text-white"
+                                            <input type="time" required className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 scheme-dark opacity-100"
                                                 value={form.startTime} onChange={e => setForm({ ...form, startTime: e.target.value })} />
                                         </div>
                                         <div>
                                             <label className="block text-slate-400 text-sm font-medium mb-1.5">End Time</label>
-                                            <input type="time" required className="w-full bg-slate-700/50 border border-slate-600 rounded-xl px-4 py-2.5 text-white"
+                                            <input type="time" required className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 scheme-dark opacity-100"
                                                 value={form.endTime} onChange={e => setForm({ ...form, endTime: e.target.value })} />
                                         </div>
                                     </div>
@@ -251,7 +292,7 @@ export default function ManageEvents({ standalone = false }) {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-slate-400 text-sm font-medium mb-1.5">Description</label>
-                                        <textarea rows={4} className="w-full bg-slate-700/50 border border-slate-600 rounded-xl px-4 py-2.5 text-white resize-none"
+                                        <textarea rows={4} className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
                                             value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
                                     </div>
                                     <div>
