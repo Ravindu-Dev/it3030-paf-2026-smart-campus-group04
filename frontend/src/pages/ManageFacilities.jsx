@@ -269,7 +269,7 @@ export default function ManageFacilities({ standalone = false }) {
     };
 
     return (
-        <div className={standalone ? "" : "min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"}>
+        <div className={standalone ? "" : "min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900"}>
             <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${standalone ? "py-0" : "py-8"}`}>
                 {/* Header */}
                 {!standalone && (
@@ -288,7 +288,7 @@ export default function ManageFacilities({ standalone = false }) {
                     </div>
                     <button
                         onClick={openCreateModal}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40 text-sm cursor-pointer"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40 text-sm cursor-pointer"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M5 12h14" />
@@ -307,7 +307,7 @@ export default function ManageFacilities({ standalone = false }) {
                         </div>
                         <button
                             onClick={openCreateModal}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40 text-sm cursor-pointer"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40 text-sm cursor-pointer"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M5 12h14" />
@@ -333,7 +333,7 @@ export default function ManageFacilities({ standalone = false }) {
                                     placeholder="Search facilities by name..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all opacity-100"
                                 />
                             </div>
                             <button
@@ -349,7 +349,7 @@ export default function ManageFacilities({ standalone = false }) {
                             <select
                                 value={typeFilter}
                                 onChange={(e) => setTypeFilter(e.target.value)}
-                                className="px-3 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer appearance-none"
+                                className="px-3 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer appearance-none scheme-dark outline-none"
                             >
                                 {TYPE_FILTER_OPTIONS.map(opt => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -359,7 +359,7 @@ export default function ManageFacilities({ standalone = false }) {
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="px-3 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer appearance-none"
+                                className="px-3 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer appearance-none scheme-dark outline-none"
                             >
                                 {STATUS_OPTIONS.map(opt => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -584,7 +584,7 @@ export default function ManageFacilities({ standalone = false }) {
                                 </span>
                             )}
                             {/* Gradient overlay at bottom */}
-                            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-slate-800 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 h-24 bg-linear-to-t from-slate-800 to-transparent" />
                             {/* Status badge */}
                             <span className={`absolute top-4 left-4 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm ${detailFacility.status === 'ACTIVE'
                                     ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
@@ -764,7 +764,7 @@ export default function ManageFacilities({ standalone = false }) {
                                         onChange={handleChange}
                                         required
                                         placeholder="e.g. Room A101"
-                                        className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                        className="w-full px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
                                     />
                                 </div>
 
@@ -775,7 +775,7 @@ export default function ManageFacilities({ standalone = false }) {
                                         name="type"
                                         value={form.type}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer"
+                                        className="w-full px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer scheme-dark outline-none"
                                     >
                                         {TYPE_OPTIONS.map(opt => (
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -792,7 +792,7 @@ export default function ManageFacilities({ standalone = false }) {
                                         onChange={handleChange}
                                         rows={3}
                                         placeholder="Brief description of the facility..."
-                                        className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
+                                        className="w-full px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none opacity-100"
                                     />
                                 </div>
 
@@ -806,7 +806,7 @@ export default function ManageFacilities({ standalone = false }) {
                                             onChange={handleChange}
                                             required
                                             placeholder="e.g. Building A, Floor 2"
-                                            className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                            className="w-full px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
                                         />
                                     </div>
                                     <div>
@@ -818,7 +818,7 @@ export default function ManageFacilities({ standalone = false }) {
                                             onChange={handleChange}
                                             min="0"
                                             placeholder="e.g. 50"
-                                            className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                            className="w-full px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
                                         />
                                     </div>
                                 </div>
@@ -898,7 +898,7 @@ export default function ManageFacilities({ standalone = false }) {
                                             <select
                                                 value={w.dayOfWeek}
                                                 onChange={(e) => updateAvailabilityWindow(i, 'dayOfWeek', e.target.value)}
-                                                className="flex-1 px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-xs focus:outline-none cursor-pointer"
+                                                className="flex-1 px-3 py-2 bg-slate-900/80 border border-slate-800 rounded-lg text-white text-xs focus:outline-none cursor-pointer scheme-dark outline-none"
                                             >
                                                 {DAYS.map(d => (
                                                     <option key={d} value={d}>{d.charAt(0) + d.slice(1).toLowerCase()}</option>
@@ -908,14 +908,14 @@ export default function ManageFacilities({ standalone = false }) {
                                                 type="time"
                                                 value={w.startTime}
                                                 onChange={(e) => updateAvailabilityWindow(i, 'startTime', e.target.value)}
-                                                className="px-2 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-xs focus:outline-none"
+                                                className="px-2 py-2 bg-slate-900/80 border border-slate-800 rounded-lg text-white text-xs focus:outline-none scheme-dark"
                                             />
                                             <span className="text-slate-500 text-xs">to</span>
                                             <input
                                                 type="time"
                                                 value={w.endTime}
                                                 onChange={(e) => updateAvailabilityWindow(i, 'endTime', e.target.value)}
-                                                className="px-2 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-xs focus:outline-none"
+                                                className="px-2 py-2 bg-slate-900/80 border border-slate-800 rounded-lg text-white text-xs focus:outline-none scheme-dark"
                                             />
                                             <button
                                                 type="button"

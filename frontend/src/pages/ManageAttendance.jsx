@@ -15,6 +15,7 @@ export default function ManageAttendance({ standalone = false }) {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('ALL');
+    const [visibleCount, setVisibleCount] = useState(6);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -33,6 +34,11 @@ export default function ManageAttendance({ standalone = false }) {
         };
         fetchData();
     }, []);
+
+    // Reset visible count on filter/search
+    useEffect(() => {
+        setVisibleCount(6);
+    }, [searchTerm, filterStatus]);
 
     const formatDateTime = (dateStr) => {
         if (!dateStr) return '—';
@@ -123,7 +129,7 @@ export default function ManageAttendance({ standalone = false }) {
                                 placeholder="Search by name or email..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-900/60 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30"
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
                             />
                         </div>
                         <div className="flex gap-2">
@@ -176,7 +182,7 @@ export default function ManageAttendance({ standalone = false }) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-700/30">
-                                    {filtered.map((record) => (
+                                    {filtered.slice(0, visibleCount).map((record) => (
                                         <tr key={record.id} className="hover:bg-slate-700/20 transition-colors">
                                             <td className="px-6 py-4">
                                                 <p className="text-white text-sm font-medium">{record.userName}</p>
@@ -207,8 +213,47 @@ export default function ManageAttendance({ standalone = false }) {
                     {!isLoading && filtered.length > 0 && (
                         <div className="px-6 py-3 border-t border-slate-700/30 flex items-center justify-between">
                             <span className="text-slate-500 text-xs">
-                                Showing {filtered.length} of {records.length} records
+                                Showing {Math.min(visibleCount, filtered.length)} of {filtered.length} records
                             </span>
+                        </div>
+                    )}
+
+                    {filtered.length > 6 && (
+                        <div className="relative pt-10 pb-6 bg-slate-800/40 border-t border-slate-700/30">
+                            {visibleCount < filtered.length && (
+                                <div className="absolute top-0 left-0 right-0 h-24 bg-linear-to-t from-slate-900/80 to-transparent pointer-events-none -translate-y-full" />
+                            )}
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="flex items-center gap-1.5 p-1 bg-slate-900/40 border border-slate-800/60 rounded-2xl backdrop-blur-xl shadow-2xl">
+                                    {visibleCount < filtered.length ? (
+                                        <button 
+                                            onClick={() => setVisibleCount(prev => Math.min(prev + 6, filtered.length))}
+                                            className="group flex items-center gap-2.5 px-6 py-2.5 bg-white/3 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                        >
+                                            <span>View More Records</span>
+                                            <svg className="w-4 h-4 text-emerald-500 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                    ) : (
+                                        <button 
+                                            onClick={() => setVisibleCount(6)}
+                                            className="group flex items-center gap-2.5 px-6 py-2.5 bg-white/3 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                        >
+                                            <span>Collapse List</span>
+                                            <svg className="w-4 h-4 text-emerald-500 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                    <div className="h-4 w-px bg-slate-800 mx-1" />
+                                    <div className="px-4 py-1 flex items-center gap-2 font-mono">
+                                        <span className="text-white text-xs font-bold">{Math.min(visibleCount, filtered.length)}</span>
+                                        <span className="text-slate-600 text-[10px] font-black uppercase tracking-tighter">/</span>
+                                        <span className="text-slate-500 text-xs font-medium">{filtered.length}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

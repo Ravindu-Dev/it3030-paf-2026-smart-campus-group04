@@ -25,28 +25,28 @@ public class EventController {
     // --- Admin Endpoints ---
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<EventDto>> createEvent(@RequestBody EventDto eventDto) {
         EventDto created = eventService.createEvent(eventDto);
         return ResponseEntity.ok(ApiResponse.success("Event created successfully", created));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<EventDto>> updateEvent(@PathVariable String id, @RequestBody EventDto eventDto) {
         EventDto updated = eventService.updateEvent(id, eventDto);
         return ResponseEntity.ok(ApiResponse.success("Event updated successfully", updated));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<Void>> deleteEvent(@PathVariable String id) {
         eventService.deleteEvent(id);
         return ResponseEntity.ok(ApiResponse.success("Event deleted successfully", null));
     }
 
     @GetMapping("/admin")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<List<EventDto>>> getAllEventsForAdmin() {
         List<EventDto> events = eventService.getAllEventsForAdmin();
         return ResponseEntity.ok(ApiResponse.success("Events fetched successfully", events));
