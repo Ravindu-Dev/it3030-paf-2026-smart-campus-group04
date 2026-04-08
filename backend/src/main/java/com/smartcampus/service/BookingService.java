@@ -157,6 +157,23 @@ public class BookingService {
         return bookings.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
+    /**
+     * Get bookings for a specific facility on a specific date, filtered by statuses.
+     * Used by the chatbot for date-aware availability and booking queries.
+     *
+     * @param facilityId the facility ID
+     * @param date       the booking date to filter by
+     * @param statuses   list of statuses to include
+     * @return list of matching booking DTOs
+     */
+    public List<BookingDto> getBookingsForFacilityOnDate(String facilityId, java.time.LocalDate date,
+            List<BookingStatus> statuses) {
+        List<Booking> bookings = bookingRepository.findByFacilityIdAndBookingDateAndStatusIn(
+                facilityId, date, statuses);
+
+        return bookings.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
     // ─── WORKFLOW ────────────────────────────────────────────────────────
 
     /**
