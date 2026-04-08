@@ -70,6 +70,11 @@ export default function Profile() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [activeTab, setActiveTab] = useState(location.state?.tab || 'profile');
 
+    /* ── See More pagination ────────── */
+    const [attendanceVisible, setAttendanceVisible] = useState(6);
+    const [bookingsVisible, setBookingsVisible] = useState(6);
+    const [ticketsVisible, setTicketsVisible] = useState(6);
+
     /* ── Attendance data ───────────── */
     const [attendance, setAttendance] = useState([]);
     const [attendanceStats, setAttendanceStats] = useState(null);
@@ -825,7 +830,7 @@ export default function Profile() {
                                         <EmptyState icon="📋" text="No attendance records" subtext="Your attendance will appear here when marked." />
                                     ) : (
                                         <div className="space-y-3">
-                                            {attendance.map((record) => (
+                                            {attendance.slice(0, attendanceVisible).map((record) => (
                                                 <div
                                                     key={record.id}
                                                     className="flex items-center justify-between p-4 bg-slate-900/50 border border-slate-700/50 rounded-xl"
@@ -857,6 +862,46 @@ export default function Profile() {
                                                     </span>
                                                 </div>
                                             ))}
+
+                                            {/* ─── See More / See Less ── */}
+                                            {attendance.length > 6 && (
+                                                <div className="relative pt-6 pb-2">
+                                                    {attendanceVisible < attendance.length && (
+                                                        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-800/60 to-transparent pointer-events-none -translate-y-full" />
+                                                    )}
+                                                    <div className="flex flex-col items-center gap-3">
+                                                        <div className="flex items-center gap-1.5 p-1 bg-slate-900/40 border border-slate-700/60 rounded-2xl backdrop-blur-xl shadow-xl">
+                                                            {attendanceVisible < attendance.length ? (
+                                                                <button
+                                                                    onClick={() => setAttendanceVisible(prev => Math.min(prev + 6, attendance.length))}
+                                                                    className="group flex items-center gap-2.5 px-5 py-2 bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                                                >
+                                                                    <span>View More Records</span>
+                                                                    <svg className="w-4 h-4 text-emerald-500 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                                                    </svg>
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => setAttendanceVisible(6)}
+                                                                    className="group flex items-center gap-2.5 px-5 py-2 bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                                                >
+                                                                    <span>Collapse List</span>
+                                                                    <svg className="w-4 h-4 text-emerald-500 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+                                                                    </svg>
+                                                                </button>
+                                                            )}
+                                                            <div className="h-4 w-px bg-slate-700 mx-1" />
+                                                            <div className="px-3 py-1 flex items-center gap-2 font-mono">
+                                                                <span className="text-white text-xs font-bold">{Math.min(attendanceVisible, attendance.length)}</span>
+                                                                <span className="text-slate-600 text-[10px] font-black uppercase tracking-tighter">/</span>
+                                                                <span className="text-slate-500 text-xs font-medium">{attendance.length}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -885,7 +930,7 @@ export default function Profile() {
                                         <EmptyState icon="📅" text="No bookings yet" subtext="Book a facility to get started." actionTo="/facilities" actionLabel="Browse Facilities" />
                                     ) : (
                                         <div className="space-y-3">
-                                            {bookings.map((booking) => (
+                                            {bookings.slice(0, bookingsVisible).map((booking) => (
                                                 <Link
                                                     key={booking.id}
                                                     to={`/bookings/${booking.id}`}
@@ -904,6 +949,46 @@ export default function Profile() {
                                                     </span>
                                                 </Link>
                                             ))}
+
+                                            {/* ─── See More / See Less ── */}
+                                            {bookings.length > 6 && (
+                                                <div className="relative pt-6 pb-2">
+                                                    {bookingsVisible < bookings.length && (
+                                                        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-800/60 to-transparent pointer-events-none -translate-y-full" />
+                                                    )}
+                                                    <div className="flex flex-col items-center gap-3">
+                                                        <div className="flex items-center gap-1.5 p-1 bg-slate-900/40 border border-slate-700/60 rounded-2xl backdrop-blur-xl shadow-xl">
+                                                            {bookingsVisible < bookings.length ? (
+                                                                <button
+                                                                    onClick={() => setBookingsVisible(prev => Math.min(prev + 6, bookings.length))}
+                                                                    className="group flex items-center gap-2.5 px-5 py-2 bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                                                >
+                                                                    <span>View More Bookings</span>
+                                                                    <svg className="w-4 h-4 text-emerald-500 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                                                    </svg>
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => setBookingsVisible(6)}
+                                                                    className="group flex items-center gap-2.5 px-5 py-2 bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                                                >
+                                                                    <span>Collapse List</span>
+                                                                    <svg className="w-4 h-4 text-emerald-500 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+                                                                    </svg>
+                                                                </button>
+                                                            )}
+                                                            <div className="h-4 w-px bg-slate-700 mx-1" />
+                                                            <div className="px-3 py-1 flex items-center gap-2 font-mono">
+                                                                <span className="text-white text-xs font-bold">{Math.min(bookingsVisible, bookings.length)}</span>
+                                                                <span className="text-slate-600 text-[10px] font-black uppercase tracking-tighter">/</span>
+                                                                <span className="text-slate-500 text-xs font-medium">{bookings.length}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -932,7 +1017,7 @@ export default function Profile() {
                                         <EmptyState icon="🎫" text="No tickets yet" subtext="Submit a maintenance or support ticket." actionTo="/tickets/new" actionLabel="Create Ticket" />
                                     ) : (
                                         <div className="space-y-3">
-                                            {tickets.map((ticket) => (
+                                            {tickets.slice(0, ticketsVisible).map((ticket) => (
                                                 <Link
                                                     key={ticket.id}
                                                     to={`/tickets/${ticket.id}`}
@@ -956,6 +1041,46 @@ export default function Profile() {
                                                     </span>
                                                 </Link>
                                             ))}
+
+                                            {/* ─── See More / See Less ── */}
+                                            {tickets.length > 6 && (
+                                                <div className="relative pt-6 pb-2">
+                                                    {ticketsVisible < tickets.length && (
+                                                        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-800/60 to-transparent pointer-events-none -translate-y-full" />
+                                                    )}
+                                                    <div className="flex flex-col items-center gap-3">
+                                                        <div className="flex items-center gap-1.5 p-1 bg-slate-900/40 border border-slate-700/60 rounded-2xl backdrop-blur-xl shadow-xl">
+                                                            {ticketsVisible < tickets.length ? (
+                                                                <button
+                                                                    onClick={() => setTicketsVisible(prev => Math.min(prev + 6, tickets.length))}
+                                                                    className="group flex items-center gap-2.5 px-5 py-2 bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                                                >
+                                                                    <span>View More Tickets</span>
+                                                                    <svg className="w-4 h-4 text-emerald-500 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                                                    </svg>
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => setTicketsVisible(6)}
+                                                                    className="group flex items-center gap-2.5 px-5 py-2 bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                                                                >
+                                                                    <span>Collapse List</span>
+                                                                    <svg className="w-4 h-4 text-emerald-500 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+                                                                    </svg>
+                                                                </button>
+                                                            )}
+                                                            <div className="h-4 w-px bg-slate-700 mx-1" />
+                                                            <div className="px-3 py-1 flex items-center gap-2 font-mono">
+                                                                <span className="text-white text-xs font-bold">{Math.min(ticketsVisible, tickets.length)}</span>
+                                                                <span className="text-slate-600 text-[10px] font-black uppercase tracking-tighter">/</span>
+                                                                <span className="text-slate-500 text-xs font-medium">{tickets.length}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
