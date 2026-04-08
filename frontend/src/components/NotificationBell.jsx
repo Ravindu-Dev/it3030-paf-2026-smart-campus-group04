@@ -1,22 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useNotifications } from '../hooks/useNotifications';
 import notificationService from '../services/notificationService';
 import NotificationDropdown from './NotificationDropdown';
 import { toast } from 'react-hot-toast';
 
 export default function NotificationBell() {
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
+    const { 
+        notifications, 
+        unreadCount, 
+        loading, 
+        markAsRead, 
+        markAllAsRead, 
+        deleteNotification 
+    } = useNotifications();
+    
     const [isOpen, setIsOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const bellRef = useRef(null);
 
-    // Fetch unread count on mount and every 30 seconds
+    // Fetch settings on mount
     useEffect(() => {
-        fetchUnreadCount();
         fetchSettings();
-        const interval = setInterval(fetchUnreadCount, 30000);
-        return () => clearInterval(interval);
     }, []);
 
     // Close dropdown on outside click
@@ -30,15 +34,6 @@ export default function NotificationBell() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const fetchUnreadCount = async () => {
-        try {
-            const count = await notificationService.getUnreadCount();
-            setUnreadCount(count);
-        } catch (error) {
-            console.error('Failed to fetch unread count', error);
-        }
-    };
-
     const fetchSettings = async () => {
         try {
             const enabled = await notificationService.getNotificationSettings();
@@ -48,59 +43,8 @@ export default function NotificationBell() {
         }
     };
 
-    const fetchNotifications = async () => {
-        setLoading(true);
-        try {
-            const data = await notificationService.getNotifications();
-            setNotifications(data);
-        } catch (error) {
-            console.error('Failed to fetch notifications', error);
-            toast.error('Failed to load notifications');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const toggleDropdown = () => {
-        if (!isOpen) {
-            fetchNotifications();
-            fetchUnreadCount();
-        }
         setIsOpen(!isOpen);
-    };
-
-    const handleMarkAsRead = async (id) => {
-        try {
-            await notificationService.markAsRead(id);
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-            setUnreadCount(prev => Math.max(0, prev - 1));
-        } catch (error) {
-            toast.error('Failed to mark as read');
-        }
-    };
-
-    const handleMarkAllAsRead = async () => {
-        try {
-            await notificationService.markAllAsRead();
-            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-            setUnreadCount(0);
-            toast.success('All marked as read');
-        } catch (error) {
-            toast.error('Failed to mark all as read');
-        }
-    };
-
-    const handleDelete = async (id) => {
-        try {
-            await notificationService.deleteNotification(id);
-            const deletedNotification = notifications.find(n => n.id === id);
-            setNotifications(prev => prev.filter(n => n.id !== id));
-            if (deletedNotification && !deletedNotification.read) {
-                setUnreadCount(prev => Math.max(0, prev - 1));
-            }
-        } catch (error) {
-            toast.error('Failed to delete notification');
-        }
     };
 
     const handleToggleNotifications = async () => {
@@ -109,13 +53,6 @@ export default function NotificationBell() {
             await notificationService.updateNotificationSettings(newState);
             setNotificationsEnabled(newState);
             toast.success(`Notifications turned ${newState ? 'ON' : 'OFF'}`);
-            if (!newState) {
-                setNotifications([]);
-                setUnreadCount(0);
-            } else {
-                fetchNotifications();
-                fetchUnreadCount();
-            }
         } catch (error) {
             toast.error('Failed to update notification settings');
         }
@@ -150,9 +87,9 @@ export default function NotificationBell() {
             {isOpen && (
                 <NotificationDropdown
                     notifications={notifications}
-                    onMarkAsRead={handleMarkAsRead}
-                    onMarkAllAsRead={handleMarkAllAsRead}
-                    onDelete={handleDelete}
+                    onMarkAsRead={markAsRead}
+                    onMarkAllAsRead={markAllAsRead}
+                    onDelete={deleteNotification}
                     loading={loading}
                     notificationsEnabled={notificationsEnabled}
                     onToggleNotifications={handleToggleNotifications}

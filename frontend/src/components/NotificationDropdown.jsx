@@ -68,53 +68,74 @@ export default function NotificationDropdown({
                     </div>
                 ) : notifications.length > 0 ? (
                     <div className="divide-y divide-slate-800/50">
-                        {notifications.map((notification) => (
-                            <div
-                                key={notification.id}
-                                className={`p-4 transition-all hover:bg-slate-800/40 relative group ${!notification.read ? 'bg-blue-500/5 border-l-2 border-l-blue-500' : 'border-l-2 border-l-transparent'}`}
-                            >
-                                <div className="flex gap-3">
-                                    {/* Icon based on type */}
-                                    <div className="shrink-0 mt-1">
-                                        <NotificationIcon type={notification.type} isRead={notification.read} />
-                                    </div>
+                        {notifications.map((notification) => {
+                            const priorityClasses = {
+                                'HIGH': 'border-l-red-500 bg-red-500/5',
+                                'MEDIUM': 'border-l-amber-500 bg-amber-500/5',
+                                'LOW': 'border-l-emerald-500 bg-emerald-500/5'
+                            };
+                            const priorityAccent = priorityClasses[notification.priority] || (notification.read ? 'border-l-transparent' : 'border-l-blue-500 bg-blue-500/5');
 
-                                    {/* Content */}
-                                    <div className="flex-grow min-w-0">
-                                        <p className={`text-sm leading-relaxed mb-1 ${!notification.read ? 'text-white font-medium' : 'text-slate-400'}`}>
-                                            {notification.message}
-                                        </p>
-                                        <p className="text-[10px] text-slate-500 font-medium">
-                                            {formatTimeAgo(notification.createdAt)}
-                                        </p>
-                                    </div>
+                            return (
+                                <div
+                                    key={notification.id}
+                                    className={`p-4 transition-all hover:bg-slate-800/40 relative group border-l-2 ${priorityAccent}`}
+                                >
+                                    <div className="flex gap-3">
+                                        {/* Icon based on type */}
+                                        <div className="shrink-0 mt-1">
+                                            <NotificationIcon type={notification.type} isRead={notification.read} />
+                                        </div>
 
-                                    {/* Actions */}
-                                    <div className="flex flex-col gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {!notification.read && (
+                                        {/* Content */}
+                                        <div className="flex-grow min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded ${
+                                                    notification.priority === 'HIGH' ? 'bg-red-500/20 text-red-400' :
+                                                    notification.priority === 'MEDIUM' ? 'bg-amber-500/20 text-amber-400' :
+                                                    'bg-emerald-500/20 text-emerald-400'
+                                                }`}>
+                                                    {notification.priority}
+                                                </span>
+                                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest bg-slate-800 px-1.5 py-0.5 rounded">
+                                                    {notification.category}
+                                                </span>
+                                            </div>
+                                            <p className={`text-sm leading-relaxed mb-1 ${!notification.read ? 'text-white font-medium' : 'text-slate-400'}`}>
+                                                {notification.message}
+                                            </p>
+                                            <p className="text-[10px] text-slate-500 font-medium">
+                                                {formatTimeAgo(notification.createdAt)}
+                                            </p>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex flex-col gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {!notification.read && (
+                                                <button
+                                                    onClick={() => onMarkAsRead(notification.id)}
+                                                    className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all cursor-pointer"
+                                                    title="Mark as read"
+                                                >
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </button>
+                                            )}
                                             <button
-                                                onClick={() => onMarkAsRead(notification.id)}
-                                                className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all cursor-pointer"
-                                                title="Mark as read"
+                                                onClick={() => onDelete(notification.id)}
+                                                className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all cursor-pointer"
+                                                title="Delete"
                                             >
                                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                                                 </svg>
                                             </button>
-                                        )}
-                                        <button
-                                            onClick={() => onDelete(notification.id)}
-                                            className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all cursor-pointer"
-                                            title="Delete"
-                                        >
-                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="p-10 text-center">
