@@ -78,6 +78,24 @@ public class NotificationController {
         return ResponseEntity.ok(
                 ApiResponse.success("Notification deleted successfully"));
     }
+
+    @GetMapping("/unread")
+    public ResponseEntity<ApiResponse<List<NotificationDto>>> getUnreadNotifications() {
+        List<NotificationDto> notifications = notificationService.getCurrentUserNotifications()
+                .stream()
+                .filter(n -> !n.isRead())
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(
+                ApiResponse.success("Unread notifications retrieved successfully", notifications));
+    }
+
+    @PutMapping("/read-all")
+    public ResponseEntity<ApiResponse<Void>> markAllAsReadPut() {
+        notificationService.markAllAsRead();
+        return ResponseEntity.ok(
+                ApiResponse.success("All notifications marked as read"));
+    }
+
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<NotificationDto>>> getAllNotificationsAdmin() {

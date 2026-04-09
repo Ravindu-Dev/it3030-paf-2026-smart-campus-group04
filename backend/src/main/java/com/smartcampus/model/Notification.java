@@ -20,6 +20,8 @@ public class Notification {
     private String userId; // Recipient's MongoDB User ID
     private String message;
     private NotificationType type;
+    private NotificationPriority priority = NotificationPriority.MEDIUM;
+    private NotificationCategory category = NotificationCategory.SYSTEM;
     private boolean isRead = false;
     
     @CreatedDate

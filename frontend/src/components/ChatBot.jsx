@@ -35,8 +35,10 @@ export default function ChatBot() {
     const [messages, setMessages] = useState([WELCOME_MESSAGE]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [cooldown, setCooldown] = useState(0); // seconds remaining
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
+    const cooldownRef = useRef(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -52,12 +54,22 @@ export default function ChatBot() {
         }
     }, [isOpen]);
 
+    // Cooldown timer effect
+    useEffect(() => {
+        if (cooldown > 0) {
+            cooldownRef.current = setTimeout(() => {
+                setCooldown((prev) => prev - 1);
+            }, 1000);
+            return () => clearTimeout(cooldownRef.current);
+        }
+    }, [cooldown]);
+
     // Don't render if not logged in (must be after all hooks)
     if (!user) return null;
 
     const sendMessage = async (text) => {
         const trimmed = (text || input).trim();
-        if (!trimmed || isLoading) return;
+        if (!trimmed || isLoading || cooldown > 0) return;
 
         // Add user message
         const userMsg = { role: 'user', text: trimmed };
@@ -78,6 +90,7 @@ export default function ChatBot() {
             setMessages((prev) => [...prev, errorMsg]);
         } finally {
             setIsLoading(false);
+            setCooldown(5); // 5-second cooldown between messages
         }
     };
 
@@ -202,8 +215,8 @@ export default function ChatBot() {
                         <button
                             className="chatbot-send-btn"
                             onClick={() => sendMessage()}
-                            disabled={!input.trim() || isLoading}
-                            title="Send message"
+                            disabled={!input.trim() || isLoading || cooldown > 0}
+                            title={cooldown > 0 ? `Wait ${cooldown}s...` : 'Send message'}
                         >
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />

@@ -35,7 +35,7 @@ public class RecommendationService {
     private final FacilityService facilityService;
     private final BookingService bookingService;
 
-    @Value("${app.gemini.api-key}")
+    @Value("${app.gemini.recommendation-api-key}")
     private String apiKey;
 
     public RecommendationService(FacilityService facilityService, BookingService bookingService) {
