@@ -1,6 +1,8 @@
 package com.smartcampus.service;
 
 import com.smartcampus.dto.NotificationDto;
+import com.smartcampus.model.NotificationCategory;
+import com.smartcampus.model.NotificationPriority;
 import com.smartcampus.model.NotificationType;
 
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.List;
 public interface NotificationService {
 
     void createNotification(String userId, String message, NotificationType type);
+
+    void sendSmartNotification(String userId, String message, NotificationPriority priority, NotificationCategory category, NotificationType type);
 
     List<NotificationDto> getCurrentUserNotifications();
 

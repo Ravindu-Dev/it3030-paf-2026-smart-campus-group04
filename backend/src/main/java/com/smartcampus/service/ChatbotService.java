@@ -15,6 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,38 +42,56 @@ public class ChatbotService {
         private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
         /**
-         * System instruction that constrains the chatbot to only answer
-         * Smart Campus related questions.
+         * Build the system instruction dynamically so that it includes the current
+         * date/time.
+         * This allows Gemini to understand references like "today", "tomorrow", etc.
          */
-        private static final String SYSTEM_INSTRUCTION = """
-                        You are the Smart Campus Assistant — an AI chatbot built into the Smart Campus Operations Hub.
+        private String buildSystemInstruction() {
+                String currentDate = LocalDate.now().toString(); // e.g. 2026-04-08
+                String currentDayOfWeek = LocalDate.now().getDayOfWeek().toString(); // e.g. WEDNESDAY
+                String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("hh:mm a")); // e.g. 02:30 PM
 
-                        YOUR CAPABILITIES:
-                        - Answer questions about campus facilities (labs, lecture halls, meeting rooms, equipment)
-                        - Look up bookings for facilities, check availability, show time slots
-                        - Provide information about maintenance/incident tickets
-                        - Help users understand the system features and how to use them
+                return """
+                                You are the Smart Campus Assistant — an AI chatbot built into the Smart Campus Operations Hub.
 
-                        YOUR RULES:
-                        1. You MUST ONLY answer questions related to the Smart Campus system.
-                        2. If someone asks a general knowledge question (e.g., "What is the highest mountain?",
-                           "Who is the president?", "Write me a poem"), politely decline and redirect them to
-                           ask about campus facilities, bookings, or tickets.
-                        3. Be friendly, concise, and helpful.
-                        4. When presenting data, format it nicely with bullet points or numbered lists.
-                        5. If no data is found, say so clearly and suggest what the user can do.
-                        6. Use emojis sparingly to make responses feel friendly (🏫 📅 🔧 ✅).
-                        7. When presenting time values, convert them to a human-readable format (e.g., "2:00 PM" instead of "14:00").
-                        8. You can answer general questions about how the Smart Campus system works,
-                           what features it has, and how to navigate the application.
-                        9. The system has these modules: Facilities & Assets Catalogue, Booking Management,
-                           Maintenance & Incident Ticketing, Notifications, and User Management.
-                        10. Available facility types: LECTURE_HALL, LAB, MEETING_ROOM, PROJECTOR, CAMERA, OTHER_EQUIPMENT.
-                        11. Booking statuses: PENDING, APPROVED, REJECTED, CANCELLED.
-                        12. Ticket statuses: OPEN, IN_PROGRESS, RESOLVED, CLOSED, REJECTED.
-                        13. Ticket categories: ELECTRICAL, PLUMBING, HVAC, IT_EQUIPMENT, FURNITURE, STRUCTURAL, CLEANING, SAFETY, OTHER.
-                        14. User roles: USER, ADMIN, TECHNICIAN, MANAGER.
-                        """;
+                                CURRENT DATE & TIME:
+                                - Today's date: %s (%s)
+                                - Current time: %s
+                                - Use this information to interpret relative dates like "today", "tomorrow", "this week", etc.
+
+                                YOUR CAPABILITIES:
+                                - Answer questions about campus facilities (labs, lecture halls, meeting rooms, equipment)
+                                - Look up bookings for facilities, check availability, show time slots
+                                - Provide information about maintenance/incident tickets
+                                - Help users understand the system features and how to use them
+
+                                IMPORTANT — AVAILABILITY QUERIES:
+                                - When the user asks about availability, ALWAYS use the checkFacilityAvailability function.
+                                - When the user asks about bookings for a facility, ALWAYS provide a date parameter.
+                                  If the user says "today", use today's date. If no date is mentioned, assume today.
+                                - Date format for function calls: YYYY-MM-DD (e.g., %s)
+
+                                YOUR RULES:
+                                1. You MUST ONLY answer questions related to the Smart Campus system.
+                                2. If someone asks a general knowledge question (e.g., "What is the highest mountain?",
+                                   "Who is the president?", "Write me a poem"), politely decline and redirect them to
+                                   ask about campus facilities, bookings, or tickets.
+                                3. Be friendly, concise, and helpful.
+                                4. When presenting data, format it nicely with bullet points or numbered lists.
+                                5. If no data is found, say so clearly and suggest what the user can do.
+                                6. Use emojis sparingly to make responses feel friendly (🏫 📅 🔧 ✅).
+                                7. When presenting time values, convert them to a human-readable format (e.g., "2:00 PM" instead of "14:00").
+                                8. You can answer general questions about how the Smart Campus system works,
+                                   what features it has, and how to navigate the application.
+                                9. The system has these modules: Facilities & Assets Catalogue, Booking Management,
+                                   Maintenance & Incident Ticketing, Notifications, and User Management.
+                                10. Available facility types: LECTURE_HALL, LAB, MEETING_ROOM, PROJECTOR, CAMERA, OTHER_EQUIPMENT.
+                                11. Booking statuses: PENDING, APPROVED, REJECTED, CANCELLED.
+                                12. Ticket statuses: OPEN, IN_PROGRESS, RESOLVED, CLOSED, REJECTED.
+                                13. Ticket categories: ELECTRICAL, PLUMBING, HVAC, IT_EQUIPMENT, FURNITURE, STRUCTURAL, CLEANING, SAFETY, OTHER.
+                                14. User roles: USER, ADMIN, TECHNICIAN, MANAGER.
+                                """.formatted(currentDate, currentDayOfWeek, currentTime, currentDate);
+        }
 
         private final WebClient webClient;
         private final ObjectMapper objectMapper;
@@ -75,7 +99,7 @@ public class ChatbotService {
         private final BookingService bookingService;
         private final TicketService ticketService;
 
-        @Value("${app.gemini.api-key}")
+        @Value("${app.gemini.chatbot-api-key}")
         private String apiKey;
 
         public ChatbotService(FacilityService facilityService,
@@ -162,7 +186,7 @@ public class ChatbotService {
                 // System instruction
                 ObjectNode systemInstruction = objectMapper.createObjectNode();
                 ObjectNode systemPart = objectMapper.createObjectNode();
-                systemPart.put("text", SYSTEM_INSTRUCTION);
+                systemPart.put("text", buildSystemInstruction());
                 ArrayNode systemParts = objectMapper.createArrayNode();
                 systemParts.add(systemPart);
                 systemInstruction.set("parts", systemParts);
@@ -246,10 +270,10 @@ public class ChatbotService {
                                                 .<ObjectNode>set("required",
                                                                 objectMapper.createArrayNode().add("facilityName"))));
 
-                // 3. getBookingsForFacility — list bookings for a specific facility
+                // 3. getBookingsForFacility — list bookings for a specific facility on a date
                 functions.add(buildFunction(
                                 "getBookingsForFacility",
-                                "Get a list of bookings for a specific facility. Can filter by booking status. Use this when the user asks about bookings or availability of a room/resource.",
+                                "Get a list of bookings for a specific facility. Can filter by date and booking status. ALWAYS provide a date — use today's date if the user doesn't specify one.",
                                 objectMapper.createObjectNode()
                                                 .put("type", "object")
                                                 .<ObjectNode>set("properties", objectMapper.createObjectNode()
@@ -258,6 +282,11 @@ public class ChatbotService {
                                                                                 .put("type", "string")
                                                                                 .put("description",
                                                                                                 "The name of the facility to get bookings for"))
+                                                                .<ObjectNode>set("date", objectMapper
+                                                                                .createObjectNode()
+                                                                                .put("type", "string")
+                                                                                .put("description",
+                                                                                                "The date to check bookings for, in YYYY-MM-DD format. Use today's date if the user doesn't specify."))
                                                                 .<ObjectNode>set("status", objectMapper
                                                                                 .createObjectNode()
                                                                                 .put("type", "string")
@@ -271,6 +300,26 @@ public class ChatbotService {
                                                                                                 .add("CANCELLED"))))
                                                 .<ObjectNode>set("required",
                                                                 objectMapper.createArrayNode().add("facilityName"))));
+
+                // 3b. checkFacilityAvailability — check available time slots for a facility
+                functions.add(buildFunction(
+                                "checkFacilityAvailability",
+                                "Check the availability of a facility on a specific date. Returns booked time slots and free time slots. Use this when the user asks if a room/lab/hall is available or free.",
+                                objectMapper.createObjectNode()
+                                                .put("type", "object")
+                                                .<ObjectNode>set("properties", objectMapper.createObjectNode()
+                                                                .<ObjectNode>set("facilityName", objectMapper
+                                                                                .createObjectNode()
+                                                                                .put("type", "string")
+                                                                                .put("description",
+                                                                                                "The name of the facility to check availability for"))
+                                                                .<ObjectNode>set("date", objectMapper
+                                                                                .createObjectNode()
+                                                                                .put("type", "string")
+                                                                                .put("description",
+                                                                                                "The date to check availability for, in YYYY-MM-DD format. Use today's date if the user doesn't specify.")))
+                                                .<ObjectNode>set("required",
+                                                                objectMapper.createArrayNode().add("facilityName").add("date"))));
 
                 // 4. getUserBookings — get the current user's bookings
                 functions.add(buildFunction(
@@ -389,6 +438,7 @@ public class ChatbotService {
                                 case "searchFacilities" -> executeSearchFacilities(args);
                                 case "getFacilityDetails" -> executeGetFacilityDetails(args);
                                 case "getBookingsForFacility" -> executeGetBookingsForFacility(args);
+                                case "checkFacilityAvailability" -> executeCheckFacilityAvailability(args);
                                 case "getUserBookings" -> executeGetUserBookings(args, userId);
                                 case "searchTickets" -> executeSearchTickets(args);
                                 case "getUserTickets" -> executeGetUserTickets(userId);
@@ -453,6 +503,10 @@ public class ChatbotService {
                 return sb.toString();
         }
 
+        /**
+         * Get bookings for a facility on a specific date.
+         * Now filters by date to avoid returning all historical bookings.
+         */
         private String executeGetBookingsForFacility(JsonNode args) {
                 String facilityName = args.get("facilityName").asText();
 
@@ -467,20 +521,128 @@ public class ChatbotService {
                 String facilityId = facilities.get(0).getId();
                 BookingStatus status = args.has("status") ? BookingStatus.valueOf(args.get("status").asText()) : null;
 
-                List<BookingDto> bookings = bookingService.getAllBookings(status, facilityId);
+                // Parse date if provided, otherwise default to today
+                LocalDate date = LocalDate.now();
+                if (args.has("date") && !args.get("date").asText().isBlank()) {
+                        try {
+                                date = LocalDate.parse(args.get("date").asText());
+                        } catch (DateTimeParseException e) {
+                                log.warn("Invalid date format from Gemini: {}", args.get("date").asText());
+                        }
+                }
+
+                // Query bookings for the specific facility on the specific date
+                List<BookingStatus> activeStatuses = status != null
+                                ? List.of(status)
+                                : Arrays.asList(BookingStatus.PENDING, BookingStatus.APPROVED,
+                                                BookingStatus.REJECTED, BookingStatus.CANCELLED);
+                List<BookingDto> bookings = bookingService.getBookingsForFacilityOnDate(
+                                facilityId, date, activeStatuses);
 
                 if (bookings.isEmpty()) {
-                        return "No bookings found for '" + facilityName + "'" +
+                        return "No bookings found for '" + facilityName + "' on " + date +
                                         (status != null ? " with status " + status : "") + ".";
                 }
 
+                // Limit results to 15 to avoid token overflow
                 return bookings.stream()
+                                .limit(15)
                                 .map(b -> String.format(
                                                 "Date: %s | Time: %s - %s | Status: %s | Booked by: %s | Purpose: %s",
                                                 b.getBookingDate(), b.getStartTime(), b.getEndTime(),
                                                 b.getStatus(), b.getUserName(),
                                                 b.getPurpose() != null ? b.getPurpose() : "N/A"))
-                                .collect(Collectors.joining("\n"));
+                                .collect(Collectors.joining("\n"))
+                                + (bookings.size() > 15
+                                                ? "\n... and " + (bookings.size() - 15) + " more bookings."
+                                                : "");
+        }
+
+        /**
+         * Check availability of a facility on a specific date.
+         * Shows booked slots and identifies free time slots.
+         */
+        private String executeCheckFacilityAvailability(JsonNode args) {
+                String facilityName = args.get("facilityName").asText();
+
+                // Find facility
+                List<FacilityDto> facilities = facilityService.getAllFacilities(
+                                null, null, null, null, facilityName);
+
+                if (facilities.isEmpty()) {
+                        return "No facility found with the name '" + facilityName + "'.";
+                }
+
+                FacilityDto facility = facilities.get(0);
+                String facilityId = facility.getId();
+
+                // Parse date
+                LocalDate date = LocalDate.now();
+                if (args.has("date") && !args.get("date").asText().isBlank()) {
+                        try {
+                                date = LocalDate.parse(args.get("date").asText());
+                        } catch (DateTimeParseException e) {
+                                log.warn("Invalid date format from Gemini: {}", args.get("date").asText());
+                        }
+                }
+
+                // Get only PENDING and APPROVED bookings (active ones that block availability)
+                List<BookingStatus> activeStatuses = Arrays.asList(BookingStatus.PENDING, BookingStatus.APPROVED);
+                List<BookingDto> bookings = bookingService.getBookingsForFacilityOnDate(
+                                facilityId, date, activeStatuses);
+
+                StringBuilder sb = new StringBuilder();
+                sb.append("Availability for '").append(facility.getName())
+                                .append("' on ").append(date).append(":\n");
+                sb.append("Facility Status: ").append(facility.getStatus()).append("\n\n");
+
+                if (bookings.isEmpty()) {
+                        sb.append("✅ This facility is FULLY AVAILABLE for the entire day — no bookings found.\n");
+                } else {
+                        sb.append("BOOKED TIME SLOTS (cannot be booked):\n");
+                        bookings.stream()
+                                        .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
+                                        .forEach(b -> sb.append("  ❌ ").append(b.getStartTime())
+                                                        .append(" - ").append(b.getEndTime())
+                                                        .append(" (").append(b.getStatus()).append(")")
+                                                        .append(" — ").append(b.getPurpose() != null
+                                                                        ? b.getPurpose()
+                                                                        : "N/A")
+                                                        .append("\n"));
+
+                        // Compute free slots between 8:00 AM and 8:00 PM
+                        LocalTime dayStart = LocalTime.of(8, 0);
+                        LocalTime dayEnd = LocalTime.of(20, 0);
+
+                        List<LocalTime[]> bookedSlots = bookings.stream()
+                                        .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
+                                        .map(b -> new LocalTime[] { b.getStartTime(), b.getEndTime() })
+                                        .collect(Collectors.toList());
+
+                        List<String> freeSlots = new ArrayList<>();
+                        LocalTime cursor = dayStart;
+
+                        for (LocalTime[] slot : bookedSlots) {
+                                if (cursor.isBefore(slot[0])) {
+                                        freeSlots.add(cursor + " - " + slot[0]);
+                                }
+                                if (slot[1].isAfter(cursor)) {
+                                        cursor = slot[1];
+                                }
+                        }
+                        if (cursor.isBefore(dayEnd)) {
+                                freeSlots.add(cursor + " - " + dayEnd);
+                        }
+
+                        if (!freeSlots.isEmpty()) {
+                                sb.append("\nAVAILABLE TIME SLOTS (can be booked):\n");
+                                freeSlots.forEach(s -> sb.append("  ✅ ").append(s).append("\n"));
+                        } else {
+                                sb.append("\n⚠️ No free time slots available on this date (8:00 AM - 8:00 PM fully booked).\n");
+                        }
+                }
+
+                return sb.toString();
         }
 
         private String executeGetUserBookings(JsonNode args, String userId) {
@@ -494,12 +656,16 @@ public class ChatbotService {
                 }
 
                 return bookings.stream()
+                                .limit(15)
                                 .map(b -> String.format(
                                                 "Facility: %s | Date: %s | Time: %s - %s | Status: %s | Purpose: %s",
                                                 b.getFacilityName(), b.getBookingDate(),
                                                 b.getStartTime(), b.getEndTime(),
                                                 b.getStatus(), b.getPurpose() != null ? b.getPurpose() : "N/A"))
-                                .collect(Collectors.joining("\n"));
+                                .collect(Collectors.joining("\n"))
+                                + (bookings.size() > 15
+                                                ? "\n... and " + (bookings.size() - 15) + " more bookings."
+                                                : "");
         }
 
         private String executeSearchTickets(JsonNode args) {
@@ -565,7 +731,7 @@ public class ChatbotService {
                 // System instruction (same as before)
                 ObjectNode systemInstruction = objectMapper.createObjectNode();
                 ObjectNode systemPart = objectMapper.createObjectNode();
-                systemPart.put("text", SYSTEM_INSTRUCTION);
+                systemPart.put("text", buildSystemInstruction());
                 ArrayNode systemParts = objectMapper.createArrayNode();
                 systemParts.add(systemPart);
                 systemInstruction.set("parts", systemParts);

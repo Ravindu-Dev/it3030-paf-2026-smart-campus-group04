@@ -58,6 +58,22 @@ const notificationService = {
     updateNotificationSettings: async (enabled) => {
         const response = await api.patch(`/notifications/settings/${enabled}`);
         return response.data;
+    },
+
+    /**
+     * Get only unread notifications.
+     */
+    getUnreadNotifications: async () => {
+        const response = await api.get('/notifications/unread');
+        return response.data.data;
+    },
+
+    /**
+     * Mark all notifications as read using the new PUT endpoint.
+     */
+    markAllAsReadPut: async () => {
+        const response = await api.put('/notifications/read-all');
+        return response.data;
     }
 };
 

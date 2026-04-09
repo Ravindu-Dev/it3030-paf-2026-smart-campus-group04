@@ -146,8 +146,9 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
 
-        if (event.getStatus() != EventStatus.UPCOMING) {
-            throw new IllegalStateException("Cannot register for an event that is not upcoming.");
+        EventStatus currentStatus = resolveStatus(event);
+        if (currentStatus == EventStatus.COMPLETED || currentStatus == EventStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot register for an event that has already ended or been cancelled.");
         }
 
         if (event.getParticipantCount() >= event.getCapacity()) {

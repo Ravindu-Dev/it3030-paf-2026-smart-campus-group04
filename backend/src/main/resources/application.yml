@@ -25,7 +25,8 @@ app:
   google:
     client-id: ${GOOGLE_CLIENT_ID}
   gemini:
-    api-key: ${GEMINI_API_KEY}
+    chatbot-api-key: ${GEMINI_CHATBOT_API_KEY:${GEMINI_API_KEY}}
+    recommendation-api-key: ${GEMINI_RECOMMENDATION_API_KEY:${GEMINI_API_KEY}}
 
 logging:
   level:

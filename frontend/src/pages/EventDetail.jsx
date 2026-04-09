@@ -71,6 +71,7 @@ export default function EventDetail() {
     });
 
     const isFull = event.participantCount >= event.capacity;
+    const isOverdue = event.status === 'COMPLETED';
 
     return (
         <div className="min-h-screen bg-slate-900 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
@@ -161,7 +162,7 @@ export default function EventDetail() {
                                     {event.isRegistered ? (
                                         <button
                                             onClick={handleCancel}
-                                            disabled={actionLoading}
+                                            disabled={actionLoading || isOverdue}
                                             className="w-full py-4 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white rounded-2xl font-bold transition-all border border-red-500/20 disabled:opacity-50"
                                         >
                                             {actionLoading ? 'Processing...' : 'Cancel Registration'}
@@ -169,10 +170,10 @@ export default function EventDetail() {
                                     ) : (
                                         <button
                                             onClick={handleRegister}
-                                            disabled={actionLoading || isFull || event.status === 'CANCELLED'}
+                                            disabled={actionLoading || isFull || event.status === 'CANCELLED' || isOverdue}
                                             className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:border-transparent text-white rounded-2xl font-bold transition-all shadow-xl shadow-blue-600/20 border-b-4 border-blue-800 active:border-b-0 active:translate-y-1"
                                         >
-                                            {actionLoading ? 'Processing...' : isFull ? 'Event Full' : 'Join Event Now'}
+                                            {actionLoading ? 'Processing...' : isFull ? 'Event Full' : isOverdue ? 'Event Ended' : 'Join Event Now'}
                                         </button>
                                     )}
                                     {isFull && !event.isRegistered && (
