@@ -12,6 +12,7 @@ import TechnicianDashboard from './TechnicianDashboard';
 import ManagerDashboard from './ManagerDashboard';
 import ManageAttendance from './ManageAttendance';
 import ManageLostFound from './ManageLostFound';
+import AdminMaintenance from './AdminMaintenance';
 import { ShuttleMap } from './TransportMap';
 
 /* ─── SVG Icon Components ────────────────────────────────────────────── */
@@ -115,6 +116,11 @@ const NAV_TABS = [
     { id: 'technician-tickets', label: 'Assigned Tickets', icon: Icons.maintenance, roles: ['TECHNICIAN'], section: 'Operations' },
     { id: 'manage-lost-found', label: 'Lost & Found', icon: Icons.lostFound, roles: ['ADMIN'], section: 'Operations' },
     { id: 'attendance', label: 'Attendance', icon: Icons.attendance, roles: ['ADMIN', 'MANAGER'], section: 'Operations' },
+    { id: 'maintenance', label: 'Maintenance', icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+        </svg>
+    ), roles: ['ADMIN'], section: 'System' },
     { id: 'users', label: 'Users', icon: Icons.users, roles: ['ADMIN'], section: 'System' },
 ];
 
@@ -629,6 +635,8 @@ export default function Dashboard() {
                             <TabWrapper><ManageLostFound standalone={true} /></TabWrapper>
                         ) : activeTab === 'users' ? (
                             <TabWrapper><AdminUsers standalone={true} /></TabWrapper>
+                        ) : activeTab === 'maintenance' ? (
+                            <TabWrapper><AdminMaintenance standalone={true} /></TabWrapper>
                         ) : null}
                     </main>
                 </div>

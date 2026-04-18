@@ -49,7 +49,17 @@ api.interceptors.response.use(
             if (status === 403) {
                 console.error('Access denied.');
             }
-            if (status >= 500) {
+
+            // Handle System Maintenance (503)
+            if (status === 503 && error.response.data === 'MAINTENANCE') {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                // Only redirect if: not the maintenance admin AND not already on maintenance page
+                if (user.email !== 'smartcampus43@gmail.com' && window.location.pathname !== '/maintenance') {
+                    window.location.href = '/maintenance';
+                }
+            }
+
+            if (status >= 500 && status !== 503) {
                 console.error('Backend 500 Error Data:', error.response.data);
             }
         }

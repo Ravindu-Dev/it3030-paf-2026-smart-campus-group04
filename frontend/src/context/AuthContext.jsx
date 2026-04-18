@@ -31,12 +31,16 @@ export function AuthProvider({ children }) {
             try {
                 // Validate the token by calling GET /api/auth/me
                 const response = await api.get('/auth/me');
-                setUser(response.data.data);
+                const userData = response.data.data;
+                // Keep localStorage in sync so the maintenance bypass check always has fresh data
+                localStorage.setItem('user', JSON.stringify(userData));
+                setUser(userData);
                 setToken(storedToken);
             } catch (error) {
                 // Token is invalid or expired — clear it
                 console.error('Token validation failed:', error);
                 localStorage.removeItem('token');
+                localStorage.removeItem('user');
                 setToken(null);
                 setUser(null);
             } finally {
@@ -60,6 +64,7 @@ export function AuthProvider({ children }) {
 
         // Store token in localStorage for persistence
         localStorage.setItem('token', jwtToken);
+        localStorage.setItem('user', JSON.stringify(userData));
         setToken(jwtToken);
         setUser(userData);
 
@@ -71,6 +76,7 @@ export function AuthProvider({ children }) {
      */
     const logout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         setToken(null);
         setUser(null);
     };
