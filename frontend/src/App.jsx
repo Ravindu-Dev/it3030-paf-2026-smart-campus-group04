@@ -7,6 +7,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import ChatBot from './components/ChatBot';
+import MaintenanceBanner from './components/MaintenanceBanner';
 
 // ─── Pages ───────────────────────────────────────────────────────────
 import Login from './pages/Login';
@@ -47,6 +48,8 @@ import LostFound from './pages/LostFound';
 import ReportLostFound from './pages/ReportLostFound';
 import LostFoundDetail from './pages/LostFoundDetail';
 import ManageLostFound from './pages/ManageLostFound';
+import Maintenance from './pages/Maintenance';
+import AdminMaintenance from './pages/AdminMaintenance';
 
 function NotFound() {
   return (
@@ -107,6 +110,9 @@ function App() {
       {/* Global Navbar */}
       {!hideNavbar && <Navbar />}
 
+      {/* Maintenance countdown banner — shown on user pages when maintenance is scheduled */}
+      {!hideNavbar && location.pathname !== '/maintenance' && <MaintenanceBanner />}
+
       <main className="grow">
         <Routes>
           {/* Public routes */}
@@ -117,6 +123,7 @@ function App() {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/campus-map" element={<CampusMap />} />
           <Route path="/lost-found" element={<LostFound />} />
+          <Route path="/maintenance" element={<Maintenance />} />
 
           <Route path="/login" element={<Login />} />
           <Route path="/forbidden" element={<Forbidden />} />
@@ -205,6 +212,11 @@ function App() {
           <Route path="/admin/transport" element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
               <ManageTransport />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/maintenance" element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AdminMaintenance />
             </ProtectedRoute>
           } />
 

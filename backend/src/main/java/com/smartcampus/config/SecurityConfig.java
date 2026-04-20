@@ -60,6 +60,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints — no JWT required
                         .requestMatchers("/auth/google").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/maintenance/status").permitAll()
                         .requestMatchers(HttpMethod.GET, "/facilities", "/facilities/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/lost-found", "/lost-found/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/shuttles", "/shuttles/**").permitAll()
