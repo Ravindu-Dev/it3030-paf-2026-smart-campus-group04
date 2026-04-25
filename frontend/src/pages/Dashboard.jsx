@@ -14,6 +14,7 @@ import ManageAttendance from './ManageAttendance';
 import ManageLostFound from './ManageLostFound';
 import AdminMaintenance from './AdminMaintenance';
 import { ShuttleMap } from './TransportMap';
+import { getTechnicianTickets } from '../services/ticketService';
 
 /* ─── SVG Icon Components ────────────────────────────────────────────── */
 const Icons = {
@@ -131,6 +132,10 @@ export default function Dashboard() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [stats, setStats] = useState({ totalUsers: 0, admins: 0, managers: 0, technicians: 0 });
+    const [techStats, setTechStats] = useState({ total: 0, inProgress: 0, resolved: 0 });
+    const [techTickets, setTechTickets] = useState([]);
+    const [managerStats, setManagerStats] = useState({ pendingBookings: 0, unassignedTickets: 0, totalBookings: 0, totalTickets: 0 });
+    const [managerData, setManagerData] = useState({ pendingBookings: [], unassignedTickets: [] });
     const [isLoading, setIsLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
@@ -173,8 +178,9 @@ export default function Dashboard() {
     // Fetch stats
     useEffect(() => {
         const fetchStats = async () => {
-            if (user?.role === 'ADMIN') {
-                try {
+            setIsLoading(true);
+            try {
+                if (user?.role === 'ADMIN') {
                     const response = await api.get('/users');
                     const users = response.data.data;
                     setStats({
@@ -183,11 +189,44 @@ export default function Dashboard() {
                         managers: users.filter(u => u.role === 'MANAGER').length,
                         technicians: users.filter(u => u.role === 'TECHNICIAN').length,
                     });
-                } catch (err) {
-                    console.error('Failed to fetch stats', err);
+                } else if (user?.role === 'TECHNICIAN') {
+                    const res = await getTechnicianTickets();
+                    const tickets = res.data.data || [];
+                    setTechTickets(tickets);
+                    setTechStats({
+                        total: tickets.length,
+                        inProgress: tickets.filter(t => t.status === 'IN_PROGRESS').length,
+                        resolved: tickets.filter(t => t.status === 'RESOLVED').length,
+                    });
+                } else if (user?.role === 'MANAGER') {
+                    const [bookingsRes, ticketsRes] = await Promise.all([
+                        api.get('/bookings'),
+                        api.get('/tickets')
+                    ]);
+                    
+                    const allBookings = bookingsRes.data.data || [];
+                    const allTickets = ticketsRes.data.data || [];
+                    
+                    const pendingBookings = allBookings.filter(b => b.status === 'PENDING');
+                    const unassignedTickets = allTickets.filter(t => !t.assignedTechnicianId && t.status === 'OPEN');
+                    
+                    setManagerData({
+                        pendingBookings: pendingBookings.slice(0, 5),
+                        unassignedTickets: unassignedTickets.slice(0, 5)
+                    });
+                    
+                    setManagerStats({
+                        pendingBookings: pendingBookings.length,
+                        unassignedTickets: unassignedTickets.length,
+                        totalBookings: allBookings.length,
+                        totalTickets: allTickets.length
+                    });
                 }
+            } catch (err) {
+                console.error('Failed to fetch stats', err);
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         };
         fetchStats();
     }, [user]);
@@ -447,6 +486,43 @@ export default function Dashboard() {
                                     </div>
                                 </div>
 
+                                {user?.role === 'TECHNICIAN' && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <StatCard
+                                            icon={Icons.tickets}
+                                            label="Assigned"
+                                            value={techStats.total}
+                                            subtitle="Total tickets"
+                                            color="blue"
+                                            isLoading={isLoading}
+                                        />
+                                        <StatCard
+                                            icon={
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            }
+                                            label="In Progress"
+                                            value={techStats.inProgress}
+                                            subtitle="Currently active"
+                                            color="amber"
+                                            isLoading={isLoading}
+                                        />
+                                        <StatCard
+                                            icon={
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            }
+                                            label="Resolved"
+                                            value={techStats.resolved}
+                                            subtitle="Completed tasks"
+                                            color="emerald"
+                                            isLoading={isLoading}
+                                        />
+                                    </div>
+                                )}
+                                
                                 {/* Stats Cards (Admin) */}
                                 {user?.role === 'ADMIN' && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -493,6 +569,43 @@ export default function Dashboard() {
                                     </div>
                                 )}
 
+                                {user?.role === 'MANAGER' && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <StatCard
+                                            icon={Icons.bookings}
+                                            label="Pending Bookings"
+                                            value={managerStats.pendingBookings}
+                                            subtitle="Needs approval"
+                                            color="purple"
+                                            isLoading={isLoading}
+                                        />
+                                        <StatCard
+                                            icon={Icons.tickets}
+                                            label="Unassigned Tickets"
+                                            value={managerStats.unassignedTickets}
+                                            subtitle="Needs technician"
+                                            color="red"
+                                            isLoading={isLoading}
+                                        />
+                                        <StatCard
+                                            icon={Icons.bookings}
+                                            label="Total Bookings"
+                                            value={managerStats.totalBookings}
+                                            subtitle="All requests"
+                                            color="blue"
+                                            isLoading={isLoading}
+                                        />
+                                        <StatCard
+                                            icon={Icons.tickets}
+                                            label="Total Tickets"
+                                            value={managerStats.totalTickets}
+                                            subtitle="System wide"
+                                            color="amber"
+                                            isLoading={isLoading}
+                                        />
+                                    </div>
+                                )}
+
                                 {/* Main Grid */}
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                     {/* Welcome Card */}
@@ -509,20 +622,29 @@ export default function Dashboard() {
                                                         Dashboard
                                                     </span>
                                                 </div>
-                                                <h2 className="text-xl lg:text-2xl font-bold text-white mb-2">Welcome to Your Control Center</h2>
+                                                <h2 className="text-xl lg:text-2xl font-bold text-white mb-2">
+                                                    {user?.role === 'TECHNICIAN' ? 'Technician Assignment Hub' : 
+                                                     user?.role === 'MANAGER' ? 'Managerial Oversight Center' : 
+                                                     'Welcome to Your Control Center'}
+                                                </h2>
                                                 <p className="text-slate-400 text-sm leading-relaxed mb-6 max-w-lg">
-                                                    Use the sidebar navigation to manage every aspect of the Smart Campus Hub.
-                                                    From facilities and bookings to tickets and user management.
+                                                    {user?.role === 'TECHNICIAN' 
+                                                        ? 'Monitor and manage your assigned maintenance tickets. Update statuses and resolve issues efficiently.'
+                                                        : user?.role === 'MANAGER'
+                                                        ? 'Approve facility bookings, assign maintenance technicians, and monitor campus operations from one central hub.'
+                                                        : 'Use the sidebar navigation to manage every aspect of the Smart Campus Hub. From facilities and bookings to tickets and user management.'}
                                                 </p>
 
                                                 {/* Quick action cards */}
                                                 <div className="grid grid-cols-2 gap-3">
                                                     {[
-                                                        { icon: Icons.facilities, label: 'Facilities', desc: 'Manage resources', color: 'blue', tab: 'manage-facilities' },
-                                                        { icon: Icons.bookings, label: 'Bookings', desc: 'Process reservations', color: 'purple', tab: 'manage-bookings' },
-                                                        { icon: Icons.tickets, label: 'Tickets', desc: 'Support requests', color: 'amber', tab: 'manage-tickets' },
-                                                        { icon: Icons.users, label: 'Users', desc: 'Manage accounts', color: 'emerald', tab: 'users' },
+                                                        { icon: Icons.tickets, label: 'My Tickets', desc: 'Manage assignments', color: 'blue', tab: 'technician-tickets', role: 'TECHNICIAN' },
+                                                        { icon: Icons.facilities, label: 'Facilities', desc: 'Manage resources', color: 'blue', tab: 'manage-facilities', role: 'ADMIN' },
+                                                        { icon: Icons.bookings, label: 'Bookings', desc: 'Process reservations', color: 'purple', tab: 'manage-bookings', role: 'MANAGER' },
+                                                        { icon: Icons.tickets, label: 'Tickets', desc: 'Support requests', color: 'amber', tab: 'manage-tickets', role: 'ADMIN' },
+                                                        { icon: Icons.users, label: 'Users', desc: 'Manage accounts', color: 'emerald', tab: 'users', role: 'ADMIN' },
                                                     ].filter(item => {
+                                                        if (item.role === 'TECHNICIAN') return user?.role === 'TECHNICIAN';
                                                         if (item.tab === 'manage-bookings') return ['ADMIN', 'MANAGER'].includes(user?.role);
                                                         return user?.role === 'ADMIN';
                                                     }).map(item => (
@@ -550,70 +672,249 @@ export default function Dashboard() {
                                         </div>
                                     </div>
 
-                                    {/* System Status */}
+                                    {/* System Status - Hidden for technicians */}
+                                    {user?.role !== 'TECHNICIAN' && (
+                                        <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-6">
+                                            <div className="flex items-center justify-between mb-5">
+                                                <h3 className="text-white font-semibold text-sm">System Health</h3>
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                                                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                                                    <span className="text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">All Systems Go</span>
+                                                </span>
+                                            </div>
+                                            <div className="space-y-3">
+                                                {systemStatus.map((item) => (
+                                                    <div key={item.name} className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/60 transition-colors">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className={`w-2 h-2 rounded-full ${item.ok ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                                                            <span className="text-slate-300 text-sm">{item.name}</span>
+                                                        </div>
+                                                        <span className={`text-xs font-medium ${item.ok ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                            {item.status}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Platform Info */}
+                                            <div className="mt-5 pt-5 border-t border-slate-800/60">
+                                                <div className="space-y-2.5">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-xs text-slate-500">Platform</span>
+                                                        <span className="text-xs text-slate-400 font-medium">Smart Campus v2.0</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-xs text-slate-500">Environment</span>
+                                                        <span className="text-xs text-emerald-400 font-medium">Production</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-xs text-slate-500">Last Deploy</span>
+                                                        <span className="text-xs text-slate-400 font-medium">Today</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Technician Recent Assignments - Only for technicians */}
+                                    {user?.role === 'TECHNICIAN' && (
+                                        <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-6">
+                                            <div className="flex items-center justify-between mb-5">
+                                                <h3 className="text-white font-semibold text-sm">Active Assignments</h3>
+                                                <button 
+                                                    onClick={() => setActiveTab('technician-tickets')}
+                                                    className="text-blue-400 text-xs font-semibold hover:text-blue-300 transition-colors"
+                                                >
+                                                    View All
+                                                </button>
+                                            </div>
+                                            <div className="space-y-4">
+                                                {isLoading ? (
+                                                    [1, 2].map(i => <div key={i} className="h-20 bg-slate-800/40 rounded-xl animate-pulse" />)
+                                                ) : techTickets.filter(t => t.status === 'IN_PROGRESS').length === 0 ? (
+                                                    <div className="text-center py-6 bg-slate-800/30 rounded-xl border border-dashed border-slate-700">
+                                                        <p className="text-slate-500 text-xs">No active assignments</p>
+                                                    </div>
+                                                ) : (
+                                                    techTickets.filter(t => t.status === 'IN_PROGRESS').slice(0, 3).map(ticket => (
+                                                        <div key={ticket.id} className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/30 hover:border-slate-600/50 transition-all">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                                                    In Progress
+                                                                </span>
+                                                                <span className="text-[10px] text-slate-500">
+                                                                    {new Date(ticket.createdAt).toLocaleDateString()}
+                                                                </span>
+                                                            </div>
+                                                            <Link to={`/tickets/${ticket.id}`} className="text-sm font-bold text-white hover:text-blue-400 transition-colors block truncate">
+                                                                {ticket.facilityName}
+                                                            </Link>
+                                                            <p className="text-xs text-slate-400 mt-1 truncate">{ticket.category}</p>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* Manager Pending Actions - Only for managers */}
+                                    {user?.role === 'MANAGER' && (
+                                        <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-6">
+                                            <div className="flex items-center justify-between mb-5">
+                                                <h3 className="text-white font-semibold text-sm">Pending Bookings</h3>
+                                                <button 
+                                                    onClick={() => setActiveTab('manage-bookings')}
+                                                    className="text-purple-400 text-xs font-semibold hover:text-purple-300 transition-colors"
+                                                >
+                                                    View All
+                                                </button>
+                                            </div>
+                                            <div className="space-y-4">
+                                                {isLoading ? (
+                                                    [1, 2].map(i => <div key={i} className="h-20 bg-slate-800/40 rounded-xl animate-pulse" />)
+                                                ) : managerData.pendingBookings.length === 0 ? (
+                                                    <div className="text-center py-6 bg-slate-800/30 rounded-xl border border-dashed border-slate-700">
+                                                        <p className="text-slate-500 text-xs">No pending bookings</p>
+                                                    </div>
+                                                ) : (
+                                                    managerData.pendingBookings.map(booking => (
+                                                        <div key={booking.id} className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/30 hover:border-slate-600/50 transition-all">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
+                                                                    Pending
+                                                                </span>
+                                                                <span className="text-[10px] text-slate-500">
+                                                                    {new Date(booking.bookingDate).toLocaleDateString()}
+                                                                </span>
+                                                            </div>
+                                                            <Link to={`/admin/bookings`} className="text-sm font-bold text-white hover:text-purple-400 transition-colors block truncate">
+                                                                {booking.facilityName}
+                                                            </Link>
+                                                            <p className="text-xs text-slate-400 mt-1 truncate">By: {booking.userName}</p>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Manager Unassigned Tickets - Only for managers */}
+                                {user?.role === 'MANAGER' && (
                                     <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-6">
-                                        <div className="flex items-center justify-between mb-5">
-                                            <h3 className="text-white font-semibold text-sm">System Health</h3>
-                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                                                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                                                <span className="text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">All Systems Go</span>
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400">
+                                                    {Icons.tickets}
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-white font-semibold text-sm">Unassigned Maintenance</h3>
+                                                    <p className="text-slate-500 text-xs">Requires technician assignment</p>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => setActiveTab('manager-tickets')}
+                                                className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-bold transition-all border border-red-500/20"
+                                            >
+                                                Assign Now
+                                            </button>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {isLoading ? (
+                                                [1, 2, 3].map(i => <div key={i} className="h-24 bg-slate-800/40 rounded-xl animate-pulse" />)
+                                            ) : managerData.unassignedTickets.length === 0 ? (
+                                                <div className="col-span-full text-center py-10 bg-slate-800/30 rounded-2xl border border-dashed border-slate-700">
+                                                    <p className="text-slate-500 text-sm">All tickets assigned</p>
+                                                </div>
+                                            ) : (
+                                                managerData.unassignedTickets.map(ticket => (
+                                                    <div key={ticket.id} className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/30 hover:border-slate-600/50 transition-all group">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
+                                                                Unassigned
+                                                            </span>
+                                                            <span className="text-[10px] text-slate-500 font-mono">
+                                                                {ticket.priority}
+                                                            </span>
+                                                        </div>
+                                                        <Link to={`/manager/tickets`} className="text-sm font-bold text-white group-hover:text-red-400 transition-colors block mb-1">
+                                                            {ticket.facilityName}
+                                                        </Link>
+                                                        <p className="text-xs text-slate-500 line-clamp-1">{ticket.description}</p>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Live Shuttle Map - Visible for Admin and Manager */}
+                                {user?.role !== 'TECHNICIAN' && (
+                                    <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                                                    {Icons.shuttle}
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-white font-semibold text-sm">Live Shuttle Tracker</h3>
+                                                    <p className="text-slate-500 text-xs">Real-time campus transport</p>
+                                                </div>
+                                            </div>
+                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">
+                                                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+                                                <span className="text-blue-400 text-[10px] font-semibold uppercase tracking-wider">Live</span>
                                             </span>
                                         </div>
-                                        <div className="space-y-3">
-                                            {systemStatus.map((item) => (
-                                                <div key={item.name} className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/60 transition-colors">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className={`w-2 h-2 rounded-full ${item.ok ? 'bg-emerald-400' : 'bg-red-400'}`} />
-                                                        <span className="text-slate-300 text-sm">{item.name}</span>
+                                        <div className="rounded-xl overflow-hidden border border-slate-800/50">
+                                            <ShuttleMap height="350px" showControls={false} compact={true} />
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Technician Recent Activity - Only for technicians */}
+                                {user?.role === 'TECHNICIAN' && (
+                                    <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-6">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-white font-semibold text-sm">Recent Activity</h3>
+                                                    <p className="text-slate-500 text-xs">Your latest resolved tasks</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {isLoading ? (
+                                                [1, 2, 3].map(i => <div key={i} className="h-24 bg-slate-800/40 rounded-xl animate-pulse" />)
+                                            ) : techTickets.filter(t => t.status === 'RESOLVED').length === 0 ? (
+                                                <div className="col-span-full text-center py-10 bg-slate-800/30 rounded-2xl border border-dashed border-slate-700">
+                                                    <p className="text-slate-500 text-sm">No resolved tickets yet</p>
+                                                </div>
+                                            ) : (
+                                                techTickets.filter(t => t.status === 'RESOLVED').slice(0, 3).map(ticket => (
+                                                    <div key={ticket.id} className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/30 hover:border-slate-600/50 transition-all group">
+                                                        <div className="flex items-center gap-3 mb-3">
+                                                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </div>
+                                                            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Resolved</span>
+                                                        </div>
+                                                        <Link to={`/tickets/${ticket.id}`} className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors block mb-1">
+                                                            {ticket.facilityName}
+                                                        </Link>
+                                                        <p className="text-xs text-slate-500 line-clamp-1">{ticket.description}</p>
                                                     </div>
-                                                    <span className={`text-xs font-medium ${item.ok ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                        {item.status}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {/* Platform Info */}
-                                        <div className="mt-5 pt-5 border-t border-slate-800/60">
-                                            <div className="space-y-2.5">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-slate-500">Platform</span>
-                                                    <span className="text-xs text-slate-400 font-medium">Smart Campus v2.0</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-slate-500">Environment</span>
-                                                    <span className="text-xs text-emerald-400 font-medium">Production</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-slate-500">Last Deploy</span>
-                                                    <span className="text-xs text-slate-400 font-medium">Today</span>
-                                                </div>
-                                            </div>
+                                                ))
+                                            )}
                                         </div>
                                     </div>
-                                </div>
-
-                                {/* Live Shuttle Map */}
-                                <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
-                                                {Icons.shuttle}
-                                            </div>
-                                            <div>
-                                                <h3 className="text-white font-semibold text-sm">Live Shuttle Tracker</h3>
-                                                <p className="text-slate-500 text-xs">Real-time campus transport</p>
-                                            </div>
-                                        </div>
-                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">
-                                            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
-                                            <span className="text-blue-400 text-[10px] font-semibold uppercase tracking-wider">Live</span>
-                                        </span>
-                                    </div>
-                                    <div className="rounded-xl overflow-hidden border border-slate-800/50">
-                                        <ShuttleMap height="350px" showControls={false} compact={true} />
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         ) : activeTab === 'manage-facilities' ? (
                             <TabWrapper><ManageFacilities standalone={true} /></TabWrapper>
@@ -686,6 +987,13 @@ function StatCard({ icon, label, value, subtitle, color, isLoading }) {
             icon: 'bg-amber-500/10 text-amber-400',
             value: 'text-amber-400',
             ring: 'ring-amber-500/10',
+        },
+        emerald: {
+            bg: 'bg-emerald-500/8',
+            border: 'border-emerald-500/15',
+            icon: 'bg-emerald-500/10 text-emerald-400',
+            value: 'text-emerald-400',
+            ring: 'ring-emerald-500/10',
         },
     };
 
