@@ -68,15 +68,7 @@ export default function Profile() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [activeTab, setActiveTabState] = useState(
-        location.state?.tab || sessionStorage.getItem('profileActiveTab') || 'profile'
-    );
-
-    /* ── Persist active tab to sessionStorage ── */
-    const setActiveTab = (tab) => {
-        setActiveTabState(tab);
-        sessionStorage.setItem('profileActiveTab', tab);
-    };
+    const [activeTab, setActiveTab] = useState(location.state?.tab || 'profile');
 
     /* ── See More pagination ────────── */
     const [attendanceVisible, setAttendanceVisible] = useState(6);
@@ -95,7 +87,7 @@ export default function Profile() {
     useEffect(() => {
         if (location.state?.tab) {
             setActiveTab(location.state.tab);
-            // Clear state so refresh doesn't force the tab if the user navigated away
+            // Optional: clear state so refresh doesn't force the tab if the user navigated away
             window.history.replaceState({}, document.title);
         }
     }, [location.state?.tab]);
@@ -226,43 +218,98 @@ export default function Profile() {
     };
 
     /* ── Download handlers ──────────── */
-    const handleDownloadQR = () => {
-        const svg = qrRef.current?.querySelector('svg');
-        const canvasElement = qrRef.current?.querySelector('canvas');
-
-        if (canvasElement) {
-            // If it's a canvas (QRCodeCanvas)
-            const a = document.createElement('a');
-            a.download = `${user?.name?.replace(/\s+/g, '_') || 'QR'}_SmartCampus_QR.png`;
-            a.href = canvasElement.toDataURL('image/png');
-            a.click();
+    const handleDownloadQR = async () => {
+        const qrCanvas = qrRef.current?.querySelector('canvas');
+        if (!qrCanvas) {
+            toast.error('QR Code not ready');
             return;
         }
 
-        if (svg) {
-            // If it's an SVG (fallback/older)
-            const svgData = new XMLSerializer().serializeToString(svg);
+        const toastId = toast.loading('Generating Professional QR Key...');
+        try {
+            const cleanId = user?.id?.toString().replace(/^user-?/i, '').toUpperCase() || 'N/A';
+            
+            // Create a premium vertical QR key card
             const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 600;
             const ctx = canvas.getContext('2d');
-            const img = new Image();
-            img.onload = () => {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0);
-                const a = document.createElement('a');
-                a.download = `${user?.name?.replace(/\s+/g, '_') || 'QR'}_SmartCampus_QR.png`;
-                a.href = canvas.toDataURL('image/png');
-                a.click();
-            };
-            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+
+            // 1. Background Gradient
+            const bg = ctx.createLinearGradient(0, 0, 0, 600);
+            bg.addColorStop(0, '#0f172a');
+            bg.addColorStop(1, '#1e1b4b');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, 400, 600);
+
+            // 2. Decorative accent
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(0, 0, 400, 8);
+
+            // 3. Header Text
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px Inter, system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('SMART CAMPUS', 200, 50);
+            
+            ctx.fillStyle = '#60a5fa';
+            ctx.font = '600 12px Inter, system-ui, sans-serif';
+            ctx.fillText('DIGITAL ACCESS KEY', 200, 75);
+
+            // 4. QR Box with glow
+            const qrSize = 240;
+            const qrX = (400 - qrSize) / 2;
+            const qrY = 120;
+
+            ctx.shadowColor = 'rgba(37, 99, 235, 0.4)';
+            ctx.shadowBlur = 30;
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.roundRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 16);
+            ctx.fill();
+            ctx.shadowBlur = 0; // reset shadow
+
+            ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+
+            // 5. User Details
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px Inter, system-ui, sans-serif';
+            ctx.fillText(user?.name?.toUpperCase() || 'ANONYMOUS', 200, 420);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 14px Inter, system-ui, sans-serif';
+            ctx.fillText(`ID NO: SC-${cleanId}`, 200, 450);
+
+            // 6. Security patterns
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.15)';
+            ctx.lineWidth = 1;
+            for(let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.moveTo(50, 480 + (i * 15));
+                ctx.lineTo(350, 480 + (i * 15));
+                ctx.stroke();
+            }
+
+            // 7. Footer
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.5)';
+            ctx.font = '600 10px Inter, system-ui, sans-serif';
+            ctx.fillText('OFFICIAL CAMPUS ACCESS TOKEN', 200, 560);
+            ctx.fillText(`ISSUED FOR: ${user?.email || 'N/A'}`, 200, 575);
+
+            const a = document.createElement('a');
+            a.download = `${user?.name?.replace(/\s+/g, '_') || 'QR'}_SmartCampus_AccessKey.png`;
+            a.href = canvas.toDataURL('image/png', 1.0);
+            a.click();
+
+            toast.success('Professional QR Key saved!', { id: toastId });
+        } catch (error) {
+            toast.error('Failed to generate QR Key', { id: toastId });
         }
     };
 
     const handleDownloadIDCardImage = async () => {
         if (!idCardRef.current) return;
-        const toastId = toast.loading('Generating ID Card Image...');
+        const toastId = toast.loading('Generating HD ID Card...');
         try {
             const element = idCardRef.current;
             const images = element.getElementsByTagName('img');
@@ -271,23 +318,48 @@ export default function Profile() {
                 return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
             }));
 
-            const canvas = await html2canvas(element, {
-                useCORS: true,
-                allowTaint: false,
-                scale: 4,
-                logging: false,
-                scrollX: 0,
-                scrollY: -window.scrollY,
+            const cardCanvas = await html2canvas(element, {
+                useCORS: true, allowTaint: false, scale: 4, logging: false,
+                scrollX: 0, scrollY: -window.scrollY,
                 windowWidth: document.documentElement.offsetWidth,
                 windowHeight: document.documentElement.offsetHeight,
             });
 
+            // Clean ID
+            const cleanId = user?.id?.toString().replace(/^user-?/i, '') || 'N/A';
+
+            // Create a branded wrapper canvas
+            const pad = 80;
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = cardCanvas.width + pad * 2;
+            finalCanvas.height = cardCanvas.height + pad * 2 + 60;
+            const ctx = finalCanvas.getContext('2d');
+
+            // Background gradient
+            const bg = ctx.createLinearGradient(0, 0, finalCanvas.width, finalCanvas.height);
+            bg.addColorStop(0, '#0f172a'); bg.addColorStop(1, '#1e293b');
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+            // Subtle border
+            ctx.strokeStyle = 'rgba(59,130,246,0.25)'; ctx.lineWidth = 4;
+            ctx.roundRect(pad / 2, pad / 2, finalCanvas.width - pad, finalCanvas.height - pad - 30, 24);
+            ctx.stroke();
+
+            // Draw card
+            ctx.drawImage(cardCanvas, pad, pad);
+
+            // Footer text
+            ctx.fillStyle = 'rgba(148,163,184,0.6)';
+            ctx.font = '600 22px Inter, system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Smart Campus • ID No: SC-${cleanId.toUpperCase()} • ${new Date().getFullYear()}`, finalCanvas.width / 2, finalCanvas.height - pad / 2 + 10);
+
             const a = document.createElement('a');
             a.download = `${user?.name?.replace(/\s+/g, '_') || 'ID'}_SmartCampus_IDCard.png`;
-            a.href = canvas.toDataURL('image/png');
+            a.href = finalCanvas.toDataURL('image/png', 1.0);
             a.click();
 
-            toast.success('ID Card downloaded as Image!', { id: toastId });
+            toast.success('HD ID Card saved!', { id: toastId });
         } catch (error) {
             console.error('Image Generation Error:', error);
             toast.error(`Download failed: ${error.message}`, { id: toastId });
@@ -296,7 +368,7 @@ export default function Profile() {
 
     const handleDownloadIDCardPDF = async () => {
         if (!idCardRef.current) return;
-        const toastId = toast.loading('Preparing PDF...');
+        const toastId = toast.loading('Generating Professional PDF...');
         try {
             const element = idCardRef.current;
             const images = element.getElementsByTagName('img');
@@ -306,32 +378,166 @@ export default function Profile() {
             }));
 
             const canvas = await html2canvas(element, {
-                useCORS: true,
-                allowTaint: false,
-                scale: 4,
-                logging: false,
-                scrollX: 0,
-                scrollY: -window.scrollY,
+                useCORS: true, allowTaint: false, scale: 4, logging: false,
+                scrollX: 0, scrollY: -window.scrollY,
                 windowWidth: document.documentElement.offsetWidth,
                 windowHeight: document.documentElement.offsetHeight,
             });
 
             const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const W = pdf.internal.pageSize.getWidth();
+            const H = pdf.internal.pageSize.getHeight();
+            const margin = 20;
+            const now = new Date();
 
-            const pdf = new jsPDF('l', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
+            // Clean ID
+            const cleanId = user?.id?.toString().replace(/^user-?/i, '') || 'N/A';
 
-            const cardWidth = 140;
-            const cardHeight = (canvas.height * cardWidth) / canvas.width;
+            // ── Background ──
+            pdf.setFillColor(15, 23, 42);
+            pdf.rect(0, 0, W, H, 'F');
 
-            const x = (pdfWidth - cardWidth) / 2;
-            const y = (pdfHeight - cardHeight) / 2;
+            // ── Decorative top bar ──
+            pdf.setFillColor(37, 99, 235);
+            pdf.rect(0, 0, W, 6, 'F');
 
-            pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
+            // ── Thin accent line below bar ──
+            pdf.setFillColor(99, 102, 241);
+            pdf.rect(0, 6, W, 1.5, 'F');
+
+            // ── Border frame ──
+            pdf.setDrawColor(59, 130, 246);
+            pdf.setLineWidth(0.5);
+            pdf.roundedRect(margin - 5, 15, W - margin * 2 + 10, H - 30, 4, 4, 'S');
+
+            // ── Header section ──
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(28);
+            pdf.setTextColor(255, 255, 255);
+            pdf.text('Smart Campus', W / 2, 35, { align: 'center' });
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(11);
+            pdf.setTextColor(147, 163, 184);
+            pdf.text('OFFICIAL IDENTIFICATION CARD', W / 2, 43, { align: 'center' });
+
+            // ── Decorative divider ──
+            const divY = 49;
+            pdf.setDrawColor(59, 130, 246);
+            pdf.setLineWidth(0.3);
+            pdf.line(W / 2 - 40, divY, W / 2 + 40, divY);
+            pdf.setFillColor(59, 130, 246);
+            pdf.circle(W / 2, divY, 1.5, 'F');
+
+            // ── ID Card Image (centered) ──
+            const cardW = 130;
+            const cardH = (canvas.height * cardW) / canvas.width;
+            const cardX = (W - cardW) / 2;
+            const cardY = 58;
+
+            // Card shadow effect
+            pdf.setFillColor(0, 0, 0);
+            pdf.setGState(new pdf.GState({ opacity: 0.3 }));
+            pdf.roundedRect(cardX + 2, cardY + 2, cardW, cardH, 3, 3, 'F');
+            pdf.setGState(new pdf.GState({ opacity: 1 }));
+
+            // Card border glow
+            pdf.setDrawColor(59, 130, 246);
+            pdf.setLineWidth(0.7);
+            pdf.roundedRect(cardX - 1, cardY - 1, cardW + 2, cardH + 2, 4, 4, 'S');
+
+            pdf.addImage(imgData, 'PNG', cardX, cardY, cardW, cardH);
+
+            // ── Details Section ──
+            const detailY = cardY + cardH + 16;
+
+            // Info box background
+            pdf.setFillColor(30, 41, 59);
+            pdf.roundedRect(margin + 10, detailY - 6, W - margin * 2 - 20, 52, 3, 3, 'F');
+            pdf.setDrawColor(51, 65, 85);
+            pdf.setLineWidth(0.3);
+            pdf.roundedRect(margin + 10, detailY - 6, W - margin * 2 - 20, 52, 3, 3, 'S');
+
+            // Columns
+            const colLeft = margin + 20;
+            const colRight = W / 2 + 10;
+
+            // Row 1: Name and ID
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.setTextColor(100, 116, 139);
+            pdf.text('FULL NAME', colLeft, detailY + 2);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(11);
+            pdf.setTextColor(226, 232, 240);
+            pdf.text(user?.name || 'N/A', colLeft, detailY + 8);
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.setTextColor(100, 116, 139);
+            pdf.text('OFFICIAL ID', colRight, detailY + 2);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(11);
+            pdf.setTextColor(96, 165, 250);
+            pdf.text(`SC-${cleanId.toUpperCase()}`, colRight, detailY + 8);
+
+            // Row 2: Email and Role
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.setTextColor(100, 116, 139);
+            pdf.text('EMAIL ADDRESS', colLeft, detailY + 18);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+            pdf.setTextColor(226, 232, 240);
+            pdf.text(user?.email || 'N/A', colLeft, detailY + 24);
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.setTextColor(100, 116, 139);
+            pdf.text('ROLE / DESIGNATION', colRight, detailY + 18);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+            pdf.setTextColor(226, 232, 240);
+            pdf.text(user?.role || 'N/A', colRight, detailY + 24);
+
+            // Row 3: Issued Date and Status
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.setTextColor(100, 116, 139);
+            pdf.text('ISSUED DATE', colLeft, detailY + 34);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+            pdf.setTextColor(226, 232, 240);
+            pdf.text(now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), colLeft, detailY + 40);
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.setTextColor(100, 116, 139);
+            pdf.text('ACCOUNT STATUS', colRight, detailY + 34);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+            pdf.setTextColor(52, 211, 153); // Emerald-400
+            pdf.text('ACTIVE / VERIFIED', colRight, detailY + 40);
+
+            // ── Footer ──
+            const footY = H - 18;
+            pdf.setDrawColor(51, 65, 85);
+            pdf.setLineWidth(0.3);
+            pdf.line(margin, footY - 6, W - margin, footY - 6);
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(7);
+            pdf.setTextColor(100, 116, 139);
+            pdf.text('This document is auto-generated by Smart Campus Operations Hub. For verification, scan the QR code on the ID card.', W / 2, footY, { align: 'center' });
+            pdf.text(`Official Reference ID: SC-${cleanId.toUpperCase()} • Issued: ${now.toLocaleDateString()} • Smart Campus © ${now.getFullYear()}`, W / 2, footY + 4, { align: 'center' });
+
+            // ── Bottom bar ──
+            pdf.setFillColor(37, 99, 235);
+            pdf.rect(0, H - 4, W, 4, 'F');
+
             pdf.save(`${user?.name?.replace(/\s+/g, '_') || 'ID'}_SmartCampus_IDCard.pdf`);
-
-            toast.success('ID Card downloaded as PDF!', { id: toastId });
+            toast.success('Professional PDF saved!', { id: toastId });
         } catch (error) {
             console.error('PDF Generation Error:', error);
             toast.error(`Download failed: ${error.message}`, { id: toastId });
@@ -647,42 +853,63 @@ export default function Profile() {
                         {activeTab === 'id-card' && (
                             <div className="animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-5">
                                 {/* ID Card */}
-                                <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6">
-                                    <h3 className="text-lg font-bold text-blue-400 mb-6 flex items-center gap-2">
-                                        🪪 Student / Staff ID Card
-                                    </h3>
+                                <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h3 className="text-lg font-bold text-blue-400 flex items-center gap-2">
+                                            🪪 Official Campus ID Card
+                                        </h3>
+                                        <span className="px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                            ● Active
+                                        </span>
+                                    </div>
 
-                                    <div ref={idCardRef} className="max-w-lg mx-auto rounded-2xl overflow-hidden shadow-2xl" style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
-                                        {/* Card Header */}
-                                        <div className="px-6 py-4" style={{ background: 'linear-gradient(to right, #2563eb, #1d4ed8, #4338ca)' }}>
-                                            <div className="flex items-center gap-3">
+                                    <div ref={idCardRef} className="max-w-lg mx-auto rounded-2xl overflow-hidden" style={{ boxShadow: '0 25px 60px -12px rgba(37, 99, 235, 0.25), 0 10px 30px -8px rgba(0, 0, 0, 0.5)' }}>
+                                        {/* Card Header with logo area */}
+                                        <div className="px-6 py-5 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1e40af, #2563eb, #4f46e5)' }}>
+                                            {/* Subtle pattern overlay */}
+                                            <div style={{ position: 'absolute', inset: 0, opacity: 0.06, backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)' }} />
+                                            <div className="relative flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-white font-extrabold text-lg tracking-tight">Smart Campus<span style={{ color: '#60a5fa' }}>.</span></p>
-                                                    <p className="text-blue-200 text-xs font-medium uppercase tracking-widest" style={{ color: '#bfdbfe' }}>Operations Hub</p>
+                                                    <p className="text-white font-extrabold text-xl tracking-tight" style={{ letterSpacing: '-0.02em' }}>
+                                                        Smart Campus<span style={{ color: '#93c5fd' }}>.</span>
+                                                    </p>
+                                                    <p className="text-xs font-semibold uppercase tracking-[0.25em] mt-0.5" style={{ color: '#bfdbfe' }}>
+                                                        Official Identification
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.15)', color: '#dbeafe' }}>
+                                                        {user?.role || 'MEMBER'}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
 
+                                        {/* Holographic security stripe */}
+                                        <div style={{ height: '4px', background: 'linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b, #10b981, #3b82f6)' }} />
+
                                         {/* Card Body */}
-                                        <div className="p-6 relative" style={{ background: 'linear-gradient(to bottom right, #1e293b, #0f172a)' }}>
+                                        <div className="p-6 relative" style={{ background: 'linear-gradient(160deg, #1e293b 0%, #0f172a 50%, #1a1f35 100%)' }}>
                                             {/* QR Code - Absolute Position Top Right */}
-                                            <div ref={qrRef} className="absolute top-4 right-4 bg-white p-1.5 rounded-lg shadow-xl z-10">
+                                            <div ref={qrRef} className="absolute top-4 right-4 bg-white p-2 rounded-xl z-10" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
                                                 <QRCodeCanvas
                                                     value={qrData}
-                                                    size={120} // Adjusted for corner placement
+                                                    size={110}
                                                     level="M"
                                                     includeMargin={true}
+                                                    fgColor="#1e293b"
                                                 />
+                                                <p className="text-center text-[7px] font-semibold uppercase tracking-widest mt-1" style={{ color: '#64748b' }}>Scan to verify</p>
                                             </div>
 
-                                            <div className="flex gap-6">
+                                            <div className="flex gap-5">
                                                 {/* Photo Section */}
-                                                <div className="flex flex-col items-center gap-3">
+                                                <div className="flex flex-col items-center gap-2">
                                                     <div
-                                                        className="w-24 h-24 rounded-xl overflow-hidden"
+                                                        className="w-[88px] h-[88px] rounded-xl overflow-hidden"
                                                         style={{
-                                                            border: '2px solid rgba(59, 130, 246, 0.4)',
-                                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
+                                                            border: '3px solid rgba(59, 130, 246, 0.5)',
+                                                            boxShadow: '0 8px 16px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.1)'
                                                         }}
                                                     >
                                                         {user?.profilePicture ? (
@@ -694,7 +921,7 @@ export default function Profile() {
                                                                 crossOrigin="anonymous"
                                                             />
                                                         ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #9333ea)' }}>
+                                                            <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold" style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)' }}>
                                                                 {user?.name?.charAt(0)?.toUpperCase() || '?'}
                                                             </div>
                                                         )}
@@ -703,32 +930,34 @@ export default function Profile() {
 
                                                 {/* Details */}
                                                 <div className="flex-1 min-w-0">
-                                                    <h2 className="text-white text-xl font-bold truncate">{user?.name}</h2>
-                                                    <span
-                                                        className="inline-block mt-1 px-3 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider"
-                                                        style={roleBadgeStyle(user?.role)}
-                                                    >
-                                                        {user?.role}
-                                                    </span>
+                                                    <h2 className="text-white text-xl font-bold" style={{ letterSpacing: '-0.01em' }}>{user?.name}</h2>
+                                                    {user?.role && user?.role !== 'USER' && (
+                                                        <span
+                                                            className="inline-block mt-1.5 px-3 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider"
+                                                            style={roleBadgeStyle(user?.role)}
+                                                        >
+                                                            {user?.role}
+                                                        </span>
+                                                    )}
 
-                                                    <div className="mt-4 space-y-2">
-                                                        <div className="flex items-center gap-1">
-                                                            <span className="text-xs w-9" style={{ color: '#64748b' }}>Email</span>
-                                                            <span className="text-xs truncate" style={{ color: '#cbd5e1' }}>{user?.email}</span>
+                                                    <div className="mt-4 space-y-2.5">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] font-semibold uppercase tracking-wider w-10" style={{ color: '#475569' }}>Email</span>
+                                                            <span className="text-xs font-medium" style={{ color: '#e2e8f0' }}>{user?.email}</span>
                                                         </div>
                                                         {(user?.phoneNumber || phoneNumber) && (
-                                                            <div className="flex items-center gap-1">
-                                                                <span className="text-xs w-9" style={{ color: '#64748b' }}>Phone</span>
-                                                                <span className="text-xs" style={{ color: '#cbd5e1' }}>{user?.phoneNumber || phoneNumber}</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-semibold uppercase tracking-wider w-10" style={{ color: '#475569' }}>Phone</span>
+                                                                <span className="text-xs font-medium" style={{ color: '#e2e8f0' }}>{user?.phoneNumber || phoneNumber}</span>
                                                             </div>
                                                         )}
-                                                        <div className="flex items-center gap-1">
-                                                            <span className="text-xs w-9" style={{ color: '#64748b' }}>Since</span>
-                                                            <span className="text-xs" style={{ color: '#cbd5e1' }}>{formatDate(user?.createdAt)}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] font-semibold uppercase tracking-wider w-10" style={{ color: '#475569' }}>Since</span>
+                                                            <span className="text-xs font-medium" style={{ color: '#e2e8f0' }}>{formatDate(user?.createdAt)}</span>
                                                         </div>
-                                                        <div className="flex items-center gap-1">
-                                                            <span className="text-xs w-9" style={{ color: '#64748b' }}>ID</span>
-                                                            <span className="text-[10px] font-mono" style={{ color: '#94a3b8' }}>{user?.id}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] font-semibold uppercase tracking-wider w-10" style={{ color: '#475569' }}>ID NO</span>
+                                                            <span className="text-[10px] font-mono font-bold" style={{ color: '#60a5fa' }}>SC-{user?.id?.toString().replace(/^user-?/i, '').toUpperCase()}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -736,40 +965,47 @@ export default function Profile() {
                                         </div>
 
                                         {/* Card Footer */}
-                                        <div className="border-t px-6 py-2" style={{ background: 'rgba(37, 99, 235, 0.1)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
-                                            <p className="text-[10px] text-center font-medium tracking-wide" style={{ color: 'rgba(96, 165, 250, 0.7)' }}>
-                                                Scan QR code to verify identity • Smart Campus © {new Date().getFullYear()}
+                                        <div className="px-6 py-2.5 flex items-center justify-between" style={{ background: 'linear-gradient(90deg, rgba(30,41,59,0.95), rgba(37,99,235,0.15))', borderTop: '1px solid rgba(59, 130, 246, 0.15)' }}>
+                                            <p className="text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: 'rgba(96, 165, 250, 0.8)' }}>
+                                                Smart Campus Official ID
+                                            </p>
+                                            <p className="text-[9px] font-mono font-bold tracking-wide" style={{ color: 'rgba(226, 232, 240, 0.6)' }}>
+                                                SC-{user?.id?.toString().replace(/^user-?/i, '').substring(0, 12)?.toUpperCase()}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-wrap gap-3 mt-6 justify-center">
+                                    {/* Download actions */}
+                                    <div className="flex flex-wrap gap-3 mt-8 justify-center">
                                         <button
                                             onClick={handleDownloadIDCardImage}
-                                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 cursor-pointer"
+                                            className="group flex items-center gap-3 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-blue-600/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 cursor-pointer"
                                         >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                             </svg>
-                                            Download ID as Image
+                                            <span>Download as Image</span>
+                                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/20 tracking-wider">PNG</span>
                                         </button>
                                         <button
                                             onClick={handleDownloadIDCardPDF}
-                                            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-indigo-600/20 hover:-translate-y-0.5 cursor-pointer"
+                                            className="group flex items-center gap-3 px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-violet-500 hover:from-indigo-500 hover:to-violet-400 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-indigo-600/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5 cursor-pointer"
                                         >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                             </svg>
-                                            Download ID as PDF
+                                            <span>Download as Document</span>
+                                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/20 tracking-wider">PDF</span>
                                         </button>
                                         <button
                                             onClick={handleDownloadQR}
-                                            className="flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-semibold text-sm transition-all shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                                            className="group flex items-center gap-3 px-6 py-3.5 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-slate-700/25 hover:shadow-slate-600/40 hover:-translate-y-0.5 cursor-pointer"
                                         >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                                             </svg>
-                                            Download QR Code
+                                            <span>Download QR Only</span>
+                                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/20 tracking-wider">QR</span>
                                         </button>
                                     </div>
                                 </div>
