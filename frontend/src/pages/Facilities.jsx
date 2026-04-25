@@ -329,9 +329,9 @@ function FacilityCard({ facility }) {
                     )}
                 </div>
 
-                {/* Book Now Button */}
-                {canBook && (
-                    <div className="pt-2">
+                {/* Action Button */}
+                <div className="pt-2">
+                    {isActive ? (
                         <Link
                             to={`/bookings/new?facilityId=${facility.id}`}
                             className="inline-flex items-center gap-2 w-full justify-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl text-sm font-medium transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40"
@@ -344,8 +344,13 @@ function FacilityCard({ facility }) {
                             </svg>
                             Book Now
                         </Link>
-                    </div>
-                )}
+                    ) : (
+                        <div className="flex items-center gap-2 w-full justify-center px-4 py-2.5 bg-red-500/10 text-red-500 rounded-xl text-sm font-bold border border-red-500/20 cursor-not-allowed group-hover:bg-red-500/20 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            Out of Service
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
