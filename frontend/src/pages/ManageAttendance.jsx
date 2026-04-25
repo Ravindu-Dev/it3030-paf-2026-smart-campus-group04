@@ -93,9 +93,16 @@ export default function ManageAttendance({ standalone = false }) {
             r.userEmail?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = filterStatus === 'ALL' || r.status === filterStatus;
         
-        // Date filtering
-        const recordDate = r.markedAt ? new Date(r.markedAt).toISOString().split('T')[0] : '';
-        const matchesDate = !filterDate || recordDate === filterDate;
+        // Date filtering - Compare using local date to match date picker value
+        let matchesDate = true;
+        if (filterDate && r.markedAt) {
+            const d = new Date(r.markedAt);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const localRecordDate = `${year}-${month}-${day}`;
+            matchesDate = localRecordDate === filterDate;
+        }
         
         return matchesSearch && matchesStatus && matchesDate;
     });
@@ -133,20 +140,29 @@ export default function ManageAttendance({ standalone = false }) {
                 </div>
 
                 {/* Stats Grid */}
-                {stats && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-                        <StatCard icon={Icons.records} label="Total Records" value={stats.totalRecords} color="blue" />
-                        <StatCard icon={Icons.present} label="Present" value={stats.presentCount} color="emerald" />
-                        <StatCard icon={Icons.late} label="Late" value={stats.lateCount} color="amber" />
-                        <StatCard icon={Icons.absent} label="Absent" value={stats.absentCount} color="red" />
-                        <StatCard 
-                            icon={Icons.rate} 
-                            label="Attendance Rate" 
-                            value={`${stats.attendanceRate}%`} 
-                            color={stats.attendanceRate >= 75 ? 'emerald' : stats.attendanceRate >= 50 ? 'amber' : 'red'} 
-                        />
-                    </div>
-                )}
+                {(() => {
+                    // Calculate dynamic stats from filtered records
+                    const totalFiltered = filtered.length;
+                    const presentFiltered = filtered.filter(r => r.status === 'PRESENT').length;
+                    const lateFiltered = filtered.filter(r => r.status === 'LATE').length;
+                    const absentFiltered = filtered.filter(r => r.status === 'ABSENT').length;
+                    const rateFiltered = totalFiltered > 0 ? Math.round((presentFiltered / totalFiltered) * 100) : 0;
+
+                    return (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                            <StatCard icon={Icons.records} label="Filtered Records" value={totalFiltered} color="blue" />
+                            <StatCard icon={Icons.present} label="Present" value={presentFiltered} color="emerald" />
+                            <StatCard icon={Icons.late} label="Late" value={lateFiltered} color="amber" />
+                            <StatCard icon={Icons.absent} label="Absent" value={absentFiltered} color="red" />
+                            <StatCard 
+                                icon={Icons.rate} 
+                                label="Attendance Rate" 
+                                value={`${rateFiltered}%`} 
+                                color={rateFiltered >= 75 ? 'emerald' : rateFiltered >= 50 ? 'amber' : 'red'} 
+                            />
+                        </div>
+                    );
+                })()}
 
                 {/* Filters & Search Card */}
                 <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800/60 rounded-3xl p-5 mb-8">
