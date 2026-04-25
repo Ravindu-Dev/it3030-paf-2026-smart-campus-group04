@@ -73,13 +73,9 @@ export default function ManageTransport() {
     };
 
     const copyTrackingLink = (token) => {
-        let origin = window.location.origin;
-        if (origin.includes('localhost')) {
-            origin = 'http://10.150.118.172:5173';
-        }
-        const link = `${origin}/track/${token}`;
+        const link = `${window.location.origin}/track/${token}`;
         navigator.clipboard.writeText(link);
-        toast.success('Network tracking link copied! Send to driver phone.');
+        toast.success('Tracking link copied! Send to driver.');
     };
 
     const openNewShuttle = () => {
