@@ -272,25 +272,11 @@ export default function ManageFacilities({ standalone = false }) {
         <div className={standalone ? "" : "min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900"}>
             <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${standalone ? "py-0" : "py-8"}`}>
                 {/* Header */}
-                {standalone ? (
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-white">Manage Facilities</h2>
-                        <button
-                            onClick={openCreateModal}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-500/40 text-sm cursor-pointer"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M5 12h14" />
-                                <path d="M12 5v14" />
-                            </svg>
-                            Add Facility
-                        </button>
-                    </div>
-                ) : (
+                {!standalone && (
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <Link to="/facilities" className="text-slate-400 hover:text-white transition-colors">
+                            <Link to={standalone ? "/dashboard" : "/facilities"} className="text-slate-400 hover:text-white transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="m12 19-7-7 7-7" />
                                     <path d="M19 12H5" />
