@@ -68,7 +68,15 @@ export default function Profile() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [activeTab, setActiveTab] = useState(location.state?.tab || 'profile');
+    const [activeTab, setActiveTabState] = useState(
+        location.state?.tab || sessionStorage.getItem('profileActiveTab') || 'profile'
+    );
+
+    /* ── Persist active tab to sessionStorage ── */
+    const setActiveTab = (tab) => {
+        setActiveTabState(tab);
+        sessionStorage.setItem('profileActiveTab', tab);
+    };
 
     /* ── See More pagination ────────── */
     const [attendanceVisible, setAttendanceVisible] = useState(6);
@@ -87,7 +95,7 @@ export default function Profile() {
     useEffect(() => {
         if (location.state?.tab) {
             setActiveTab(location.state.tab);
-            // Optional: clear state so refresh doesn't force the tab if the user navigated away
+            // Clear state so refresh doesn't force the tab if the user navigated away
             window.history.replaceState({}, document.title);
         }
     }, [location.state?.tab]);
