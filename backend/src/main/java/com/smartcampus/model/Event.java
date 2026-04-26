@@ -37,6 +37,8 @@ public class Event {
     
     private String createdBy; // User ID of the admin who created the event
     
+    private boolean reminderSent = false; // Flag to prevent duplicate reminders
+
     @CreatedDate
     private LocalDateTime createdAt;
 }

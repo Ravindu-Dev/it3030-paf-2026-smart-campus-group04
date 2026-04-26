@@ -14,5 +14,7 @@ import java.util.List;
 @Repository
 public interface EventRepository extends MongoRepository<Event, String> {
     List<Event> findByStatus(EventStatus status);
+    List<Event> findByStatusIn(List<EventStatus> statuses);
     List<Event> findByEventDateAfter(LocalDate date);
+    List<Event> findByStatusAndReminderSentFalse(EventStatus status);
 }
