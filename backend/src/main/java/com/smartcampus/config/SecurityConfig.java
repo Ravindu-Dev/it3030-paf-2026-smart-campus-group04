@@ -68,6 +68,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/routes", "/routes/**").permitAll()
                         .requestMatchers("/shuttles/track/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/transport-announcements/active").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/events", "/events/**").permitAll()
 
                         // Everything else requires authentication
                         .anyRequest().authenticated())
