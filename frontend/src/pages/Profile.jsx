@@ -13,9 +13,20 @@ import { jsPDF } from 'jspdf';
 /* ── Tiny helper ─────────────────────────────────────────────────────── */
 function formatDate(dateStr) {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    // If it's just a date (YYYY-MM-DD), append time to avoid timezone shifts
+    const d = dateStr.includes('T') ? new Date(dateStr) : new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric',
     });
+}
+
+function formatTime(timeStr) {
+    if (!timeStr) return '';
+    const [h, m] = timeStr.split(':');
+    const hour = parseInt(h);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${m} ${ampm}`;
 }
 
 function roleBadgeColor(role) {
@@ -1185,7 +1196,7 @@ export default function Profile() {
                                                             {booking.facilityName || 'Facility Booking'}
                                                         </p>
                                                         <p className="text-slate-500 text-xs mt-0.5">
-                                                            {formatDate(booking.startTime)} → {formatDate(booking.endTime)}
+                                                            {formatDate(booking.bookingDate)} • {formatTime(booking.startTime)} → {formatTime(booking.endTime)}
                                                         </p>
                                                     </div>
                                                     <span className={`ml-3 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusBadge(booking.status)} whitespace-nowrap`}>
