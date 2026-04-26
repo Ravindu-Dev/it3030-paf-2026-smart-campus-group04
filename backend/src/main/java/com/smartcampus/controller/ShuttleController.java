@@ -8,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 
 /**
@@ -23,6 +26,7 @@ import java.util.List;
 @RequestMapping("/shuttles")
 public class ShuttleController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ShuttleController.class);
     private final ShuttleService shuttleService;
 
     public ShuttleController(ShuttleService shuttleService) {
@@ -36,6 +40,7 @@ public class ShuttleController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<ShuttleDto>>> getAllShuttles() {
+        logger.info("Fetching all shuttles");
         return ResponseEntity.ok(ApiResponse.success("Shuttles retrieved", shuttleService.getAllShuttles()));
     }
 
@@ -47,6 +52,7 @@ public class ShuttleController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ShuttleDto>> getShuttleById(@PathVariable String id) {
+        logger.info("Fetching details for shuttle id: {}", id);
         return ResponseEntity.ok(ApiResponse.success("Shuttle retrieved", shuttleService.getShuttleById(id)));
     }
 
@@ -60,6 +66,7 @@ public class ShuttleController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ShuttleDto>> createShuttle(@Valid @RequestBody CreateShuttleRequest request) {
+        logger.info("Admin creating new shuttle with plate number: {}", request.getPlateNumber());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Shuttle created", shuttleService.createShuttle(request)));
     }
@@ -76,6 +83,7 @@ public class ShuttleController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ShuttleDto>> updateShuttle(@PathVariable String id,
             @Valid @RequestBody UpdateShuttleRequest request) {
+        logger.info("Admin updating shuttle id: {}", id);
         return ResponseEntity.ok(ApiResponse.success("Shuttle updated", shuttleService.updateShuttle(id, request)));
     }
 
@@ -89,6 +97,7 @@ public class ShuttleController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteShuttle(@PathVariable String id) {
+        logger.info("Admin deleting shuttle id: {}", id);
         shuttleService.deleteShuttle(id);
         return ResponseEntity.ok(ApiResponse.success("Shuttle deleted"));
     }
@@ -118,6 +127,7 @@ public class ShuttleController {
     @PatchMapping("/track/{token}")
     public ResponseEntity<ApiResponse<ShuttleDto>> updateLocation(@PathVariable String token,
             @Valid @RequestBody UpdateShuttleLocationRequest request) {
+        logger.debug("Received location update for token: {}", token);
         return ResponseEntity
                 .ok(ApiResponse.success("Location updated", shuttleService.updateLocationByToken(token, request)));
     }
