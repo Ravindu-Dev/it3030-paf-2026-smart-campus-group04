@@ -10,6 +10,13 @@ const STATUS_OPTIONS = [
     { value: 'CANCELLED', label: 'Cancelled' },
 ];
 
+const TYPE_OPTIONS = [
+    { value: 'EVENT', label: 'Event', color: 'bg-blue-500/10 text-blue-400' },
+    { value: 'VIVA', label: 'Viva', color: 'bg-purple-500/10 text-purple-400' },
+    { value: 'LAB', label: 'Lab', color: 'bg-orange-500/10 text-orange-400' },
+    { value: 'MEETING', label: 'Meeting', color: 'bg-pink-500/10 text-pink-400' },
+];
+
 const emptyForm = {
     title: '',
     description: '',
@@ -19,6 +26,7 @@ const emptyForm = {
     endTime: '17:00',
     capacity: 100,
     imageUrl: '',
+    type: 'EVENT',
     status: 'UPCOMING',
 };
 
@@ -34,6 +42,7 @@ export default function ManageEvents({ standalone = false }) {
     const [uploading, setUploading] = useState(false);
     const [imagePreview, setImagePreview] = useState('');
     const [visibleEvents, setVisibleEvents] = useState(6);
+    const [filterType, setFilterType] = useState('ALL');
     const fileInputRef = useRef(null);
 
     const fetchEvents = async () => {
@@ -71,6 +80,7 @@ export default function ManageEvents({ standalone = false }) {
             endTime: event.endTime || '17:00',
             capacity: event.capacity || 100,
             imageUrl: event.imageUrl || '',
+            type: event.type || 'EVENT',
             status: event.status || 'UPCOMING',
         });
         setImagePreview(event.imageUrl || '');
@@ -131,6 +141,8 @@ export default function ManageEvents({ standalone = false }) {
         }
     };
 
+    const filteredEvents = events.filter(e => filterType === 'ALL' || e.type === filterType);
+
     return (
         <div className={standalone ? "" : "min-h-screen bg-slate-900 py-8 px-4"}>
             <div className="max-w-7xl mx-auto">
@@ -147,6 +159,26 @@ export default function ManageEvents({ standalone = false }) {
                     </button>
                 </div>
 
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-3 mb-6">
+                    <button 
+                        onClick={() => setFilterType('ALL')}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterType === 'ALL' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+                    >
+                        All Types
+                    </button>
+                    {TYPE_OPTIONS.map(opt => (
+                        <button 
+                            key={opt.value}
+                            onClick={() => setFilterType(opt.value)}
+                            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterType === opt.value ? opt.color.replace('bg-', 'bg-opacity-100 ').split(' ')[0] + ' text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+                            style={filterType === opt.value ? { backgroundColor: opt.value === 'EVENT' ? '#2563eb' : opt.value === 'VIVA' ? '#9333ea' : opt.value === 'LAB' ? '#ea580c' : '#db2777' } : {}}
+                        >
+                            {opt.label}
+                        </button>
+                    ))}
+                </div>
+
                 {loading ? (
                     <div className="flex justify-center py-20">
                         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -157,6 +189,7 @@ export default function ManageEvents({ standalone = false }) {
                             <thead>
                                 <tr className="border-b border-slate-700/50 text-slate-400 font-medium">
                                     <th className="px-6 py-4">Event</th>
+                                    <th className="px-6 py-4">Type</th>
                                     <th className="px-6 py-4">Date & Time</th>
                                     <th className="px-6 py-4">Location</th>
                                     <th className="px-6 py-4">Participants</th>
@@ -165,10 +198,15 @@ export default function ManageEvents({ standalone = false }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-700/30">
-                                {events.slice(0, visibleEvents).map(event => (
+                                {filteredEvents.slice(0, visibleEvents).map(event => (
                                     <tr key={event.id} className="hover:bg-slate-700/20 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="font-semibold text-white">{event.title}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${TYPE_OPTIONS.find(o => o.value === event.type)?.color || 'bg-slate-500/10 text-slate-400'}`}>
+                                                {event.type}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 text-slate-300">
                                             {event.eventDate} <br />
@@ -202,16 +240,16 @@ export default function ManageEvents({ standalone = false }) {
                             </tbody>
                         </table>
 
-                        {events.length > 6 && (
+                        {filteredEvents.length > 6 && (
                             <div className="relative pt-10 pb-6 bg-slate-800/40 border-t border-slate-700/30">
-                                {visibleEvents < events.length && (
+                                {visibleEvents < filteredEvents.length && (
                                     <div className="absolute top-0 left-0 right-0 h-24 bg-linear-to-t from-slate-900/80 to-transparent pointer-events-none -translate-y-full" />
                                 )}
                                 <div className="flex flex-col items-center gap-4">
                                     <div className="flex items-center gap-1.5 p-1 bg-slate-900/40 border border-slate-800/60 rounded-2xl backdrop-blur-xl shadow-2xl">
-                                        {visibleEvents < events.length ? (
+                                        {visibleEvents < filteredEvents.length ? (
                                             <button 
-                                                onClick={() => setVisibleEvents(prev => Math.min(prev + 6, events.length))}
+                                                onClick={() => setVisibleEvents(prev => Math.min(prev + 6, filteredEvents.length))}
                                                 className="group flex items-center gap-2.5 px-6 py-2.5 bg-white/3 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] cursor-pointer"
                                             >
                                                 <span>View More Events</span>
@@ -232,9 +270,9 @@ export default function ManageEvents({ standalone = false }) {
                                         )}
                                         <div className="h-4 w-px bg-slate-800 mx-1" />
                                         <div className="px-4 py-1 flex items-center gap-2 font-mono">
-                                            <span className="text-white text-xs font-bold">{Math.min(visibleEvents, events.length)}</span>
+                                            <span className="text-white text-xs font-bold">{Math.min(visibleEvents, filteredEvents.length)}</span>
                                             <span className="text-slate-600 text-[10px] font-black uppercase tracking-tighter">/</span>
-                                            <span className="text-slate-500 text-xs font-medium">{events.length}</span>
+                                            <span className="text-slate-500 text-xs font-medium">{filteredEvents.length}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -261,6 +299,19 @@ export default function ManageEvents({ standalone = false }) {
                                         <label className="block text-slate-400 text-sm font-medium mb-1.5">Location</label>
                                         <input required className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
                                             value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-slate-400 text-sm font-medium mb-1.5">Event Type</label>
+                                        <select 
+                                            required
+                                            className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none cursor-pointer"
+                                            value={form.type} 
+                                            onChange={e => setForm({ ...form, type: e.target.value })}
+                                        >
+                                            {TYPE_OPTIONS.map(opt => (
+                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
