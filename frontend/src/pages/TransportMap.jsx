@@ -23,21 +23,24 @@ const darkMapStyle = [
 ];
 
 // Top-down Bus Icon — best for rotation and 'live' feel
-function createBusIconUrl(color = '#3b82f6') {
+function createBusIconUrl(color = '#3b82f6', heading = 0) {
+    const finalColor = color || '#3b82f6';
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-    <!-- Pulsing Background -->
-    <circle cx="24" cy="24" r="22" fill="${color}" fill-opacity="0.1">
-      <animate attributeName="r" values="18;24;18" dur="1.5s" repeatCount="indefinite" />
-      <animate attributeName="fill-opacity" values="0.2;0.05;0.2" dur="1.5s" repeatCount="indefinite" />
-    </circle>
-    <!-- Top-down Bus Body -->
-    <rect x="18" y="10" width="12" height="28" rx="3" fill="${color}" stroke="white" stroke-width="2" />
-    <!-- Windshield (Front) -->
-    <rect x="19.5" y="12" width="9" height="4" rx="1" fill="white" fill-opacity="0.8" />
-    <!-- Rear Window -->
-    <rect x="20" y="35" width="8" height="1.5" rx="0.5" fill="white" fill-opacity="0.4" />
-    <!-- Roof details -->
-    <rect x="21" y="20" width="6" height="10" rx="1" fill="white" fill-opacity="0.2" />
+    <g transform="rotate(${heading} 24 24)">
+        <!-- Pulsing Background -->
+        <circle cx="24" cy="24" r="22" fill="${finalColor}" fill-opacity="0.1">
+          <animate attributeName="r" values="18;24;18" dur="1.5s" repeatCount="indefinite" />
+          <animate attributeName="fill-opacity" values="0.2;0.05;0.2" dur="1.5s" repeatCount="indefinite" />
+        </circle>
+        <!-- Top-down Bus Body -->
+        <rect x="18" y="10" width="12" height="28" rx="3" fill="${finalColor}" stroke="white" stroke-width="2" />
+        <!-- Windshield (Front) -->
+        <rect x="19.5" y="12" width="9" height="4" rx="1" fill="white" fill-opacity="0.8" />
+        <!-- Rear Window -->
+        <rect x="20" y="35" width="8" height="1.5" rx="0.5" fill="white" fill-opacity="0.4" />
+        <!-- Roof details -->
+        <rect x="21" y="20" width="6" height="10" rx="1" fill="white" fill-opacity="0.2" />
+    </g>
   </svg>`;
     return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
@@ -73,7 +76,7 @@ export function ShuttleMap({ height = '600px', showControls = true, compact = fa
         return () => clearInterval(interval);
     }, [fetchData]);
 
-    const activeShuttles = shuttles.filter(s => s.tracking && s.currentLatitude);
+    const activeShuttles = shuttles.filter(s => s.tracking && s.currentLatitude && s.currentLongitude);
 
     if (!isLoaded) {
         return (
@@ -115,14 +118,14 @@ export function ShuttleMap({ height = '600px', showControls = true, compact = fa
                         <Marker
                             key={`${route.id}-stop-${i}`}
                             position={{ lat: stop.latitude, lng: stop.longitude }}
-                            icon={{
+                            icon={window.google ? {
                                 path: window.google.maps.SymbolPath.CIRCLE,
                                 scale: compact ? 4 : 6,
-                                fillColor: route.color,
+                                fillColor: route.color || '#3b82f6',
                                 fillOpacity: 1,
                                 strokeColor: '#0f172a',
                                 strokeWeight: 2,
-                            }}
+                            } : null}
                             title={stop.name}
                         />
                     ))
@@ -136,10 +139,9 @@ export function ShuttleMap({ height = '600px', showControls = true, compact = fa
                             key={shuttle.id}
                             position={{ lat: shuttle.currentLatitude, lng: shuttle.currentLongitude }}
                             icon={{
-                                url: createBusIconUrl(shuttleRoute?.color),
-                                scaledSize: new window.google.maps.Size(compact ? 36 : 48, compact ? 36 : 48),
-                                anchor: new window.google.maps.Point(compact ? 18 : 24, compact ? 18 : 24),
-                                rotation: shuttle.heading || 0,
+                                url: createBusIconUrl(shuttleRoute?.color, shuttle.heading),
+                                scaledSize: window.google ? new window.google.maps.Size(compact ? 36 : 48, compact ? 36 : 48) : null,
+                                anchor: window.google ? new window.google.maps.Point(compact ? 18 : 24, compact ? 18 : 24) : null,
                             }}
                             onClick={() => setSelectedShuttle(shuttle)}
                         />
@@ -224,7 +226,12 @@ export default function TransportMap() {
     };
 
     const filteredRoutes = selectedRoute ? routes.filter(r => r.id === selectedRoute) : routes;
-    const activeShuttles = shuttles.filter(s => s.tracking && s.currentLatitude);
+    
+    // For map: only those with live GPS
+    const activeShuttlesOnMap = shuttles.filter(s => s.tracking && s.currentLatitude && s.currentLongitude);
+    
+    // For sidebar: all shuttles (to avoid confusion when adding new ones)
+    const sortedShuttles = [...shuttles].sort((a, b) => (b.tracking === a.tracking) ? 0 : a.tracking ? -1 : 1);
 
     if (!isLoaded) {
         return (
@@ -309,19 +316,24 @@ export default function TransportMap() {
                             {routes.length === 0 && <p className="text-slate-500 text-xs text-center py-4">No routes yet</p>}
                         </div>
 
-                        {/* Live shuttles count */}
+                        {/* All shuttles list */}
                         <div className="bg-slate-800 rounded-xl p-3 border border-slate-700">
                             <div className="flex items-center gap-2 mb-2">
-                                <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
-                                <span className="text-xs font-bold text-slate-300">{activeShuttles.length} Shuttles Live</span>
+                                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                                <span className="text-xs font-bold text-slate-300">Campus Shuttles ({shuttles.length})</span>
                             </div>
-                            {activeShuttles.map(s => (
-                                <div key={s.id} className="flex items-center justify-between py-1.5 border-t border-slate-700/50 text-xs">
-                                    <span className="font-medium text-slate-200">{s.name}</span>
-                                    <span className="text-slate-400 font-mono">{s.plateNumber}</span>
-                                </div>
-                            ))}
-                            {activeShuttles.length === 0 && <p className="text-slate-500 text-xs">No shuttles online</p>}
+                            <div className="space-y-1.5 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+                                {sortedShuttles.map(s => (
+                                    <div key={s.id} className="flex items-center justify-between py-1.5 border-t border-slate-700/50 text-[11px]">
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.tracking ? 'bg-green-500 animate-pulse' : 'bg-slate-600'}`}></div>
+                                            <span className={`font-medium truncate ${s.tracking ? 'text-slate-100' : 'text-slate-500'}`}>{s.name}</span>
+                                        </div>
+                                        <span className="text-slate-600 font-mono shrink-0">{s.plateNumber}</span>
+                                    </div>
+                                ))}
+                                {shuttles.length === 0 && <p className="text-slate-500 text-[10px] text-center py-2">No shuttles yet</p>}
+                            </div>
                         </div>
                     </div>
 
@@ -355,30 +367,29 @@ export default function TransportMap() {
                                     <Marker
                                         key={`${route.id}-stop-${i}`}
                                         position={{ lat: stop.latitude, lng: stop.longitude }}
-                                        icon={{
+                                        icon={window.google ? {
                                             path: window.google.maps.SymbolPath.CIRCLE,
                                             scale: 6,
-                                            fillColor: route.color,
+                                            fillColor: route.color || '#3b82f6',
                                             fillOpacity: 1,
                                             strokeColor: '#0f172a',
                                             strokeWeight: 2,
-                                        }}
+                                        } : null}
                                         title={stop.name}
                                     />
                                 ))
                             )}
 
-                            {activeShuttles.map(shuttle => {
+                            {activeShuttlesOnMap.map(shuttle => {
                                 const shuttleRoute = routes.find(r => r.id === shuttle.routeId);
                                 return (
                                     <Marker
                                         key={shuttle.id}
                                         position={{ lat: shuttle.currentLatitude, lng: shuttle.currentLongitude }}
                                         icon={{
-                                            url: createBusIconUrl(shuttleRoute?.color),
-                                            scaledSize: new window.google.maps.Size(48, 48),
-                                            anchor: new window.google.maps.Point(24, 24),
-                                            rotation: shuttle.heading || 0,
+                                            url: createBusIconUrl(shuttleRoute?.color, shuttle.heading),
+                                            scaledSize: window.google ? new window.google.maps.Size(48, 48) : null,
+                                            anchor: window.google ? new window.google.maps.Point(24, 24) : null,
                                         }}
                                         onClick={() => setSelectedShuttle(shuttle)}
                                     />
