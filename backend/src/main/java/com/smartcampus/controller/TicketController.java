@@ -41,242 +41,242 @@ import java.util.List;
 @RequestMapping("/tickets")
 public class TicketController {
 
-    private final TicketService ticketService;
+        private final TicketService ticketService;
 
-    public TicketController(TicketService ticketService) {
-        this.ticketService = ticketService;
-    }
-
-    // ─── Helper ───────────────────────────────────────────────────────
-
-    private String getUserId(Authentication authentication) {
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof User) {
-            return ((User) principal).getId();
+        public TicketController(TicketService ticketService) {
+                this.ticketService = ticketService;
         }
-        return authentication.getName();
-    }
 
-    private User getUser(Authentication authentication) {
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof User) {
-            return (User) principal;
+        // ─── Helper ───────────────────────────────────────────────────────
+
+        private String getUserId(Authentication authentication) {
+                Object principal = authentication.getPrincipal();
+                if (principal instanceof User) {
+                        return ((User) principal).getId();
+                }
+                return authentication.getName();
         }
-        return null;
-    }
 
-    // ─── Ticket Endpoints ─────────────────────────────────────────────
+        private User getUser(Authentication authentication) {
+                Object principal = authentication.getPrincipal();
+                if (principal instanceof User) {
+                        return (User) principal;
+                }
+                return null;
+        }
 
-    /**
-     * POST /api/tickets — Create a new ticket.
-     */
-    @PostMapping
-    public ResponseEntity<ApiResponse<TicketDto>> createTicket(
-            @Valid @RequestBody CreateTicketRequest request,
-            Authentication authentication) {
+        // ─── Ticket Endpoints ─────────────────────────────────────────────
 
-        String userId = getUserId(authentication);
-        TicketDto created = ticketService.createTicket(request, userId);
+        /**
+         * POST /api/tickets — Create a new ticket.
+         */
+        @PostMapping
+        public ResponseEntity<ApiResponse<TicketDto>> createTicket(
+                        @Valid @RequestBody CreateTicketRequest request,
+                        Authentication authentication) {
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Ticket created successfully", created));
-    }
+                String userId = getUserId(authentication);
+                TicketDto created = ticketService.createTicket(request, userId);
 
-    /**
-     * GET /api/tickets/my — Get the current user's tickets.
-     */
-    @GetMapping("/my")
-    public ResponseEntity<ApiResponse<List<TicketDto>>> getMyTickets(
-            Authentication authentication) {
+                return ResponseEntity
+                                .status(HttpStatus.CREATED) // 201 created
+                                .body(ApiResponse.success("Ticket created successfully", created));
+        }
 
-        String userId = getUserId(authentication);
-        List<TicketDto> tickets = ticketService.getUserTickets(userId);
+        /**
+         * GET /api/tickets/my — Get the current user's tickets.
+         */
+        @GetMapping("/my")
+        public ResponseEntity<ApiResponse<List<TicketDto>>> getMyTickets(
+                        Authentication authentication) {
 
-        return ResponseEntity.ok(
-                ApiResponse.success("User tickets retrieved successfully", tickets));
-    }
+                String userId = getUserId(authentication);
+                List<TicketDto> tickets = ticketService.getUserTickets(userId);
 
-    /**
-     * GET /api/tickets — Get all tickets (admin/manager only).
-     * Supports optional filters: ?status=OPEN&priority=HIGH
-     */
-    @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<ApiResponse<List<TicketDto>>> getAllTickets(
-            @RequestParam(name = "status", required = false) TicketStatus status,
-            @RequestParam(name = "priority", required = false) TicketPriority priority) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("User tickets retrieved successfully", tickets)); // 200 ok
+        }
 
-        List<TicketDto> tickets = ticketService.getAllTickets(status, priority);
+        /**
+         * GET /api/tickets — Get all tickets (admin/manager only).
+         * Supports optional filters: ?status=OPEN&priority=HIGH
+         */
+        @GetMapping
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+        public ResponseEntity<ApiResponse<List<TicketDto>>> getAllTickets(
+                        @RequestParam(name = "status", required = false) TicketStatus status,
+                        @RequestParam(name = "priority", required = false) TicketPriority priority) {
 
-        return ResponseEntity.ok(
-                ApiResponse.success("All tickets retrieved successfully", tickets));
-    }
+                List<TicketDto> tickets = ticketService.getAllTickets(status, priority);
 
-    /**
-     * GET /api/tickets/{id} — Get a single ticket by ID.
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<TicketDto>> getTicketById(
-            @PathVariable(name = "id") String id) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("All tickets retrieved successfully", tickets));
+        }
 
-        TicketDto ticket = ticketService.getTicketById(id);
+        /**
+         * GET /api/tickets/{id} — Get a single ticket by ID.
+         */
+        @GetMapping("/{id}")
+        public ResponseEntity<ApiResponse<TicketDto>> getTicketById(
+                        @PathVariable(name = "id") String id) {
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Ticket retrieved successfully", ticket));
-    }
+                TicketDto ticket = ticketService.getTicketById(id);
 
-    /**
-     * GET /api/tickets/technician — Get tickets assigned to the current technician.
-     */
-    @GetMapping("/technician")
-    @PreAuthorize("hasRole('TECHNICIAN')")
-    public ResponseEntity<ApiResponse<List<TicketDto>>> getTechnicianTickets(
-            Authentication authentication) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("Ticket retrieved successfully", ticket));
+        }
 
-        String techId = getUserId(authentication);
-        List<TicketDto> tickets = ticketService.getTicketsByTechnician(techId);
+        /**
+         * GET /api/tickets/technician — Get tickets assigned to the current technician.
+         */
+        @GetMapping("/technician")
+        @PreAuthorize("hasRole('TECHNICIAN')")
+        public ResponseEntity<ApiResponse<List<TicketDto>>> getTechnicianTickets(
+                        Authentication authentication) {
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Technician tickets retrieved successfully", tickets));
-    }
+                String techId = getUserId(authentication);
+                List<TicketDto> tickets = ticketService.getTicketsByTechnician(techId);
 
-    /**
-     * PATCH /api/tickets/{id}/assign — Assign a technician to a ticket.
-     * Restricted to ADMIN and MANAGER roles.
-     */
-    @PatchMapping("/{id}/assign")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<ApiResponse<TicketDto>> assignTechnician(
-            @PathVariable(name = "id") String id,
-            @Valid @RequestBody AssignTechnicianRequest request,
-            Authentication authentication) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("Technician tickets retrieved successfully", tickets));
+        }
 
-        String assignerId = getUserId(authentication);
-        TicketDto updated = ticketService.assignTechnician(id, request, assignerId);
+        /**
+         * PATCH /api/tickets/{id}/assign — Assign a technician to a ticket.
+         * Restricted to ADMIN and MANAGER roles.
+         */
+        @PatchMapping("/{id}/assign")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+        public ResponseEntity<ApiResponse<TicketDto>> assignTechnician(
+                        @PathVariable(name = "id") String id,
+                        @Valid @RequestBody AssignTechnicianRequest request,
+                        Authentication authentication) {
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Technician assigned successfully", updated));
-    }
+                String assignerId = getUserId(authentication);
+                TicketDto updated = ticketService.assignTechnician(id, request, assignerId);
 
-    /**
-     * PATCH /api/tickets/{id}/status — Update ticket status.
-     * Allowed for ADMIN and TECHNICIAN roles.
-     */
-    @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
-    public ResponseEntity<ApiResponse<TicketDto>> updateTicketStatus(
-            @PathVariable(name = "id") String id,
-            @RequestParam(name = "newStatus") TicketStatus newStatus,
-            @RequestBody(required = false) UpdateTicketStatusRequest request,
-            Authentication authentication) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("Technician assigned successfully", updated));
+        }
 
-        String userId = getUserId(authentication);
-        TicketDto updated = ticketService.updateStatus(id, newStatus, request, userId);
+        /**
+         * PATCH /api/tickets/{id}/status — Update ticket status.
+         * Allowed for ADMIN and TECHNICIAN roles.
+         */
+        @PatchMapping("/{id}/status")
+        @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
+        public ResponseEntity<ApiResponse<TicketDto>> updateTicketStatus(
+                        @PathVariable(name = "id") String id,
+                        @RequestParam(name = "newStatus") TicketStatus newStatus,
+                        @RequestBody(required = false) UpdateTicketStatusRequest request,
+                        Authentication authentication) {
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Ticket status updated successfully", updated));
-    }
+                String userId = getUserId(authentication);
+                TicketDto updated = ticketService.updateStatus(id, newStatus, request, userId);
 
-    /**
-     * PATCH /api/tickets/{id}/reject — Reject a ticket.
-     * Restricted to ADMIN role.
-     */
-    @PatchMapping("/{id}/reject")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<ApiResponse<TicketDto>> rejectTicket(
-            @PathVariable(name = "id") String id,
-            @RequestBody UpdateTicketStatusRequest request,
-            Authentication authentication) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("Ticket status updated successfully", updated));
+        }
 
-        String adminId = getUserId(authentication);
-        TicketDto rejected = ticketService.rejectTicket(id, request, adminId);
+        /**
+         * PATCH /api/tickets/{id}/reject — Reject a ticket.
+         * Restricted to ADMIN role.
+         */
+        @PatchMapping("/{id}/reject")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+        public ResponseEntity<ApiResponse<TicketDto>> rejectTicket(
+                        @PathVariable(name = "id") String id,
+                        @RequestBody UpdateTicketStatusRequest request,
+                        Authentication authentication) {
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Ticket rejected successfully", rejected));
-    }
+                String adminId = getUserId(authentication);
+                TicketDto rejected = ticketService.rejectTicket(id, request, adminId);
 
-    /**
-     * DELETE /api/tickets/{id} — Delete a ticket.
-     * Restricted to ADMIN role.
-     */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<ApiResponse<Void>> deleteTicket(
-            @PathVariable(name = "id") String id) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("Ticket rejected successfully", rejected));
+        }
 
-        ticketService.deleteTicket(id);
+        /**
+         * DELETE /api/tickets/{id} — Delete a ticket.
+         * Restricted to ADMIN role.
+         */
+        @DeleteMapping("/{id}")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+        public ResponseEntity<ApiResponse<Void>> deleteTicket(
+                        @PathVariable(name = "id") String id) {
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Ticket deleted successfully"));
-    }
+                ticketService.deleteTicket(id);
 
-    // ─── Comment Endpoints ────────────────────────────────────────────
+                return ResponseEntity.ok(
+                                ApiResponse.success("Ticket deleted successfully"));
+        }
 
-    /**
-     * POST /api/tickets/{id}/comments — Add a comment to a ticket.
-     */
-    @PostMapping("/{id}/comments")
-    public ResponseEntity<ApiResponse<TicketCommentDto>> addComment(
-            @PathVariable(name = "id") String ticketId,
-            @Valid @RequestBody CreateCommentRequest request,
-            Authentication authentication) {
+        // ─── Comment Endpoints ────────────────────────────────────────────
 
-        String userId = getUserId(authentication);
-        TicketCommentDto comment = ticketService.addComment(ticketId, request, userId);
+        /**
+         * POST /api/tickets/{id}/comments — Add a comment to a ticket.
+         */
+        @PostMapping("/{id}/comments")
+        public ResponseEntity<ApiResponse<TicketCommentDto>> addComment(
+                        @PathVariable(name = "id") String ticketId,
+                        @Valid @RequestBody CreateCommentRequest request,
+                        Authentication authentication) {
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Comment added successfully", comment));
-    }
+                String userId = getUserId(authentication);
+                TicketCommentDto comment = ticketService.addComment(ticketId, request, userId);
 
-    /**
-     * GET /api/tickets/{id}/comments — Get all comments for a ticket.
-     */
-    @GetMapping("/{id}/comments")
-    public ResponseEntity<ApiResponse<List<TicketCommentDto>>> getComments(
-            @PathVariable(name = "id") String ticketId) {
+                return ResponseEntity
+                                .status(HttpStatus.CREATED)
+                                .body(ApiResponse.success("Comment added successfully", comment));
+        }
 
-        List<TicketCommentDto> comments = ticketService.getComments(ticketId);
+        /**
+         * GET /api/tickets/{id}/comments — Get all comments for a ticket.
+         */
+        @GetMapping("/{id}/comments")
+        public ResponseEntity<ApiResponse<List<TicketCommentDto>>> getComments(
+                        @PathVariable(name = "id") String ticketId) {
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Comments retrieved successfully", comments));
-    }
+                List<TicketCommentDto> comments = ticketService.getComments(ticketId);
 
-    /**
-     * PUT /api/tickets/{id}/comments/{commentId} — Edit a comment (owner only).
-     */
-    @PutMapping("/{id}/comments/{commentId}")
-    public ResponseEntity<ApiResponse<TicketCommentDto>> updateComment(
-            @PathVariable(name = "id") String ticketId,
-            @PathVariable(name = "commentId") String commentId,
-            @Valid @RequestBody CreateCommentRequest request,
-            Authentication authentication) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("Comments retrieved successfully", comments));
+        }
 
-        String userId = getUserId(authentication);
-        TicketCommentDto updated = ticketService.updateComment(commentId, request, userId);
+        /**
+         * PUT /api/tickets/{id}/comments/{commentId} — Edit a comment (owner only).
+         */
+        @PutMapping("/{id}/comments/{commentId}")
+        public ResponseEntity<ApiResponse<TicketCommentDto>> updateComment(
+                        @PathVariable(name = "id") String ticketId,
+                        @PathVariable(name = "commentId") String commentId,
+                        @Valid @RequestBody CreateCommentRequest request,
+                        Authentication authentication) {
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Comment updated successfully", updated));
-    }
+                String userId = getUserId(authentication);
+                TicketCommentDto updated = ticketService.updateComment(commentId, request, userId);
 
-    /**
-     * DELETE /api/tickets/{id}/comments/{commentId} — Delete a comment (owner or
-     * admin).
-     */
-    @DeleteMapping("/{id}/comments/{commentId}")
-    public ResponseEntity<ApiResponse<Void>> deleteComment(
-            @PathVariable(name = "id") String ticketId,
-            @PathVariable(name = "commentId") String commentId,
-            Authentication authentication) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("Comment updated successfully", updated));
+        }
 
-        User user = getUser(authentication);
-        String userId = user != null ? user.getId() : getUserId(authentication);
-        Role userRole = user != null ? user.getRole() : Role.USER;
+        /**
+         * DELETE /api/tickets/{id}/comments/{commentId} — Delete a comment (owner or
+         * admin).
+         */
+        @DeleteMapping("/{id}/comments/{commentId}")
+        public ResponseEntity<ApiResponse<Void>> deleteComment(
+                        @PathVariable(name = "id") String ticketId,
+                        @PathVariable(name = "commentId") String commentId,
+                        Authentication authentication) {
 
-        ticketService.deleteComment(commentId, userId, userRole);
+                User user = getUser(authentication);
+                String userId = user != null ? user.getId() : getUserId(authentication);
+                Role userRole = user != null ? user.getRole() : Role.USER;
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Comment deleted successfully"));
-    }
+                ticketService.deleteComment(commentId, userId, userRole);
+
+                return ResponseEntity.ok(
+                                ApiResponse.success("Comment deleted successfully"));
+        }
 }
