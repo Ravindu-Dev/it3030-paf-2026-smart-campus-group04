@@ -45,6 +45,13 @@ public class EventController {
         return ResponseEntity.ok(ApiResponse.success("Event deleted successfully", null));
     }
 
+    @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<ApiResponse<Void>> cancelEvent(@PathVariable String id) {
+        eventService.cancelEvent(id);
+        return ResponseEntity.ok(ApiResponse.success("Event cancelled successfully", null));
+    }
+
     @GetMapping("/admin")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<List<EventDto>>> getAllEventsForAdmin() {
