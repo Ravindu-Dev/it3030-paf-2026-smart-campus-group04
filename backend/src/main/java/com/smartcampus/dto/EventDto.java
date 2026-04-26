@@ -1,6 +1,7 @@
 package com.smartcampus.dto;
 
 import com.smartcampus.model.EventStatus;
+import com.smartcampus.model.EventType;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ public class EventDto {
     private int capacity;
     private int participantCount;
     private String imageUrl;
+    private EventType type;
     private EventStatus status;
     private String createdBy;
     private LocalDateTime createdAt;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, Polyline, InfoWindow } from '@react-google-maps/api';
 import transportService from '../services/transportService';
+import toast from 'react-hot-toast';
 
 const center = { lat: 7.2906, lng: 80.6337 };
 
@@ -22,21 +23,24 @@ const darkMapStyle = [
 ];
 
 // Top-down Bus Icon — best for rotation and 'live' feel
-function createBusIconUrl(color = '#3b82f6') {
+function createBusIconUrl(color = '#3b82f6', heading = 0) {
+    const finalColor = color || '#3b82f6';
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-    <!-- Pulsing Background -->
-    <circle cx="24" cy="24" r="22" fill="${color}" fill-opacity="0.1">
-      <animate attributeName="r" values="18;24;18" dur="1.5s" repeatCount="indefinite" />
-      <animate attributeName="fill-opacity" values="0.2;0.05;0.2" dur="1.5s" repeatCount="indefinite" />
-    </circle>
-    <!-- Top-down Bus Body -->
-    <rect x="18" y="10" width="12" height="28" rx="3" fill="${color}" stroke="white" stroke-width="2" />
-    <!-- Windshield (Front) -->
-    <rect x="19.5" y="12" width="9" height="4" rx="1" fill="white" fill-opacity="0.8" />
-    <!-- Rear Window -->
-    <rect x="20" y="35" width="8" height="1.5" rx="0.5" fill="white" fill-opacity="0.4" />
-    <!-- Roof details -->
-    <rect x="21" y="20" width="6" height="10" rx="1" fill="white" fill-opacity="0.2" />
+    <g transform="rotate(${heading} 24 24)">
+        <!-- Pulsing Background -->
+        <circle cx="24" cy="24" r="22" fill="${finalColor}" fill-opacity="0.1">
+          <animate attributeName="r" values="18;24;18" dur="1.5s" repeatCount="indefinite" />
+          <animate attributeName="fill-opacity" values="0.2;0.05;0.2" dur="1.5s" repeatCount="indefinite" />
+        </circle>
+        <!-- Top-down Bus Body -->
+        <rect x="18" y="10" width="12" height="28" rx="3" fill="${finalColor}" stroke="white" stroke-width="2" />
+        <!-- Windshield (Front) -->
+        <rect x="19.5" y="12" width="9" height="4" rx="1" fill="white" fill-opacity="0.8" />
+        <!-- Rear Window -->
+        <rect x="20" y="35" width="8" height="1.5" rx="0.5" fill="white" fill-opacity="0.4" />
+        <!-- Roof details -->
+        <rect x="21" y="20" width="6" height="10" rx="1" fill="white" fill-opacity="0.2" />
+    </g>
   </svg>`;
     return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
@@ -72,7 +76,7 @@ export function ShuttleMap({ height = '600px', showControls = true, compact = fa
         return () => clearInterval(interval);
     }, [fetchData]);
 
-    const activeShuttles = shuttles.filter(s => s.tracking && s.currentLatitude);
+    const activeShuttles = shuttles.filter(s => s.tracking && s.currentLatitude && s.currentLongitude);
 
     if (!isLoaded) {
         return (
@@ -114,14 +118,14 @@ export function ShuttleMap({ height = '600px', showControls = true, compact = fa
                         <Marker
                             key={`${route.id}-stop-${i}`}
                             position={{ lat: stop.latitude, lng: stop.longitude }}
-                            icon={{
+                            icon={window.google ? {
                                 path: window.google.maps.SymbolPath.CIRCLE,
                                 scale: compact ? 4 : 6,
-                                fillColor: route.color,
+                                fillColor: route.color || '#3b82f6',
                                 fillOpacity: 1,
                                 strokeColor: '#0f172a',
                                 strokeWeight: 2,
-                            }}
+                            } : null}
                             title={stop.name}
                         />
                     ))
@@ -135,10 +139,9 @@ export function ShuttleMap({ height = '600px', showControls = true, compact = fa
                             key={shuttle.id}
                             position={{ lat: shuttle.currentLatitude, lng: shuttle.currentLongitude }}
                             icon={{
-                                url: createBusIconUrl(shuttleRoute?.color),
-                                scaledSize: new window.google.maps.Size(compact ? 36 : 48, compact ? 36 : 48),
-                                anchor: new window.google.maps.Point(compact ? 18 : 24, compact ? 18 : 24),
-                                rotation: shuttle.heading || 0,
+                                url: createBusIconUrl(shuttleRoute?.color, shuttle.heading),
+                                scaledSize: window.google ? new window.google.maps.Size(compact ? 36 : 48, compact ? 36 : 48) : null,
+                                anchor: window.google ? new window.google.maps.Point(compact ? 18 : 24, compact ? 18 : 24) : null,
                             }}
                             onClick={() => setSelectedShuttle(shuttle)}
                         />
@@ -174,18 +177,27 @@ export default function TransportMap() {
     const [selectedShuttle, setSelectedShuttle] = useState(null);
     const [selectedRoute, setSelectedRoute] = useState(null);
 
+    const [ratingForm, setRatingForm] = useState(false);
+    const [ratingValue, setRatingValue] = useState(5);
+    const [ratingComment, setRatingComment] = useState('');
+
+    const [activeAnnouncement, setActiveAnnouncement] = useState(null);
+
     const { isLoaded } = useJsApiLoader({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     });
 
     const fetchData = useCallback(async () => {
         try {
-            const [sRes, rRes] = await Promise.all([
+            const [sRes, rRes, aRes] = await Promise.all([
                 transportService.getAllShuttles(),
                 transportService.getAllRoutes(),
+                transportService.getActiveAnnouncement()
             ]);
             if (sRes.success) setShuttles(sRes.data);
             if (rRes.success) setRoutes(rRes.data);
+            if (aRes && aRes.success) setActiveAnnouncement(aRes.data);
+            else setActiveAnnouncement(null);
         } catch (e) {
             console.error('Failed to fetch transport data', e);
         }
@@ -197,8 +209,29 @@ export default function TransportMap() {
         return () => clearInterval(interval);
     }, [fetchData]);
 
+    const handleRatingSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await transportService.createShuttleRating(selectedShuttle.id, {
+                rating: ratingValue,
+                comment: ratingComment
+            });
+            toast.success('Driver rating submitted successfully!');
+            setRatingForm(false);
+            setRatingComment('');
+            fetchData(); // Refresh shuttles to get new average rating
+        } catch (err) {
+            toast.error('Failed to submit rating');
+        }
+    };
+
     const filteredRoutes = selectedRoute ? routes.filter(r => r.id === selectedRoute) : routes;
-    const activeShuttles = shuttles.filter(s => s.tracking && s.currentLatitude);
+    
+    // For map: only those with live GPS
+    const activeShuttlesOnMap = shuttles.filter(s => s.tracking && s.currentLatitude && s.currentLongitude);
+    
+    // For sidebar: all shuttles (to avoid confusion when adding new ones)
+    const sortedShuttles = [...shuttles].sort((a, b) => (b.tracking === a.tracking) ? 0 : a.tracking ? -1 : 1);
 
     if (!isLoaded) {
         return (
@@ -217,7 +250,7 @@ export default function TransportMap() {
             </div>
 
             {/* Header / Hero */}
-            <div className="pt-32 pb-20 text-center px-4 sm:px-6 lg:px-8 relative z-10 border-b border-slate-800/50 mb-8">
+            <div className="pt-32 pb-16 text-center px-4 sm:px-6 lg:px-8 relative z-10 border-b border-slate-800/50 mb-6">
                 <h1 className="text-5xl sm:text-6xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg">
                     Shuttle <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Tracker</span>
                 </h1>
@@ -225,6 +258,21 @@ export default function TransportMap() {
                     Real-time locations of SLIIT Kandy campus shuttles
                 </p>
             </div>
+
+            {/* Live Announcement Banner */}
+            {activeAnnouncement && (
+                <div className="max-w-7xl mx-auto px-4 md:px-8 mb-6 relative z-10 animate-in slide-in-from-top-4 duration-500">
+                    <div className="bg-gradient-to-r from-red-600/90 to-orange-600/90 backdrop-blur-md rounded-2xl p-4 flex items-center justify-between border border-red-500/50 shadow-[0_0_20px_rgba(220,38,38,0.3)]">
+                        <div className="flex items-center gap-4">
+                            <span className="text-3xl animate-pulse drop-shadow-md">📢</span>
+                            <div>
+                                <p className="text-white font-black text-lg uppercase tracking-widest leading-tight">Campus Transport Alert</p>
+                                <p className="text-red-100 text-base font-semibold mt-0.5">{activeAnnouncement.message}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Main content — map takes most space */}
             <div className="px-4 md:px-8 pb-8">
@@ -268,19 +316,24 @@ export default function TransportMap() {
                             {routes.length === 0 && <p className="text-slate-500 text-xs text-center py-4">No routes yet</p>}
                         </div>
 
-                        {/* Live shuttles count */}
+                        {/* All shuttles list */}
                         <div className="bg-slate-800 rounded-xl p-3 border border-slate-700">
                             <div className="flex items-center gap-2 mb-2">
-                                <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
-                                <span className="text-xs font-bold text-slate-300">{activeShuttles.length} Shuttles Live</span>
+                                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                                <span className="text-xs font-bold text-slate-300">Campus Shuttles ({shuttles.length})</span>
                             </div>
-                            {activeShuttles.map(s => (
-                                <div key={s.id} className="flex items-center justify-between py-1.5 border-t border-slate-700/50 text-xs">
-                                    <span className="font-medium text-slate-200">{s.name}</span>
-                                    <span className="text-slate-400 font-mono">{s.plateNumber}</span>
-                                </div>
-                            ))}
-                            {activeShuttles.length === 0 && <p className="text-slate-500 text-xs">No shuttles online</p>}
+                            <div className="space-y-1.5 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+                                {sortedShuttles.map(s => (
+                                    <div key={s.id} className="flex items-center justify-between py-1.5 border-t border-slate-700/50 text-[11px]">
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.tracking ? 'bg-green-500 animate-pulse' : 'bg-slate-600'}`}></div>
+                                            <span className={`font-medium truncate ${s.tracking ? 'text-slate-100' : 'text-slate-500'}`}>{s.name}</span>
+                                        </div>
+                                        <span className="text-slate-600 font-mono shrink-0">{s.plateNumber}</span>
+                                    </div>
+                                ))}
+                                {shuttles.length === 0 && <p className="text-slate-500 text-[10px] text-center py-2">No shuttles yet</p>}
+                            </div>
                         </div>
                     </div>
 
@@ -314,30 +367,29 @@ export default function TransportMap() {
                                     <Marker
                                         key={`${route.id}-stop-${i}`}
                                         position={{ lat: stop.latitude, lng: stop.longitude }}
-                                        icon={{
+                                        icon={window.google ? {
                                             path: window.google.maps.SymbolPath.CIRCLE,
                                             scale: 6,
-                                            fillColor: route.color,
+                                            fillColor: route.color || '#3b82f6',
                                             fillOpacity: 1,
                                             strokeColor: '#0f172a',
                                             strokeWeight: 2,
-                                        }}
+                                        } : null}
                                         title={stop.name}
                                     />
                                 ))
                             )}
 
-                            {activeShuttles.map(shuttle => {
+                            {activeShuttlesOnMap.map(shuttle => {
                                 const shuttleRoute = routes.find(r => r.id === shuttle.routeId);
                                 return (
                                     <Marker
                                         key={shuttle.id}
                                         position={{ lat: shuttle.currentLatitude, lng: shuttle.currentLongitude }}
                                         icon={{
-                                            url: createBusIconUrl(shuttleRoute?.color),
-                                            scaledSize: new window.google.maps.Size(48, 48),
-                                            anchor: new window.google.maps.Point(24, 24),
-                                            rotation: shuttle.heading || 0,
+                                            url: createBusIconUrl(shuttleRoute?.color, shuttle.heading),
+                                            scaledSize: window.google ? new window.google.maps.Size(48, 48) : null,
+                                            anchor: window.google ? new window.google.maps.Point(24, 24) : null,
                                         }}
                                         onClick={() => setSelectedShuttle(shuttle)}
                                     />
@@ -355,6 +407,48 @@ export default function TransportMap() {
                                         <p className="text-xs mt-1">Driver: {selectedShuttle.driverName || 'N/A'}</p>
                                         {selectedShuttle.speed != null && (
                                             <p className="text-xs font-bold text-blue-600 mt-1">{Math.round(selectedShuttle.speed * 3.6)} km/h</p>
+                                        )}
+                                        {selectedShuttle.averageRating > 0 ? (
+                                            <p className="text-xs font-bold text-yellow-600 mt-1">⭐ {selectedShuttle.averageRating} ({selectedShuttle.totalRatings} reviews)</p>
+                                        ) : (
+                                            <p className="text-xs text-gray-500 mt-1">No ratings yet</p>
+                                        )}
+                                        
+                                        {!ratingForm ? (
+                                            <button 
+                                                onClick={() => setRatingForm(true)}
+                                                className="mt-2 w-full bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs py-1 px-2 rounded font-semibold transition"
+                                            >
+                                                Rate Driver
+                                            </button>
+                                        ) : (
+                                            <form onSubmit={handleRatingSubmit} className="mt-2 border-t pt-2">
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <span className="text-xs font-semibold">Stars:</span>
+                                                    <select 
+                                                        value={ratingValue} 
+                                                        onChange={(e) => setRatingValue(Number(e.target.value))}
+                                                        className="text-xs border rounded p-0.5"
+                                                    >
+                                                        <option value={5}>⭐⭐⭐⭐⭐</option>
+                                                        <option value={4}>⭐⭐⭐⭐</option>
+                                                        <option value={3}>⭐⭐⭐</option>
+                                                        <option value={2}>⭐⭐</option>
+                                                        <option value={1}>⭐</option>
+                                                    </select>
+                                                </div>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Comment (optional)" 
+                                                    className="w-full text-xs border rounded p-1 mb-1"
+                                                    value={ratingComment}
+                                                    onChange={(e) => setRatingComment(e.target.value)}
+                                                />
+                                                <div className="flex gap-1">
+                                                    <button type="submit" className="flex-1 bg-green-500 text-white text-xs py-1 rounded font-semibold">Submit</button>
+                                                    <button type="button" onClick={() => setRatingForm(false)} className="flex-1 bg-gray-200 text-gray-700 text-xs py-1 rounded font-semibold">Cancel</button>
+                                                </div>
+                                            </form>
                                         )}
                                     </div>
                                 </InfoWindow>

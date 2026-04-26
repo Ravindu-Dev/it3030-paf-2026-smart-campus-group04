@@ -32,10 +32,13 @@ public class Event {
     private int capacity;
     private int participantCount = 0;
     private String imageUrl;
+    private EventType type = EventType.EVENT;
     private EventStatus status = EventStatus.UPCOMING;
     
     private String createdBy; // User ID of the admin who created the event
     
+    private boolean reminderSent = false; // Flag to prevent duplicate reminders
+
     @CreatedDate
     private LocalDateTime createdAt;
 }

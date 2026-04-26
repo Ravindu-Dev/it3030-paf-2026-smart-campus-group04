@@ -44,6 +44,9 @@ public class Shuttle {
 
     private String imageUrl;
 
+    private Double averageRating = 0.0;
+    private Integer totalRatings = 0;
+
     @CreatedDate
     private LocalDateTime createdAt;
 

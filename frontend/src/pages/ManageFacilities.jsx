@@ -66,6 +66,46 @@ export default function ManageFacilities({ standalone = false }) {
     const [uploading, setUploading] = useState(false);
     const [imagePreview, setImagePreview] = useState('');
     const fileInputRef = useRef(null);
+    const [formErrors, setFormErrors] = useState({});
+
+    const validateFacilityForm = () => {
+        const errors = {};
+        // Name validation
+        if (!form.name || form.name.trim().length === 0) {
+            errors.name = 'Facility name is required';
+        } else if (form.name.trim().length < 2) {
+            errors.name = 'Name must be at least 2 characters';
+        } else if (form.name.trim().length > 100) {
+            errors.name = 'Name must not exceed 100 characters';
+        }
+        // Type validation
+        if (!form.type) {
+            errors.type = 'Facility type is required';
+        }
+        // Description validation
+        if (form.description && form.description.length > 500) {
+            errors.description = 'Description must not exceed 500 characters';
+        }
+        // Location validation
+        if (!form.location || form.location.trim().length === 0) {
+            errors.location = 'Location is required';
+        } else if (form.location.trim().length < 2) {
+            errors.location = 'Location must be at least 2 characters';
+        } else if (form.location.trim().length > 200) {
+            errors.location = 'Location must not exceed 200 characters';
+        }
+        // Capacity validation
+        if (form.capacity !== '' && form.capacity !== null && form.capacity !== undefined) {
+            const cap = parseInt(form.capacity);
+            if (isNaN(cap) || cap < 1) {
+                errors.capacity = 'Capacity must be at least 1';
+            } else if (cap > 10000) {
+                errors.capacity = 'Capacity must not exceed 10,000';
+            }
+        }
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     // Search & filter state
     const [search, setSearch] = useState('');
@@ -122,6 +162,7 @@ export default function ManageFacilities({ standalone = false }) {
         setEditing(null);
         setForm({ ...emptyForm });
         setImagePreview('');
+        setFormErrors({});
     };
 
     // ─── Image upload ────────────────────────────────────────────────
@@ -202,6 +243,10 @@ export default function ManageFacilities({ standalone = false }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!validateFacilityForm()) {
+            toast.error('Please fix the errors in the form');
+            return;
+        }
         setSubmitting(true);
 
         try {
@@ -221,8 +266,14 @@ export default function ManageFacilities({ standalone = false }) {
             closeModal();
             fetchFacilities();
         } catch (err) {
-            const msg = err.response?.data?.message || 'Operation failed';
-            toast.error(msg);
+            // Handle backend validation errors
+            if (err.response?.data?.data && typeof err.response.data.data === 'object') {
+                setFormErrors(err.response.data.data);
+                toast.error('Validation failed — check highlighted fields');
+            } else {
+                const msg = err.response?.data?.message || 'Operation failed';
+                toast.error(msg);
+            }
         } finally {
             setSubmitting(false);
         }
@@ -761,11 +812,13 @@ export default function ManageFacilities({ standalone = false }) {
                                     <input
                                         name="name"
                                         value={form.name}
-                                        onChange={handleChange}
+                                        onChange={(e) => { handleChange(e); if (formErrors.name) setFormErrors(prev => ({...prev, name: ''})); }}
                                         required
+                                        maxLength={100}
                                         placeholder="e.g. Room A101"
-                                        className="w-full px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
+                                        className={`w-full px-4 py-2.5 bg-slate-900/80 border rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100 ${formErrors.name ? 'border-red-500/70 ring-1 ring-red-500/30' : 'border-slate-800'}`}
                                     />
+                                    {formErrors.name && <p className="text-red-400 text-xs mt-1 ml-1">{formErrors.name}</p>}
                                 </div>
 
                                 {/* Type */}
@@ -785,15 +838,20 @@ export default function ManageFacilities({ standalone = false }) {
 
                                 {/* Description */}
                                 <div>
-                                    <label className="block text-slate-400 text-sm font-medium mb-1.5">Description</label>
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="block text-slate-400 text-sm font-medium">Description</label>
+                                        <span className={`text-xs ${(form.description?.length || 0) > 450 ? 'text-amber-400' : 'text-slate-600'}`}>{form.description?.length || 0}/500</span>
+                                    </div>
                                     <textarea
                                         name="description"
                                         value={form.description}
-                                        onChange={handleChange}
+                                        onChange={(e) => { handleChange(e); if (formErrors.description) setFormErrors(prev => ({...prev, description: ''})); }}
                                         rows={3}
+                                        maxLength={500}
                                         placeholder="Brief description of the facility..."
-                                        className="w-full px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none opacity-100"
+                                        className={`w-full px-4 py-2.5 bg-slate-900/80 border rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none opacity-100 ${formErrors.description ? 'border-red-500/70 ring-1 ring-red-500/30' : 'border-slate-800'}`}
                                     />
+                                    {formErrors.description && <p className="text-red-400 text-xs mt-1 ml-1">{formErrors.description}</p>}
                                 </div>
 
                                 {/* Location + Capacity */}
@@ -803,11 +861,13 @@ export default function ManageFacilities({ standalone = false }) {
                                         <input
                                             name="location"
                                             value={form.location}
-                                            onChange={handleChange}
+                                            onChange={(e) => { handleChange(e); if (formErrors.location) setFormErrors(prev => ({...prev, location: ''})); }}
                                             required
+                                            maxLength={200}
                                             placeholder="e.g. Building A, Floor 2"
-                                            className="w-full px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
+                                            className={`w-full px-4 py-2.5 bg-slate-900/80 border rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100 ${formErrors.location ? 'border-red-500/70 ring-1 ring-red-500/30' : 'border-slate-800'}`}
                                         />
+                                        {formErrors.location && <p className="text-red-400 text-xs mt-1 ml-1">{formErrors.location}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-slate-400 text-sm font-medium mb-1.5">Capacity</label>
@@ -815,11 +875,13 @@ export default function ManageFacilities({ standalone = false }) {
                                             name="capacity"
                                             type="number"
                                             value={form.capacity}
-                                            onChange={handleChange}
-                                            min="0"
+                                            onChange={(e) => { handleChange(e); if (formErrors.capacity) setFormErrors(prev => ({...prev, capacity: ''})); }}
+                                            min="1"
+                                            max="10000"
                                             placeholder="e.g. 50"
-                                            className="w-full px-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100"
+                                            className={`w-full px-4 py-2.5 bg-slate-900/80 border rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 opacity-100 ${formErrors.capacity ? 'border-red-500/70 ring-1 ring-red-500/30' : 'border-slate-800'}`}
                                         />
+                                        {formErrors.capacity && <p className="text-red-400 text-xs mt-1 ml-1">{formErrors.capacity}</p>}
                                     </div>
                                 </div>
 
