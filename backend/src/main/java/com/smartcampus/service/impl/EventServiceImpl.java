@@ -261,6 +261,7 @@ public class EventServiceImpl implements EventService {
         dto.setCapacity(event.getCapacity());
         dto.setParticipantCount(event.getParticipantCount());
         dto.setImageUrl(event.getImageUrl());
+        dto.setType(event.getType());
         dto.setStatus(resolveStatus(event));
         dto.setCreatedBy(event.getCreatedBy());
         dto.setCreatedAt(event.getCreatedAt());
@@ -276,6 +277,9 @@ public class EventServiceImpl implements EventService {
         event.setEndTime(dto.getEndTime());
         event.setCapacity(dto.getCapacity());
         event.setImageUrl(dto.getImageUrl());
+        if (dto.getType() != null) {
+            event.setType(dto.getType());
+        }
         if (dto.getStatus() != null) {
             event.setStatus(dto.getStatus());
         }
