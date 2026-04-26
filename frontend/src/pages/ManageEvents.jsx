@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { getAllEventsAdmin, createEvent, updateEvent, deleteEvent } from '../services/eventService';
 import { uploadImage } from '../services/imageService';
 import toast from 'react-hot-toast';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const STATUS_OPTIONS = [
     { value: 'UPCOMING', label: 'Upcoming' },
@@ -141,6 +143,99 @@ export default function ManageEvents({ standalone = false }) {
         }
     };
 
+    const exportPDF = () => {
+        try {
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+
+            // ─── Cover Page ───────────────────────────────────────────────────
+            // Background decoration
+            doc.setFillColor(30, 41, 59); // slate-900
+            doc.rect(0, 0, pageWidth, pageHeight, 'F');
+            
+            doc.setFillColor(37, 99, 235); // blue-600
+            doc.rect(0, 0, pageWidth, 10, 'F');
+            doc.rect(0, pageHeight - 10, pageWidth, 10, 'F');
+
+            // Logo Placeholder / Placeholder text for Logo
+            // In a real scenario, we'd load the generated image. 
+            // For now, let's create a stylized text logo or use the image path if we can.
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(40);
+            doc.setFont("helvetica", "bold");
+            doc.text("Smart Campus", pageWidth / 2, 80, { align: "center" });
+            doc.setTextColor(59, 130, 246);
+            doc.text(".", pageWidth / 2 + 62, 80);
+
+            doc.setDrawColor(59, 130, 246);
+            doc.setLineWidth(1);
+            doc.line(pageWidth / 2 - 40, 95, pageWidth / 2 + 40, 95);
+
+            doc.setTextColor(241, 245, 249);
+            doc.setFontSize(24);
+            doc.text("Events & Activities Report", pageWidth / 2, 120, { align: "center" });
+            
+            doc.setFontSize(14);
+            doc.setTextColor(148, 163, 184);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, pageWidth / 2, 140, { align: "center" });
+            
+            doc.setFontSize(12);
+            doc.text(`Total Events Logged: ${filteredEvents.length}`, pageWidth / 2, 155, { align: "center" });
+            doc.text(`Report Type: Administrative Summary`, pageWidth / 2, 162, { align: "center" });
+
+            // Footer of cover
+            doc.setFontSize(10);
+            doc.text("© 2026 Smart Campus Operations Hub - Confidential", pageWidth / 2, pageHeight - 30, { align: "center" });
+
+            // ─── Data Page ────────────────────────────────────────────────────
+            doc.addPage();
+            doc.setTextColor(0, 0, 0); // Reset to black
+            
+            const tableColumn = ["Title", "Type", "Date", "Location", "Capacity", "Participants", "Status"];
+            const tableRows = [];
+
+            filteredEvents.forEach(event => {
+                const eventData = [
+                    event.title,
+                    event.type,
+                    event.eventDate,
+                    event.location,
+                    event.capacity,
+                    event.participantCount,
+                    event.status
+                ];
+                tableRows.push(eventData);
+            });
+
+            doc.setFontSize(18);
+            doc.setFont("helvetica", "bold");
+            doc.text("Event Schedule Details", 14, 22);
+            
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(100);
+            doc.text("The following table contains the comprehensive list of campus events and their current operational status.", 14, 30);
+
+            autoTable(doc, {
+                head: [tableColumn],
+                body: tableRows,
+                startY: 40,
+                theme: 'grid',
+                headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [241, 245, 249] },
+                margin: { top: 40 },
+                styles: { fontSize: 9 },
+            });
+
+            doc.save(`Events_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+            toast.success('Professional PDF report downloaded');
+        } catch (error) {
+            console.error('PDF Export Error:', error);
+            toast.error('Failed to generate PDF');
+        }
+    };
+
     const filteredEvents = events.filter(e => filterType === 'ALL' || e.type === filterType);
 
     return (
@@ -156,6 +251,14 @@ export default function ManageEvents({ standalone = false }) {
                         className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-blue-600/20"
                     >
                         + Create Event
+                    </button>
+                    <button
+                        onClick={exportPDF}
+                        disabled={events.length === 0}
+                        className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-xl font-medium transition-all flex items-center gap-2 disabled:opacity-50"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        Export PDF
                     </button>
                 </div>
 
