@@ -44,6 +44,21 @@ const transportService = {
         return response.data;
     },
 
+    // ─── Announcements ────────────────────────────────────────────────────────
+    getActiveAnnouncement: async () => {
+        const response = await api.get('/transport-announcements/active');
+        return response.data;
+    },
+    createAnnouncement: async (message) => {
+        const response = await api.post('/transport-announcements', { message });
+        return response.data;
+    },
+    deleteAnnouncement: async (id) => {
+        const response = await api.delete(`/transport-announcements/${id}`);
+        return response.data;
+    },
+
+
 
     // ─── Routes ────────────────────────────────────────────────────────
     /**
