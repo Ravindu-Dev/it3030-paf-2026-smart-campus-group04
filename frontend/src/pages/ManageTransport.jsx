@@ -13,6 +13,10 @@ export default function ManageTransport() {
     const [visibleShuttles, setVisibleShuttles] = useState(6);
     const [visibleRoutes, setVisibleRoutes] = useState(6);
 
+    const [viewRatingsShuttle, setViewRatingsShuttle] = useState(null);
+    const [shuttleRatings, setShuttleRatings] = useState([]);
+    const [loadingRatings, setLoadingRatings] = useState(false);
+
     const [shuttleForm, setShuttleForm] = useState({ name: '', plateNumber: '', driverName: '', driverPhone: '', routeId: '', imageUrl: '' });
     const [routeForm, setRouteForm] = useState({ name: '', description: '', color: '#3b82f6', stops: [], schedule: [] });
     const [formErrors, setFormErrors] = useState({});
@@ -136,6 +140,19 @@ export default function ManageTransport() {
         setRouteForm({ ...routeForm, stops: [...routeForm.stops, { name: '', latitude: 7.2906, longitude: 80.6337, orderIndex: routeForm.stops.length }] });
     };
 
+    const openRatingsModal = async (shuttle) => {
+        setViewRatingsShuttle(shuttle);
+        setLoadingRatings(true);
+        try {
+            const res = await transportService.getShuttleRatings(shuttle.id);
+            if (res.success) setShuttleRatings(res.data);
+        } catch (e) {
+            toast.error('Failed to load ratings');
+        } finally {
+            setLoadingRatings(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100 p-4 md:p-8 pt-24 relative overflow-hidden">
             {/* Background decoration */}
@@ -217,6 +234,12 @@ export default function ManageTransport() {
                                         <div className="bg-slate-900/40 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-800/60 shadow-inner group-hover:border-slate-700/50 transition-colors">
                                             <p className="text-[10px] text-slate-500 uppercase font-black tracking-tighter mb-0.5">Primary Driver</p>
                                             <span className="text-slate-300 font-bold text-sm italic">{shuttle.driverName || 'None assigned'}</span>
+                                        </div>
+                                        <div className="bg-slate-900/40 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-800/60 shadow-inner hover:border-yellow-500/30 transition-colors cursor-pointer" onClick={() => openRatingsModal(shuttle)}>
+                                            <p className="text-[10px] text-slate-500 uppercase font-black tracking-tighter mb-0.5">Driver Rating</p>
+                                            <span className="text-yellow-500 font-bold text-sm">
+                                                {shuttle.averageRating > 0 ? `⭐ ${shuttle.averageRating} (${shuttle.totalRatings})` : 'No ratings yet'}
+                                            </span>
                                         </div>
                                         
                                         <div className={`px-4 py-2.5 rounded-2xl border flex items-center gap-3 transition-all duration-300 ${shuttle.tracking ? 'bg-green-500/5 border-green-500/20 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'bg-slate-900/40 border-slate-800 text-slate-500 shadow-inner'}`}>
@@ -482,6 +505,35 @@ export default function ManageTransport() {
                                         </button>
                                     </div>
                                 </form>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Ratings Modal */}
+                {viewRatingsShuttle && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300">
+                        <div className="bg-slate-800/90 backdrop-blur-2xl rounded-[32px] border border-slate-700/50 p-10 w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-[0_0_50px_rgba(0,0,0,0.5)] relative animate-in zoom-in-95">
+                            <button onClick={() => setViewRatingsShuttle(null)} className="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                            </button>
+                            <h2 className="text-2xl font-black text-white mb-6">Ratings for {viewRatingsShuttle.name}</h2>
+                            {loadingRatings ? (
+                                <p className="text-slate-400">Loading ratings...</p>
+                            ) : shuttleRatings.length === 0 ? (
+                                <p className="text-slate-400">No ratings yet for this shuttle.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {shuttleRatings.map(rating => (
+                                        <div key={rating.id} className="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                                            <div className="flex justify-between mb-2">
+                                                <span className="text-yellow-500 font-bold">{'⭐'.repeat(rating.rating)}</span>
+                                                <span className="text-xs text-slate-500">{new Date(rating.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                            {rating.comment && <p className="text-sm text-slate-300 italic">"{rating.comment}"</p>}
+                                        </div>
+                                    ))}
+                                </div>
                             )}
                         </div>
                     </div>

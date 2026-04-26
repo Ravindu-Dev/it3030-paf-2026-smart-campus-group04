@@ -153,6 +153,8 @@ public class ShuttleService {
         dto.setLastLocationUpdate(shuttle.getLastLocationUpdate());
         dto.setTracking(shuttle.isTracking());
         dto.setImageUrl(shuttle.getImageUrl());
+        dto.setAverageRating(shuttle.getAverageRating());
+        dto.setTotalRatings(shuttle.getTotalRatings());
         dto.setCreatedAt(shuttle.getCreatedAt());
         dto.setUpdatedAt(shuttle.getUpdatedAt());
         if (shuttle.getRouteId() != null) {

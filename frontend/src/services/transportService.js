@@ -35,6 +35,15 @@ const transportService = {
         const response = await api.delete(`/shuttles/${id}`);
         return response.data;
     },
+    getShuttleRatings: async (id) => {
+        const response = await api.get(`/shuttles/${id}/ratings`);
+        return response.data;
+    },
+    createShuttleRating: async (id, data) => {
+        const response = await api.post(`/shuttles/${id}/ratings`, data);
+        return response.data;
+    },
+
 
     // ─── Routes ────────────────────────────────────────────────────────
     /**
