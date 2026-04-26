@@ -17,6 +17,9 @@ export default function ManageTransport() {
     const [shuttleRatings, setShuttleRatings] = useState([]);
     const [loadingRatings, setLoadingRatings] = useState(false);
 
+    const [activeAnnouncement, setActiveAnnouncement] = useState(null);
+    const [announcementMessage, setAnnouncementMessage] = useState('');
+
     const [shuttleForm, setShuttleForm] = useState({ name: '', plateNumber: '', driverName: '', driverPhone: '', routeId: '', imageUrl: '' });
     const [routeForm, setRouteForm] = useState({ name: '', description: '', color: '#3b82f6', stops: [], schedule: [] });
     const [formErrors, setFormErrors] = useState({});
@@ -46,9 +49,14 @@ export default function ManageTransport() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [sRes, rRes] = await Promise.all([transportService.getAllShuttles(), transportService.getAllRoutes()]);
+            const [sRes, rRes, aRes] = await Promise.all([
+                transportService.getAllShuttles(), 
+                transportService.getAllRoutes(),
+                transportService.getActiveAnnouncement()
+            ]);
             if (sRes.success) setShuttles(sRes.data);
             if (rRes.success) setRoutes(rRes.data);
+            if (aRes && aRes.success) setActiveAnnouncement(aRes.data);
         } catch (e) { toast.error('Failed to load'); }
         finally { setLoading(false); }
     };
@@ -153,6 +161,28 @@ export default function ManageTransport() {
         }
     };
 
+    const handleBroadcast = async (e) => {
+        e.preventDefault();
+        if (!announcementMessage.trim()) return;
+        try {
+            const res = await transportService.createAnnouncement(announcementMessage);
+            if (res.success) {
+                toast.success('Announcement broadcasted!');
+                setActiveAnnouncement(res.data);
+                setAnnouncementMessage('');
+            }
+        } catch (e) { toast.error('Failed to broadcast'); }
+    };
+
+    const clearAnnouncement = async () => {
+        if (!activeAnnouncement) return;
+        try {
+            await transportService.deleteAnnouncement(activeAnnouncement.id);
+            toast.success('Announcement cleared');
+            setActiveAnnouncement(null);
+        } catch (e) { toast.error('Failed to clear announcement'); }
+    };
+
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100 p-4 md:p-8 pt-24 relative overflow-hidden">
             {/* Background decoration */}
@@ -162,6 +192,37 @@ export default function ManageTransport() {
             </div>
 
             <div className="max-w-6xl mx-auto relative z-10">
+                
+                {/* Announcement Bar */}
+                <div className="bg-slate-800/60 backdrop-blur-xl border border-blue-500/30 p-5 rounded-2xl mb-8 shadow-[0_0_20px_rgba(59,130,246,0.15)] flex flex-col md:flex-row gap-4 items-center justify-between animate-in slide-in-from-top-4 duration-500">
+                    <div className="flex-1 w-full">
+                        <p className="text-[10px] uppercase font-black text-blue-400 tracking-widest mb-2 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                            Live Broadcast Override
+                        </p>
+                        {activeAnnouncement ? (
+                            <div className="flex items-center justify-between bg-slate-900/50 px-4 py-3 rounded-xl border border-blue-500/20">
+                                <span className="text-white font-medium italic flex items-center gap-2">
+                                    <span className="text-xl">📢</span> "{activeAnnouncement.message}"
+                                </span>
+                                <button onClick={clearAnnouncement} className="text-xs bg-red-500/10 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors cursor-pointer font-bold shadow-sm">Clear Alert</button>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleBroadcast} className="flex flex-col sm:flex-row gap-3">
+                                <input 
+                                    type="text" 
+                                    placeholder="Type an alert (e.g. Route A delayed by 10 mins)..." 
+                                    className="flex-1 bg-slate-900/60 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 shadow-inner"
+                                    value={announcementMessage}
+                                    onChange={e => setAnnouncementMessage(e.target.value)}
+                                    maxLength={150}
+                                />
+                                <button type="submit" className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 cursor-pointer transition-all active:scale-95 whitespace-nowrap">Broadcast Live</button>
+                            </form>
+                        )}
+                    </div>
+                </div>
+
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
                     <div>
                         <h1 className="text-4xl font-black text-white tracking-tight drop-shadow-md flex items-center gap-3">

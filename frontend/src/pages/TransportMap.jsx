@@ -179,18 +179,23 @@ export default function TransportMap() {
     const [ratingValue, setRatingValue] = useState(5);
     const [ratingComment, setRatingComment] = useState('');
 
+    const [activeAnnouncement, setActiveAnnouncement] = useState(null);
+
     const { isLoaded } = useJsApiLoader({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     });
 
     const fetchData = useCallback(async () => {
         try {
-            const [sRes, rRes] = await Promise.all([
+            const [sRes, rRes, aRes] = await Promise.all([
                 transportService.getAllShuttles(),
                 transportService.getAllRoutes(),
+                transportService.getActiveAnnouncement()
             ]);
             if (sRes.success) setShuttles(sRes.data);
             if (rRes.success) setRoutes(rRes.data);
+            if (aRes && aRes.success) setActiveAnnouncement(aRes.data);
+            else setActiveAnnouncement(null);
         } catch (e) {
             console.error('Failed to fetch transport data', e);
         }
@@ -238,7 +243,7 @@ export default function TransportMap() {
             </div>
 
             {/* Header / Hero */}
-            <div className="pt-32 pb-20 text-center px-4 sm:px-6 lg:px-8 relative z-10 border-b border-slate-800/50 mb-8">
+            <div className="pt-32 pb-16 text-center px-4 sm:px-6 lg:px-8 relative z-10 border-b border-slate-800/50 mb-6">
                 <h1 className="text-5xl sm:text-6xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg">
                     Shuttle <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Tracker</span>
                 </h1>
@@ -246,6 +251,21 @@ export default function TransportMap() {
                     Real-time locations of SLIIT Kandy campus shuttles
                 </p>
             </div>
+
+            {/* Live Announcement Banner */}
+            {activeAnnouncement && (
+                <div className="max-w-7xl mx-auto px-4 md:px-8 mb-6 relative z-10 animate-in slide-in-from-top-4 duration-500">
+                    <div className="bg-gradient-to-r from-red-600/90 to-orange-600/90 backdrop-blur-md rounded-2xl p-4 flex items-center justify-between border border-red-500/50 shadow-[0_0_20px_rgba(220,38,38,0.3)]">
+                        <div className="flex items-center gap-4">
+                            <span className="text-3xl animate-pulse drop-shadow-md">📢</span>
+                            <div>
+                                <p className="text-white font-black text-lg uppercase tracking-widest leading-tight">Campus Transport Alert</p>
+                                <p className="text-red-100 text-base font-semibold mt-0.5">{activeAnnouncement.message}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Main content — map takes most space */}
             <div className="px-4 md:px-8 pb-8">
