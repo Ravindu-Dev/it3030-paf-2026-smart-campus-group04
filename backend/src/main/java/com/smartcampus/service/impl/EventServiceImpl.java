@@ -35,11 +35,11 @@ public class EventServiceImpl implements EventService {
     }
 
     private User getCurrentUser() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof User) {
-            return (User) principal;
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
+            return null;
         }
-        return null; // Should not happen with secured endpoints
+        return (User) auth.getPrincipal();
     }
 
     @Override
