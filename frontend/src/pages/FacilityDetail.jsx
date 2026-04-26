@@ -194,12 +194,19 @@ export default function FacilityDetail() {
                             </div>
                         )}
 
-                        {/* User booking action */}
-                        {user?.role !== 'ADMIN' && isActive && (
-                            <div className="pt-6 border-t border-slate-700/50 mt-8 relative z-10 flex justify-end">
+                        {/* Action Area */}
+                        <div className="pt-6 border-t border-slate-700/50 mt-8 relative z-10 flex flex-wrap gap-4 justify-end">
+                            {!isActive && (
+                                <div className="flex-1 min-w-[200px] flex items-center justify-center gap-2 px-6 py-4 bg-red-600/10 text-red-500 border-2 border-red-500/30 rounded-2xl font-black uppercase tracking-wide animate-pulse">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+                                    This facility is currently Out of Service
+                                </div>
+                            )}
+
+                            {user?.role !== 'ADMIN' && isActive && (
                                 <Link
                                     to={`/bookings/new?facilityId=${facility.id}`}
-                                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold tracking-wide shadow-lg shadow-blue-500/25 border border-blue-400/50 hover:scale-[1.02] transition-all flex items-center gap-2"
+                                    className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold tracking-wide shadow-lg shadow-blue-500/25 border border-blue-400/50 hover:scale-[1.02] transition-all flex items-center gap-2"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
@@ -207,17 +214,14 @@ export default function FacilityDetail() {
                                         <line x1="8" y1="2" x2="8" y2="6" />
                                         <line x1="3" y1="10" x2="21" y2="10" />
                                     </svg>
-                                    Book This Resource
+                                    Book This Resource Now
                                 </Link>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Admin actions */}
-                        {user?.role === 'ADMIN' && (
-                            <div className="pt-6 border-t border-slate-700/50 mt-8 relative z-10 flex justify-end">
+                            {user?.role === 'ADMIN' && (
                                 <Link
                                     to="/admin/facilities"
-                                    className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl font-bold tracking-wide border border-slate-600 hover:border-slate-500 transition-all flex items-center gap-2 shadow-sm"
+                                    className="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl font-bold tracking-wide border border-slate-600 hover:border-slate-500 transition-all flex items-center gap-2 shadow-sm"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
@@ -225,8 +229,8 @@ export default function FacilityDetail() {
                                     </svg>
                                     Manage in Admin Panel
                                 </Link>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
