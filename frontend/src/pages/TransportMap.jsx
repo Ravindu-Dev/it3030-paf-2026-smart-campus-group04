@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, Polyline, InfoWindow } from '@react-google-maps/api';
 import transportService from '../services/transportService';
+import toast from 'react-hot-toast';
 
 const center = { lat: 7.2906, lng: 80.6337 };
 
@@ -174,6 +175,10 @@ export default function TransportMap() {
     const [selectedShuttle, setSelectedShuttle] = useState(null);
     const [selectedRoute, setSelectedRoute] = useState(null);
 
+    const [ratingForm, setRatingForm] = useState(false);
+    const [ratingValue, setRatingValue] = useState(5);
+    const [ratingComment, setRatingComment] = useState('');
+
     const { isLoaded } = useJsApiLoader({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     });
@@ -196,6 +201,22 @@ export default function TransportMap() {
         const interval = setInterval(fetchData, 5000);
         return () => clearInterval(interval);
     }, [fetchData]);
+
+    const handleRatingSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await transportService.createShuttleRating(selectedShuttle.id, {
+                rating: ratingValue,
+                comment: ratingComment
+            });
+            toast.success('Driver rating submitted successfully!');
+            setRatingForm(false);
+            setRatingComment('');
+            fetchData(); // Refresh shuttles to get new average rating
+        } catch (err) {
+            toast.error('Failed to submit rating');
+        }
+    };
 
     const filteredRoutes = selectedRoute ? routes.filter(r => r.id === selectedRoute) : routes;
     const activeShuttles = shuttles.filter(s => s.tracking && s.currentLatitude);
@@ -355,6 +376,48 @@ export default function TransportMap() {
                                         <p className="text-xs mt-1">Driver: {selectedShuttle.driverName || 'N/A'}</p>
                                         {selectedShuttle.speed != null && (
                                             <p className="text-xs font-bold text-blue-600 mt-1">{Math.round(selectedShuttle.speed * 3.6)} km/h</p>
+                                        )}
+                                        {selectedShuttle.averageRating > 0 ? (
+                                            <p className="text-xs font-bold text-yellow-600 mt-1">⭐ {selectedShuttle.averageRating} ({selectedShuttle.totalRatings} reviews)</p>
+                                        ) : (
+                                            <p className="text-xs text-gray-500 mt-1">No ratings yet</p>
+                                        )}
+                                        
+                                        {!ratingForm ? (
+                                            <button 
+                                                onClick={() => setRatingForm(true)}
+                                                className="mt-2 w-full bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs py-1 px-2 rounded font-semibold transition"
+                                            >
+                                                Rate Driver
+                                            </button>
+                                        ) : (
+                                            <form onSubmit={handleRatingSubmit} className="mt-2 border-t pt-2">
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <span className="text-xs font-semibold">Stars:</span>
+                                                    <select 
+                                                        value={ratingValue} 
+                                                        onChange={(e) => setRatingValue(Number(e.target.value))}
+                                                        className="text-xs border rounded p-0.5"
+                                                    >
+                                                        <option value={5}>⭐⭐⭐⭐⭐</option>
+                                                        <option value={4}>⭐⭐⭐⭐</option>
+                                                        <option value={3}>⭐⭐⭐</option>
+                                                        <option value={2}>⭐⭐</option>
+                                                        <option value={1}>⭐</option>
+                                                    </select>
+                                                </div>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Comment (optional)" 
+                                                    className="w-full text-xs border rounded p-1 mb-1"
+                                                    value={ratingComment}
+                                                    onChange={(e) => setRatingComment(e.target.value)}
+                                                />
+                                                <div className="flex gap-1">
+                                                    <button type="submit" className="flex-1 bg-green-500 text-white text-xs py-1 rounded font-semibold">Submit</button>
+                                                    <button type="button" onClick={() => setRatingForm(false)} className="flex-1 bg-gray-200 text-gray-700 text-xs py-1 rounded font-semibold">Cancel</button>
+                                                </div>
+                                            </form>
                                         )}
                                     </div>
                                 </InfoWindow>

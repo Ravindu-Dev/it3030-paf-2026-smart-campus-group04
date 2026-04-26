@@ -26,6 +26,8 @@ public class ShuttleDto {
     private LocalDateTime lastLocationUpdate;
     private boolean isTracking;
     private String imageUrl;
+    private Double averageRating;
+    private Integer totalRatings;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private RouteDto route;

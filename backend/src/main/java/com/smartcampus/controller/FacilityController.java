@@ -14,6 +14,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 
 /**
@@ -35,6 +38,7 @@ import java.util.List;
 @RequestMapping("/facilities")
 public class FacilityController {
 
+        private static final Logger logger = LoggerFactory.getLogger(FacilityController.class);
         private final FacilityService facilityService;
 
         public FacilityController(FacilityService facilityService) {
@@ -59,6 +63,7 @@ public class FacilityController {
                         @RequestParam(name = "minCapacity", required = false) Integer minCapacity,
                         @RequestParam(name = "search", required = false) String search) {
 
+                logger.info("Fetching facilities with filters: type={}, status={}, location={}, search={}", type, status, location, search);
                 List<FacilityDto> facilities = facilityService.getAllFacilities(
                                 type, status, location, minCapacity, search);
 
@@ -72,6 +77,7 @@ public class FacilityController {
         @GetMapping("/{id}")
         public ResponseEntity<ApiResponse<FacilityDto>> getFacilityById(@PathVariable(name = "id") String id) {
 
+                logger.info("Fetching facility details for id: {}", id);
                 FacilityDto facility = facilityService.getFacilityById(id);
 
                 return ResponseEntity.ok(
@@ -89,6 +95,7 @@ public class FacilityController {
                         Authentication authentication) {
 
                 String userId = authentication.getName();
+                logger.info("User {} is creating a new facility of type: {}", userId, request.getType());
                 FacilityDto created = facilityService.createFacility(request, userId);
 
                 return ResponseEntity
@@ -106,6 +113,7 @@ public class FacilityController {
                         @PathVariable(name = "id") String id,
                         @Valid @RequestBody UpdateFacilityRequest request) {
 
+                logger.info("Updating facility id: {}", id);
                 FacilityDto updated = facilityService.updateFacility(id, request);
 
                 return ResponseEntity.ok(
@@ -120,6 +128,7 @@ public class FacilityController {
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
         public ResponseEntity<ApiResponse<Void>> deleteFacility(@PathVariable(name = "id") String id) {
 
+                logger.info("Deleting facility id: {}", id);
                 facilityService.deleteFacility(id);
 
                 return ResponseEntity.ok(

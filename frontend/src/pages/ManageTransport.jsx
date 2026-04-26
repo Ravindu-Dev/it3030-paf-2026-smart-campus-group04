@@ -13,8 +13,35 @@ export default function ManageTransport() {
     const [visibleShuttles, setVisibleShuttles] = useState(6);
     const [visibleRoutes, setVisibleRoutes] = useState(6);
 
+    const [viewRatingsShuttle, setViewRatingsShuttle] = useState(null);
+    const [shuttleRatings, setShuttleRatings] = useState([]);
+    const [loadingRatings, setLoadingRatings] = useState(false);
+
     const [shuttleForm, setShuttleForm] = useState({ name: '', plateNumber: '', driverName: '', driverPhone: '', routeId: '', imageUrl: '' });
     const [routeForm, setRouteForm] = useState({ name: '', description: '', color: '#3b82f6', stops: [], schedule: [] });
+    const [formErrors, setFormErrors] = useState({});
+
+    const validateShuttleForm = () => {
+        const errors = {};
+        if (!shuttleForm.name || shuttleForm.name.trim().length < 2) errors.name = 'Shuttle name is required (min 2 chars)';
+        else if (shuttleForm.name.length > 100) errors.name = 'Name must not exceed 100 characters';
+        if (!shuttleForm.plateNumber || shuttleForm.plateNumber.trim().length < 2) errors.plateNumber = 'Plate number is required (min 2 chars)';
+        else if (shuttleForm.plateNumber.length > 20) errors.plateNumber = 'Plate number must not exceed 20 characters';
+        if (shuttleForm.driverPhone && !/^$|^[0-9+\-\s()]{7,20}$/.test(shuttleForm.driverPhone)) errors.driverPhone = 'Enter a valid phone number';
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const validateRouteForm = () => {
+        const errors = {};
+        if (!routeForm.name || routeForm.name.trim().length < 2) errors.name = 'Route name is required (min 2 chars)';
+        else if (routeForm.name.length > 100) errors.name = 'Name must not exceed 100 characters';
+        if (routeForm.description && routeForm.description.length > 300) errors.description = 'Description must not exceed 300 characters';
+        if (routeForm.color && !/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(routeForm.color)) errors.color = 'Invalid hex color';
+        if (routeForm.stops && routeForm.stops.length > 0 && routeForm.stops.length < 2) errors.stops = 'A route needs at least 2 stops';
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -30,6 +57,7 @@ export default function ManageTransport() {
 
     const handleShuttleSubmit = async (e) => {
         e.preventDefault();
+        if (!validateShuttleForm()) { toast.error('Please fix the errors'); return; }
         try {
             if (editingShuttle) {
                 await transportService.updateShuttle(editingShuttle.id, shuttleForm);
@@ -38,12 +66,18 @@ export default function ManageTransport() {
                 await transportService.createShuttle(shuttleForm);
                 toast.success('Shuttle created');
             }
-            setShowModal(false); fetchData();
-        } catch (e) { toast.error('Failed'); }
+            setShowModal(false); setFormErrors({}); fetchData();
+        } catch (e) {
+            if (e.response?.data?.data && typeof e.response.data.data === 'object') {
+                setFormErrors(e.response.data.data);
+                toast.error('Validation failed — check highlighted fields');
+            } else { toast.error(e.response?.data?.message || 'Failed'); }
+        }
     };
 
     const handleRouteSubmit = async (e) => {
         e.preventDefault();
+        if (!validateRouteForm()) { toast.error('Please fix the errors'); return; }
         try {
             if (editingRoute) {
                 await transportService.updateRoute(editingRoute.id, routeForm);
@@ -52,8 +86,13 @@ export default function ManageTransport() {
                 await transportService.createRoute(routeForm);
                 toast.success('Route created');
             }
-            setShowModal(false); fetchData();
-        } catch (e) { toast.error('Failed'); }
+            setShowModal(false); setFormErrors({}); fetchData();
+        } catch (e) {
+            if (e.response?.data?.data && typeof e.response.data.data === 'object') {
+                setFormErrors(e.response.data.data);
+                toast.error('Validation failed — check highlighted fields');
+            } else { toast.error(e.response?.data?.message || 'Failed'); }
+        }
     };
 
     const deleteShuttle = async (id) => {
@@ -86,17 +125,32 @@ export default function ManageTransport() {
     const openNewShuttle = () => {
         setEditingShuttle(null);
         setShuttleForm({ name: '', plateNumber: '', driverName: '', driverPhone: '', routeId: '', imageUrl: '' });
+        setFormErrors({});
         setShowModal(true);
     };
 
     const openNewRoute = () => {
         setEditingRoute(null);
         setRouteForm({ name: '', description: '', color: '#3b82f6', stops: [], schedule: [] });
+        setFormErrors({});
         setShowModal(true);
     };
 
     const addStop = () => {
         setRouteForm({ ...routeForm, stops: [...routeForm.stops, { name: '', latitude: 7.2906, longitude: 80.6337, orderIndex: routeForm.stops.length }] });
+    };
+
+    const openRatingsModal = async (shuttle) => {
+        setViewRatingsShuttle(shuttle);
+        setLoadingRatings(true);
+        try {
+            const res = await transportService.getShuttleRatings(shuttle.id);
+            if (res.success) setShuttleRatings(res.data);
+        } catch (e) {
+            toast.error('Failed to load ratings');
+        } finally {
+            setLoadingRatings(false);
+        }
     };
 
     return (
@@ -180,6 +234,12 @@ export default function ManageTransport() {
                                         <div className="bg-slate-900/40 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-800/60 shadow-inner group-hover:border-slate-700/50 transition-colors">
                                             <p className="text-[10px] text-slate-500 uppercase font-black tracking-tighter mb-0.5">Primary Driver</p>
                                             <span className="text-slate-300 font-bold text-sm italic">{shuttle.driverName || 'None assigned'}</span>
+                                        </div>
+                                        <div className="bg-slate-900/40 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-800/60 shadow-inner hover:border-yellow-500/30 transition-colors cursor-pointer" onClick={() => openRatingsModal(shuttle)}>
+                                            <p className="text-[10px] text-slate-500 uppercase font-black tracking-tighter mb-0.5">Driver Rating</p>
+                                            <span className="text-yellow-500 font-bold text-sm">
+                                                {shuttle.averageRating > 0 ? `⭐ ${shuttle.averageRating} (${shuttle.totalRatings})` : 'No ratings yet'}
+                                            </span>
                                         </div>
                                         
                                         <div className={`px-4 py-2.5 rounded-2xl border flex items-center gap-3 transition-all duration-300 ${shuttle.tracking ? 'bg-green-500/5 border-green-500/20 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'bg-slate-900/40 border-slate-800 text-slate-500 shadow-inner'}`}>
@@ -347,22 +407,25 @@ export default function ManageTransport() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] uppercase font-black text-slate-500 ml-1 tracking-widest">Vehicle Identity</label>
-                                            <input className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all" placeholder="Shuttle Name *" required value={shuttleForm.name} onChange={e => setShuttleForm({ ...shuttleForm, name: e.target.value })} />
+                                            <input className={`w-full bg-slate-900/60 border rounded-2xl px-5 py-4 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all ${formErrors.name ? 'border-red-500/70 ring-1 ring-red-500/30' : 'border-slate-800'}`} placeholder="Shuttle Name *" required maxLength={100} value={shuttleForm.name} onChange={e => { setShuttleForm({ ...shuttleForm, name: e.target.value }); if (formErrors.name) setFormErrors(p => ({...p, name: ''})); }} />
+                                            {formErrors.name && <p className="text-red-400 text-xs mt-1 ml-1">{formErrors.name}</p>}
                                         </div>
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] uppercase font-black text-slate-500 ml-1 tracking-widest">Registration</label>
-                                            <input className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 uppercase text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all" placeholder="Plate Number *" required value={shuttleForm.plateNumber} onChange={e => setShuttleForm({ ...shuttleForm, plateNumber: e.target.value.toUpperCase() })} />
+                                            <input className={`w-full bg-slate-900/60 border rounded-2xl px-5 py-4 uppercase text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all ${formErrors.plateNumber ? 'border-red-500/70 ring-1 ring-red-500/30' : 'border-slate-800'}`} placeholder="Plate Number *" required maxLength={20} value={shuttleForm.plateNumber} onChange={e => { setShuttleForm({ ...shuttleForm, plateNumber: e.target.value.toUpperCase() }); if (formErrors.plateNumber) setFormErrors(p => ({...p, plateNumber: ''})); }} />
+                                            {formErrors.plateNumber && <p className="text-red-400 text-xs mt-1 ml-1">{formErrors.plateNumber}</p>}
                                         </div>
                                     </div>
                                     
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] uppercase font-black text-slate-500 ml-1 tracking-widest">Personnel</label>
-                                            <input className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all" placeholder="Driver Name" value={shuttleForm.driverName || ''} onChange={e => setShuttleForm({ ...shuttleForm, driverName: e.target.value })} />
+                                            <input className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all" placeholder="Driver Name" maxLength={100} value={shuttleForm.driverName || ''} onChange={e => setShuttleForm({ ...shuttleForm, driverName: e.target.value })} />
                                         </div>
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] uppercase font-black text-slate-500 ml-1 tracking-widest">Contact Uplink</label>
-                                            <input className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all" placeholder="Phone Number" value={shuttleForm.driverPhone || ''} onChange={e => setShuttleForm({ ...shuttleForm, driverPhone: e.target.value })} />
+                                            <input className={`w-full bg-slate-900/60 border rounded-2xl px-5 py-4 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all ${formErrors.driverPhone ? 'border-red-500/70 ring-1 ring-red-500/30' : 'border-slate-800'}`} placeholder="Phone Number" value={shuttleForm.driverPhone || ''} onChange={e => { setShuttleForm({ ...shuttleForm, driverPhone: e.target.value }); if (formErrors.driverPhone) setFormErrors(p => ({...p, driverPhone: ''})); }} />
+                                            {formErrors.driverPhone && <p className="text-red-400 text-xs mt-1 ml-1">{formErrors.driverPhone}</p>}
                                         </div>
                                     </div>
 
@@ -385,11 +448,16 @@ export default function ManageTransport() {
                                 <form onSubmit={handleRouteSubmit} className="space-y-5">
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] uppercase font-black text-slate-500 ml-1 tracking-widest">Corridor Designation</label>
-                                        <input className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all" placeholder="Route Name *" required value={routeForm.name} onChange={e => setRouteForm({ ...routeForm, name: e.target.value })} />
+                                        <input className={`w-full bg-slate-900/60 border rounded-2xl px-5 py-4 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all ${formErrors.name ? 'border-red-500/70 ring-1 ring-red-500/30' : 'border-slate-800'}`} placeholder="Route Name *" required maxLength={100} value={routeForm.name} onChange={e => { setRouteForm({ ...routeForm, name: e.target.value }); if (formErrors.name) setFormErrors(p => ({...p, name: ''})); }} />
+                                        {formErrors.name && <p className="text-red-400 text-xs mt-1 ml-1">{formErrors.name}</p>}
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-black text-slate-500 ml-1 tracking-widest">Route Metadata</label>
-                                        <input className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl px-5 py-4 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all" placeholder="Brief Description" value={routeForm.description || ''} onChange={e => setRouteForm({ ...routeForm, description: e.target.value })} />
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] uppercase font-black text-slate-500 ml-1 tracking-widest">Route Metadata</label>
+                                            <span className={`text-[10px] ${(routeForm.description?.length || 0) > 250 ? 'text-amber-400' : 'text-slate-600'}`}>{routeForm.description?.length || 0}/300</span>
+                                        </div>
+                                        <input className={`w-full bg-slate-900/60 border rounded-2xl px-5 py-4 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-inner transition-all ${formErrors.description ? 'border-red-500/70 ring-1 ring-red-500/30' : 'border-slate-800'}`} placeholder="Brief Description" maxLength={300} value={routeForm.description || ''} onChange={e => { setRouteForm({ ...routeForm, description: e.target.value }); if (formErrors.description) setFormErrors(p => ({...p, description: ''})); }} />
+                                        {formErrors.description && <p className="text-red-400 text-xs mt-1 ml-1">{formErrors.description}</p>}
                                     </div>
                                     
                                     <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-2xl flex items-center justify-between">
@@ -437,6 +505,35 @@ export default function ManageTransport() {
                                         </button>
                                     </div>
                                 </form>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Ratings Modal */}
+                {viewRatingsShuttle && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300">
+                        <div className="bg-slate-800/90 backdrop-blur-2xl rounded-[32px] border border-slate-700/50 p-10 w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-[0_0_50px_rgba(0,0,0,0.5)] relative animate-in zoom-in-95">
+                            <button onClick={() => setViewRatingsShuttle(null)} className="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                            </button>
+                            <h2 className="text-2xl font-black text-white mb-6">Ratings for {viewRatingsShuttle.name}</h2>
+                            {loadingRatings ? (
+                                <p className="text-slate-400">Loading ratings...</p>
+                            ) : shuttleRatings.length === 0 ? (
+                                <p className="text-slate-400">No ratings yet for this shuttle.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {shuttleRatings.map(rating => (
+                                        <div key={rating.id} className="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                                            <div className="flex justify-between mb-2">
+                                                <span className="text-yellow-500 font-bold">{'⭐'.repeat(rating.rating)}</span>
+                                                <span className="text-xs text-slate-500">{new Date(rating.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                            {rating.comment && <p className="text-sm text-slate-300 italic">"{rating.comment}"</p>}
+                                        </div>
+                                    ))}
+                                </div>
                             )}
                         </div>
                     </div>
