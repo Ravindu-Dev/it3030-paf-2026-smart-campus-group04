@@ -3,9 +3,17 @@ import { Link } from 'react-router-dom';
 import { getEvents } from '../services/eventService';
 import toast from 'react-hot-toast';
 
+const TYPE_OPTIONS = [
+    { value: 'EVENT', label: 'Event', color: 'bg-blue-500/10 text-blue-400' },
+    { value: 'VIVA', label: 'Viva', color: 'bg-purple-500/10 text-purple-400' },
+    { value: 'LAB', label: 'Lab', color: 'bg-orange-500/10 text-orange-400' },
+    { value: 'MEETING', label: 'Meeting', color: 'bg-pink-500/10 text-pink-400' },
+];
+
 export default function Events() {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [filterType, setFilterType] = useState('ALL');
 
     useEffect(() => {
         fetchEvents();
@@ -22,6 +30,8 @@ export default function Events() {
             setLoading(false);
         }
     };
+
+    const filteredEvents = events.filter(e => filterType === 'ALL' || e.type === filterType);
 
     return (
         <div className="min-h-screen bg-slate-900 relative overflow-hidden">
@@ -51,6 +61,26 @@ export default function Events() {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pb-16">
+                
+                {/* Filters */}
+                <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
+                    <button 
+                        onClick={() => setFilterType('ALL')}
+                        className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all border ${filterType === 'ALL' ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20' : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+                    >
+                        All Activities
+                    </button>
+                    {TYPE_OPTIONS.map(opt => (
+                        <button 
+                            key={opt.value}
+                            onClick={() => setFilterType(opt.value)}
+                            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all border ${filterType === opt.value ? 'bg-white border-white text-slate-900 shadow-xl' : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+                            style={filterType === opt.value ? { backgroundColor: opt.value === 'EVENT' ? '#3b82f6' : opt.value === 'VIVA' ? '#a855f7' : opt.value === 'LAB' ? '#f97316' : '#ec4899', borderColor: 'transparent', color: 'white' } : {}}
+                        >
+                            {opt.label}
+                        </button>
+                    ))}
+                </div>
 
                 {loading ? (
                     <div className="flex justify-center items-center py-24">
@@ -64,7 +94,7 @@ export default function Events() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {events.map(event => (
+                        {filteredEvents.map(event => (
                             <EventCard key={event.id} event={event} />
                         ))}
                     </div>
@@ -92,10 +122,16 @@ function EventCard({ event }) {
                     alt={event.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1 backdrop-blur-md text-white text-xs font-bold rounded-lg uppercase tracking-wider ${event.status === 'ONGOING' ? 'bg-emerald-600/90' : 'bg-blue-600/90'
-                        }`}>
+                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                    <span className={`px-3 py-1 backdrop-blur-md text-white text-[10px] font-black rounded-lg uppercase tracking-widest ${event.status === 'ONGOING' ? 'bg-emerald-600/90' : 'bg-blue-600/90'}`}>
                         {event.status}
+                    </span>
+                    <span className={`px-3 py-1 backdrop-blur-md text-white text-[10px] font-black rounded-lg uppercase tracking-widest ${
+                        event.type === 'VIVA' ? 'bg-purple-600/90' : 
+                        event.type === 'LAB' ? 'bg-orange-600/90' : 
+                        event.type === 'MEETING' ? 'bg-pink-600/90' : 'bg-blue-500/90'
+                    }`}>
+                        {event.type}
                     </span>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60"></div>

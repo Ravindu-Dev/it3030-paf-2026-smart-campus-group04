@@ -60,8 +60,14 @@ export default function EventCalendarPage() {
                     {dayEvents.map(event => {
                         let colorClass = 'bg-blue-600/10 text-blue-400 border-blue-500/20 hover:bg-blue-600/20';
 
-                        if (event.status === 'COMPLETED') {
-                            colorClass = 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20';
+                        if (event.type === 'VIVA') {
+                            colorClass = 'bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20';
+                        } else if (event.type === 'LAB') {
+                            colorClass = 'bg-orange-500/10 text-orange-400 border-orange-500/20 hover:bg-orange-500/20';
+                        } else if (event.type === 'MEETING') {
+                            colorClass = 'bg-pink-500/10 text-pink-400 border-pink-500/20 hover:bg-pink-500/20';
+                        } else if (event.status === 'COMPLETED') {
+                            colorClass = 'bg-slate-500/10 text-slate-400 border-slate-500/20 hover:bg-slate-500/20';
                         } else if (event.status === 'ONGOING') {
                             colorClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20';
                         }
@@ -71,7 +77,7 @@ export default function EventCalendarPage() {
                                 key={event.id}
                                 to={`/events/${event.id}`}
                                 className={`block text-[10px] p-1 border rounded transition-colors truncate ${colorClass}`}
-                                title={event.title}
+                                title={`[${event.type}] ${event.title}`}
                             >
                                 {event.startTime.substring(0, 5)} {event.title}
                             </Link>

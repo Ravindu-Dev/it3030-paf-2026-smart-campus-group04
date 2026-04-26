@@ -7,6 +7,8 @@ import com.smartcampus.repository.EventRegistrationRepository;
 import com.smartcampus.repository.EventRepository;
 import com.smartcampus.service.EventService;
 import com.smartcampus.service.NotificationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 @Service
 public class EventServiceImpl implements EventService {
 
+    private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
+
     private final EventRepository eventRepository;
     private final EventRegistrationRepository registrationRepository;
     private final NotificationService notificationService;
@@ -35,11 +39,11 @@ public class EventServiceImpl implements EventService {
     }
 
     private User getCurrentUser() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof User) {
-            return (User) principal;
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
+            return null;
         }
-        return null; // Should not happen with secured endpoints
+        return (User) auth.getPrincipal();
     }
 
     @Override
@@ -73,10 +77,13 @@ public class EventServiceImpl implements EventService {
             throw new ResourceNotFoundException("Event", "id", eventId);
         }
 
-        // Notify participants before deletion? The requirement says "Admin cancels
-        // event".
-        // Usually delete = cancel in this context.
+        // 1. Cancel and notify first
         cancelEvent(eventId);
+
+        // 2. Cleanup registrations (Fix for orphaned records)
+        registrationRepository.deleteByEventId(eventId);
+
+        // 3. Delete the event itself
         eventRepository.deleteById(eventId);
     }
 
@@ -108,23 +115,31 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<EventDto> getAllEvents(boolean includePast) {
         User user = getCurrentUser();
-        return eventRepository.findAll().stream()
-                .filter(e -> {
-                    EventStatus resolved = resolveStatus(e);
-                    if (includePast) {
-                        return resolved != EventStatus.CANCELLED;
-                    }
-                    return resolved == EventStatus.UPCOMING || resolved == EventStatus.ONGOING;
-                })
-                .map(e -> {
-                    EventDto dto = mapToDto(e);
-                    if (user != null) {
-                        dto.setRegistered(
-                                registrationRepository.findByEventIdAndUserId(e.getId(), user.getId()).isPresent());
-                    }
-                    return dto;
-                })
-                .collect(Collectors.toList());
+        List<Event> events;
+        
+        if (includePast) {
+            // Optimization: Fetch all and filter out only CANCELLED
+            events = eventRepository.findAll();
+            return events.stream()
+                    .filter(e -> resolveStatus(e) != EventStatus.CANCELLED)
+                    .map(e -> mapToDtoWithRegistration(e, user))
+                    .collect(Collectors.toList());
+        } else {
+            // Fetch only non-cancelled events and filter out COMPLETED based on resolved status
+            events = eventRepository.findByStatusIn(List.of(EventStatus.UPCOMING, EventStatus.ONGOING));
+            return events.stream()
+                    .filter(e -> resolveStatus(e) != EventStatus.COMPLETED)
+                    .map(e -> mapToDtoWithRegistration(e, user))
+                    .collect(Collectors.toList());
+        }
+    }
+
+    private EventDto mapToDtoWithRegistration(Event e, User user) {
+        EventDto dto = mapToDto(e);
+        if (user != null) {
+            dto.setRegistered(registrationRepository.findByEventIdAndUserId(e.getId(), user.getId()).isPresent());
+        }
+        return dto;
     }
 
     @Override
@@ -233,7 +248,8 @@ public class EventServiceImpl implements EventService {
     @Override
     public void sendEventReminders() {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
-        List<Event> upcomingEvents = eventRepository.findByStatus(EventStatus.UPCOMING);
+        // Optimization: Only fetch upcoming events that haven't had reminders sent yet
+        List<Event> upcomingEvents = eventRepository.findByStatusAndReminderSentFalse(EventStatus.UPCOMING);
 
         for (Event event : upcomingEvents) {
             if (event.getEventDate().isEqual(tomorrow)) {
@@ -245,6 +261,11 @@ public class EventServiceImpl implements EventService {
                                     + event.getStartTime() + ".",
                             NotificationType.EVENT_REMINDER);
                 }
+                
+                // Set flag to prevent duplicate notifications (Fix for spam error)
+                event.setReminderSent(true);
+                eventRepository.save(event);
+                logger.info("Sent event reminders for event: {}", event.getId());
             }
         }
     }
@@ -261,6 +282,7 @@ public class EventServiceImpl implements EventService {
         dto.setCapacity(event.getCapacity());
         dto.setParticipantCount(event.getParticipantCount());
         dto.setImageUrl(event.getImageUrl());
+        dto.setType(event.getType());
         dto.setStatus(resolveStatus(event));
         dto.setCreatedBy(event.getCreatedBy());
         dto.setCreatedAt(event.getCreatedAt());
@@ -276,6 +298,9 @@ public class EventServiceImpl implements EventService {
         event.setEndTime(dto.getEndTime());
         event.setCapacity(dto.getCapacity());
         event.setImageUrl(dto.getImageUrl());
+        if (dto.getType() != null) {
+            event.setType(dto.getType());
+        }
         if (dto.getStatus() != null) {
             event.setStatus(dto.getStatus());
         }

@@ -71,7 +71,10 @@ export default function EventDetail() {
     });
 
     const isFull = event.participantCount >= event.capacity;
-    const isOverdue = event.status === 'COMPLETED';
+    
+    // Improved check: Event is overdue if status is COMPLETED OR if current time is past event end time
+    const eventEndTime = new Date(`${event.eventDate}T${event.endTime}`);
+    const isOverdue = event.status === 'COMPLETED' || new Date() > eventEndTime;
 
     return (
         <div className="min-h-screen bg-slate-900 pt-28 pb-12 px-4 sm:px-6 lg:px-8">

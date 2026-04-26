@@ -16,4 +16,5 @@ public interface EventRegistrationRepository extends MongoRepository<EventRegist
     List<EventRegistration> findByEventId(String eventId);
     Optional<EventRegistration> findByEventIdAndUserId(String eventId, String userId);
     long countByEventId(String eventId);
+    void deleteByEventId(String eventId);
 }
