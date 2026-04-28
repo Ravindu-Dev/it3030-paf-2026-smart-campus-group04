@@ -1,6 +1,6 @@
 # 🏫 Smart Campus Operations Hub
 
-A comprehensive full-stack web application for managing smart campus operations — built as a university group project for **IT3030 — Platform-based Application Framework (PAF)**.
+A comprehensive full-stack web application for managing smart campus operations — built as a university group project for **IT3030 — Programming Applications and Frameworks (PAF)**.
 
 **Group:** 04
 
