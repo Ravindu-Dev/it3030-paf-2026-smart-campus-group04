@@ -6,10 +6,10 @@ A comprehensive full-stack web application for managing smart campus operations 
 
 | Member | Role | Modules |
 |--------|------|---------|
-| [Your Full Name] | Group Leader (Member 1) | Authentication & Authorization, Maintenance Ticketing, AI Chatbot & Recommendations, Lost & Found, Campus Map, UI Layout |
-| [Member 2 Full Name] | Member 2 | Facility Booking, QR Code Check-In/Out, Attendance Management, Role-Based Dashboards |
-| [Member 3 Full Name] | Member 3 | Facilities & Assets Catalogue, Real-Time Shuttle Tracking |
-| [Member 4 Full Name] | Member 4 | Event Management, Real-Time Notifications, System Maintenance Mode |
+| SIYAMBALAGODA R B | Group Leader (Member 1) | Authentication & Authorization, Maintenance Ticketing, AI Chatbot & Recommendations, Lost & Found, Campus Map, UI Layout |
+| SAMARASEKARA E M M S B | Member 2 | Facility Booking, QR Code Check-In/Out, Attendance Management, Role-Based Dashboards |
+| MALHENGODA I U | Member 3 | Facilities & Assets Catalogue, Real-Time Shuttle Tracking |
+| EKANAYAKE E M U C B | Member 4 | Event Management, Real-Time Notifications, System Maintenance Mode |
 
 ---
 
